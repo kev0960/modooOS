@@ -27,12 +27,12 @@ SECTIONS
   . = ALIGN(0x1000);
   _boot_end = .;
 
-  . += 0xFFFF800000004000;
+  . += 0xFFFFFFFF80000000;
   _kernel_virtual_start = .;
   .text : AT(_boot_end)
   {
-    *(.multiboot)
     *(.text)
+    *(.multiboot)
   }
 
   . = ALIGN(0x1000);

@@ -1,4 +1,5 @@
 #include "kernel_paging.h"
+#include "gdt.h"
 #include "multiboot2.h"
 
 .set MULTIBOOT_HEADER_LENGTH, header_end - header_start
@@ -54,47 +55,30 @@ _start:
   cmp $0x36d76289, %eax
   jne multiboot_error
   jmp multiboot_success
+
 multiboot_error:
   movl $0x4641494C, %eax
   movl $0xb8000, %ebx
   movb %al, (%ebx)
-
   hlt
-multiboot_success:
 
+multiboot_success:
   movl $TMP_STACK + KERNEL_BOOT_STACK_SIZE, %esp
 
   # Start initializing the PML4.
   movl $PDP_HIGH, %eax
   or $(PAGE_ENTRY_PRESENT | PAGE_ENTRY_RW), %eax
-  movl %eax, PML4 + (PML4_ADDR_TO_ENTRY_INDEX(KERNEL_VIRTUAL_START) * PAGE_TABLE_SIZE)
+  movl %eax, PML4 + (PML4_ADDR_TO_ENTRY_INDEX(KERNEL_VIRTUAL_START) * PAGE_ENTRY_SIZE)
 
   movl $PDP_LOW, %eax
   or $(PAGE_ENTRY_PRESENT | PAGE_ENTRY_RW), %eax
-  movl %eax, PML4 + (PML4_ADDR_TO_ENTRY_INDEX(KERNEL_PHYSICAL_START) * PAGE_TABLE_SIZE)
+  movl %eax, PML4 + (PML4_ADDR_TO_ENTRY_INDEX(KERNEL_PHYSICAL_START) * PAGE_ENTRY_SIZE)
 
   # Now intialize PDP
   movl $0, %eax
   or $(PAGE_ENTRY_PRESENT | PAGE_ENTRY_RW | PAGE_PAGE_SIZE), %eax
-  movl %eax, PDP_HIGH + (PDP_ADDR_TO_ENTRY_INDEX(KERNEL_VIRTUAL_START) * PAGE_TABLE_SIZE)
-  movl %eax, PDP_LOW + (PDP_ADDR_TO_ENTRY_INDEX(KERNEL_PHYSICAL_START) * PAGE_TABLE_SIZE)
-
-/*
-  # Now initialize PD
-  movl $0, %ebx
-  movl $NUM_PAGE_ENTRY, %ecx
-
-init_pd:
-  movl $TWO_MB, %eax
-  mul %ebx # Multiply 2MB with ebx and store the result to eax
-
-  or $(PAGE_ENTRY_PRESENT | PAGE_ENTRY_RW | PAGE_PAGE_SIZE), %eax
-  movl %eax, PD(, %ebx, PAGE_ENTRY_SIZE)
-  inc %ebx
-
-  cmp %ebx, %ecx
-  jne init_pd
-*/
+  movl %eax, PDP_HIGH + (PDP_ADDR_TO_ENTRY_INDEX(KERNEL_VIRTUAL_START) * PAGE_ENTRY_SIZE)
+  movl %eax, PDP_LOW + (PDP_ADDR_TO_ENTRY_INDEX(KERNEL_PHYSICAL_START) * PAGE_ENTRY_SIZE)
 
   # When done, set CR3 register.
   movl $PML4, %eax
@@ -109,11 +93,16 @@ init_pd:
   or $MSR_EFER_LME, %eax
   wrmsr
 
-  movl $KERNEL_CR0, %eax
+  movl %cr0, %eax
+  or $CONTROL_REGISTER0_PAGE, %eax
+#  movl $KERNEL_CR0, %eax
   movl %eax, %cr0
+
+  movl $0x2f4b2f4f, (0xb8000)
 
   lgdt gdt_ptr
 
+  # Our Code Descriptor is the second one. (+8 offset from GDT)
   ljmp $0x8, $_start64
 
   cli
@@ -124,22 +113,24 @@ init_pd:
 .global _start64
 .type _start64, @function
 _start64:
-        // Setup segment selectors
-        movw $0, %ax
-        movw %ax, %ds
-        movw %ax, %es
-        movw %ax, %fs
-        movw %ax, %gs
-        movw %ax, %ss
+  // Setup segment selectors
+  movw $0, %ax
+  movw %ax, %ds
+  movw %ax, %es
+  movw %ax, %fs
+  movw %ax, %gs
+  movw %ax, %ss
 
-        // should never reach here
+  movq $0x1, %rax
 
   movb $0x5B, %al
   movl $0xb8000, %ebx
   movb %al, (%ebx)
 
-        cli
-        hlt
+  call KernelMain
+  cli
+  hlt
+
 1:
-        jmp 1b
+  jmp 1b
 
