@@ -1,6 +1,8 @@
 #ifndef VGA_OUTPUT_H
 #define VGA_OUTPUT_H
 
+#include "string_view.h"
+
 namespace Kernel {
 class VGAOutput {
  public:
@@ -27,7 +29,7 @@ class VGAOutput {
 
   explicit VGAOutput(int num_rows = 80, int num_cols = 25)
       : num_rows_(num_rows), num_cols_(num_cols) {}
-  void PrintString(const char* s, Color color = White);
+  void PrintString(string_view s, Color color = White);
 
  private:
   const int num_rows_;
