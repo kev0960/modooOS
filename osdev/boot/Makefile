@@ -5,7 +5,7 @@ CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
 OBJS := boot.o
-OBJS += kmain.o vga_output.o
+OBJS += kmain.o 
 
 DFILES = $(patsubst %.o,%.d,$(OBJS))
 
