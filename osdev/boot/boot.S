@@ -127,6 +127,7 @@ _start64:
   movl $0xb8000, %ebx
   movb %al, (%ebx)
 
+  call _init
   call KernelMain
   cli
   hlt

@@ -32,7 +32,6 @@ SECTIONS
   .text : AT(_boot_end)
   {
     *(.text)
-    *(.multiboot)
   }
 
   . = ALIGN(0x1000);
@@ -40,6 +39,7 @@ SECTIONS
   .rodata : AT ( (LOADADDR (.text) + SIZEOF (.text) + 0xFFF) & 0xFFFFFFFFFFFFF000 )
   {
     *(.rodata)
+    *(.rodata.*) /* For linking crtbegin.o */
   }
 
   . = ALIGN(0x1000);

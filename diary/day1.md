@@ -30,8 +30,11 @@ Suppose you created a build-gcc dir.
 ```
 cd build-gcc
 ../gcc-9.1.0/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c,c++ --without-headers
-make all-gcc
-make all-target-libgcc
+
+# We need to create libgcc in mcmodel=kernel and no-red-zone
+make all-target-libgcc CFLAGS_FOR_TARGET='-g -O2 -mcmodel=kernel -mno-red-zone' || true
+sed -i 's/PICFLAG/DISABLED_PICFLAG/g' $TARGET/libgcc/Makefile
+make all-target-libgcc CFLAGS_FOR_TARGET='-g -O2 -mcmodel=kernel -mno-red-zone'
 make install-gcc
 make install-target-libgcc
 ```
