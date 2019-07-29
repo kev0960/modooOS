@@ -1,3 +1,6 @@
+#ifndef ALGORITHM_H
+#define ALGORITHM_H
+
 namespace Kernel {
 
 // Must return a when a and b are equal.
@@ -11,3 +14,5 @@ constexpr const T& min(const T& a, const T& b) {
   return a <= b ? a : b;
 }
 }  // namespace Kernel
+
+#endif

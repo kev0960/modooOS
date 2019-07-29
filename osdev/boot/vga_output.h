@@ -26,7 +26,7 @@ enum VGAColor {
   White = 15,
 };
 
-template <size_t NUM_ROWS = 80, size_t NUM_COLS = 25>
+template <size_t NUM_ROWS = 25, size_t NUM_COLS = 80>
 class VGAOutput {
  public:
   explicit VGAOutput()
@@ -56,6 +56,11 @@ class VGAOutput {
         vga[i * num_cols_ + j] = text_buffer_[i][j];
       }
     }
+  }
+
+  VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(string_view s) {
+    PrintString(s);
+    return (*this);
   }
 
  private:
@@ -94,6 +99,8 @@ class VGAOutput {
     current_row_++;
   }
 };
+
+extern VGAOutput<> vga_output;
 }  // namespace Kernel
 
 #endif

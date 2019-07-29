@@ -4,8 +4,8 @@ SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wex
 CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
-OBJS := boot.o
-OBJS += kmain.o
+OBJS := boot.o interrupt_asm.o
+OBJS += kmain.o string_util.o interrupt.o
 
 CRTI_OBJ = crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
@@ -19,9 +19,6 @@ all: kernel
 
 kernel: $(OBJ_LINK_LIST) kernel.ld Makefile
 	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o $@ $(OBJ_LINK_LIST)
-
-#kernel: $(OBJS) kernel.ld Makefile
-#	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o $@ $(OBJS)
 
 clean:
 	find -name "*~" -delete
