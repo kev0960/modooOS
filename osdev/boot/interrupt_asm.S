@@ -10,13 +10,13 @@
 _cpu_ih\int_num:
   cli // Clear interrupt.
 
-  push $0 // Push dummy error code.
+  pushq $0 // Push dummy error code.
 
   // Push interrupt index.
-  push $\int_num
+  pushq $\int_num
   push %rbp
 
-  jmp cpu_ih_common_handler
+  jmp cpu_ih_common_handler_no_err_code
 .endm
 
 .macro create_cpu_ih int_num
@@ -26,7 +26,7 @@ _cpu_ih\int_num:
   cli // Clear interrupt.
 
   // Push interrupt index.
-  push $\int_num
+  pushq $\int_num
   push %rbp
 
   jmp cpu_ih_common_handler
@@ -65,9 +65,20 @@ create_cpu_ih_no_err_code 29 // Reserved; DO NOT USE
 create_cpu_ih_no_err_code 30 // Reserved; DO NOT USE
 create_cpu_ih_no_err_code 31 // Reserved; DO NOT USE
 
+cpu_ih_common_handler_no_err_code:
+   movq %rsp, %rdi
+   call CPUInterruptHandler
+
+   // Pop interrupt index, rbp and dummy error code
+   addq $24, %rsp
+   iretq
+
 cpu_ih_common_handler:
+   movq %rsp, %rdi
    call CPUInterruptHandler
 
    // Pop interrupt index and rbp
    addq $16, %rsp
    iretq
+
+

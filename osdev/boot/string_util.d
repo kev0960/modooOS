@@ -1,1 +1,1 @@
-string_util.o: string_util.cc string_util.h
+string_util.o: string_util.cc string_util.h algorithm.h types.h stdint.h

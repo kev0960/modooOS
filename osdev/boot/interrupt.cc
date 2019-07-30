@@ -65,11 +65,12 @@ void IDTManager::InitializeIDT() {
   idt_ptr.limit = sizeof(IDTEntry) * 256 - 1;
   idt_ptr.base_addr = reinterpret_cast<uint64_t>(idt_entries);
 
-  asm volatile ("movq %0, %%rax\n\t"
+  asm volatile(
+      "movq %0, %%rax\n\t"
       "lidt (%%rax)"
       :
-      :"r"(&idt_ptr)
-      :"rax");
+      : "r"(&idt_ptr)
+      : "rax");
 }
 
 static const char* kCPUExceptionErrorMessages[] = {
@@ -88,7 +89,15 @@ static const char* kCPUExceptionErrorMessages[] = {
 
 }  // namespace Kernel
 
-void CPUInterruptHandler(CPUInterruptHandlerArgs args) {
-  Kernel::vga_output
-      << Kernel::kCPUExceptionErrorMessages[args.interrupt_index];
+void CPUInterruptHandler(CPUInterruptHandlerArgs* args) {
+  if (args->interrupt_index < sizeof(Kernel::kCPUExceptionErrorMessages)) {
+    Kernel::vga_output
+        << Kernel::kCPUExceptionErrorMessages[args->interrupt_index];
+    Kernel::vga_output << " rip : " << args->rip;
+    Kernel::vga_output << " rsp : " << args->rsp;
+    Kernel::vga_output << " rbp : " << args->rbp;
+    Kernel::vga_output << "error code : " << args->error_code;
+  } else {
+    Kernel::vga_output << "Error happened!";
+  }
 }

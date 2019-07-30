@@ -3,6 +3,7 @@
 
 #include "algorithm.h"
 #include "string_view.h"
+#include "type_traits.h"
 
 namespace Kernel {
 
@@ -60,6 +61,15 @@ class VGAOutput {
 
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(string_view s) {
     PrintString(s);
+    return (*this);
+  }
+
+  template <typename Int, enable_if_t<is_integral<Int>::value, int>* = nullptr>
+  VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(Int s) {
+    char temp[20];
+    ntoa(temp, 20, s, 16);
+    PrintString(temp);
+
     return (*this);
   }
 

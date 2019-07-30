@@ -89,7 +89,7 @@ struct CPUInterruptHandlerArgs {
 // CPU Exception handler (should be outside of the namespace to be called from
 // assembly)
 extern "C" {
-void CPUInterruptHandler(CPUInterruptHandlerArgs args);
+void CPUInterruptHandler(CPUInterruptHandlerArgs* args);
 }
 
 #endif
