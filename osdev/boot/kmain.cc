@@ -22,16 +22,16 @@ void KernelMain() {
   Kernel::IDTManager idt_manager{};
   idt_manager.InitializeIDT();
 
+  asm volatile ("int $3");
+  asm volatile ("int $4");
+  asm volatile ("int $5");
+  asm volatile ("int $6");
+  asm volatile ("int $7");
+  asm volatile ("int $8");
+  asm volatile ("int $9");
   asm volatile ("int $10");
   asm volatile ("int $11");
   asm volatile ("int $12");
-  asm volatile ("int $13");
-  asm volatile ("int $14");
-  asm volatile ("int $15");
-  asm volatile ("int $16");
-  asm volatile ("int $17");
-  asm volatile ("int $18");
-  asm volatile ("int $19");
   while (1) {
   }
 }

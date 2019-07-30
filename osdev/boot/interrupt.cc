@@ -93,11 +93,15 @@ void CPUInterruptHandler(CPUInterruptHandlerArgs* args) {
   if (args->interrupt_index < sizeof(Kernel::kCPUExceptionErrorMessages)) {
     Kernel::vga_output
         << Kernel::kCPUExceptionErrorMessages[args->interrupt_index];
-    Kernel::vga_output << " rip : " << args->rip;
-    Kernel::vga_output << " rsp : " << args->rsp;
     Kernel::vga_output << " rbp : " << args->rbp;
+    Kernel::vga_output << " interrupt index : " << args->interrupt_index;
     Kernel::vga_output << "error code : " << args->error_code;
+    Kernel::vga_output << " cs : " << args->cs;
+    Kernel::vga_output << " rip : " << args->rip;
+    Kernel::vga_output << " rflags : " << args->rflags;
+    Kernel::vga_output << " rsp : " << args->rsp;
+    Kernel::vga_output << " ss : " << args->ss << "\n";
   } else {
-    Kernel::vga_output << "Error happened!";
+    Kernel::vga_output << "Error happened! \n";
   }
 }

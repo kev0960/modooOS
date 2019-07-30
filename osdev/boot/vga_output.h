@@ -31,7 +31,10 @@ template <size_t NUM_ROWS = 25, size_t NUM_COLS = 80>
 class VGAOutput {
  public:
   explicit VGAOutput()
-      : num_rows_(NUM_ROWS), num_cols_(NUM_COLS), current_row_(0) {
+      : num_rows_(NUM_ROWS),
+        num_cols_(NUM_COLS),
+        current_row_(0),
+        current_col_(0) {
     for (size_t i = 0; i < num_rows_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
         text_buffer_[i][j] = 0;
@@ -41,14 +44,26 @@ class VGAOutput {
 
   void PrintString(string_view s, VGAColor color = White) {
     while (!s.empty()) {
-      auto len = min(num_cols_, s.size());
-      auto first_num_col_chars = s.substr(0, len);
+      auto len = min(num_cols_ - current_col_, s.size());
+      size_t endline_or_col_chars = s.find_first_of('\n', 0, len);
+      bool endline_found = (endline_or_col_chars != npos);
+
+      if (endline_or_col_chars == npos) {
+        endline_or_col_chars = len;
+      }
+      auto first_num_col_chars = s.substr(0, endline_or_col_chars);
 
       PrintStringLineAtCursor(first_num_col_chars, color);
-      s.remove_prefix(len);
+
+      if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
+        current_row_++;
+        current_col_ = 0;
+      }
+
+      s.remove_prefix(min(endline_or_col_chars + 1, len));
     }
 
-    short* vga = reinterpret_cast<short*>(0xb8000);
+    auto vga = reinterpret_cast<uint16_t*>(0xb8000);
     for (size_t i = 0; i < current_row_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
         if (!text_buffer_[i][j]) {
@@ -78,8 +93,9 @@ class VGAOutput {
   const size_t num_cols_;
 
   size_t current_row_;
+  size_t current_col_;
 
-  short text_buffer_[NUM_ROWS][NUM_COLS];
+  uint16_t text_buffer_[NUM_ROWS][NUM_COLS];
 
   // Scroll the text buffer up.
   void ScrollTextBufferUp() {
@@ -95,18 +111,23 @@ class VGAOutput {
     }
   }
 
-  // Print the string at single line. Any string longer than num_cols will be
-  // truncated.
+  // Print the string at single line.
   void PrintStringLineAtCursor(string_view s, VGAColor color) {
     if (current_row_ == num_rows_) {
       ScrollTextBufferUp();
       current_row_--;
     }
 
-    for (size_t i = 0; i < min(s.size(), num_cols_); i++) {
-      text_buffer_[current_row_][i] = (s[i] | (color << 8));
+    size_t i;
+    for (i = current_col_; i < min(current_col_ + s.size(), num_cols_); i++) {
+      text_buffer_[current_row_][i] = (s[i - current_col_] | (color << 8));
     }
-    current_row_++;
+    current_col_ = i;
+
+    if (current_col_ == num_cols_) {
+      current_col_ = 0;
+      current_row_++;
+    }
   }
 };
 
