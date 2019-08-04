@@ -56,20 +56,31 @@ class VGAOutput {
       PrintStringLineAtCursor(first_num_col_chars, color);
 
       if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
+        // Fill remaining part as 0.
+        for (size_t i = current_col_; i < num_cols_; i++) {
+          text_buffer_[current_row_][i] = 0;
+        }
+
         current_row_++;
         current_col_ = 0;
       }
 
-      s.remove_prefix(min(endline_or_col_chars + 1, len));
+      if (endline_found) {
+        s.remove_prefix(min(endline_or_col_chars + 1, len));
+      } else {
+        s.remove_prefix(min(endline_or_col_chars, len));
+      }
     }
 
     auto vga = reinterpret_cast<uint16_t*>(0xb8000);
     for (size_t i = 0; i < current_row_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
-        if (!text_buffer_[i][j]) {
-          break;
-        }
         vga[i * num_cols_ + j] = text_buffer_[i][j];
+      }
+    }
+    if (current_col_ != 0) {
+      for (size_t i = 0; i < num_cols_; i++) {
+        vga[num_cols_ * current_row_ + i] = text_buffer_[current_row_][i];
       }
     }
   }

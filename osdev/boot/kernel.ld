@@ -33,6 +33,8 @@ SECTIONS
   {
     *(.text)
     *(.text.*)
+    *(.fini)
+    *(.init)
   }
 
   . = ALIGN(0x1000);

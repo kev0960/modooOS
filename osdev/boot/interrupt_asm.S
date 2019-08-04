@@ -67,7 +67,7 @@ create_cpu_ih_no_err_code 31 // Reserved; DO NOT USE
 
 cpu_ih_common_handler_no_err_code:
    movq %rsp, %rdi
-   call CPUInterruptHandler
+   call CPUInterruptHandlerAsm
 
    // Pop interrupt index, rbp and dummy error code
    addq $24, %rsp
@@ -75,10 +75,10 @@ cpu_ih_common_handler_no_err_code:
 
 cpu_ih_common_handler:
    movq %rsp, %rdi
-   call CPUInterruptHandler
+   call CPUInterruptHandlerAsm
 
    // Pop interrupt index and rbp
-   addq $16, %rsp
+   addq $24, %rsp
    iretq
 
 

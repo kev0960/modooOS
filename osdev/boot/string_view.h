@@ -27,7 +27,7 @@ class basic_string_view {
 
   constexpr void remove_prefix(size_t n) {
     str_ += n;
-    size_ -= n;
+    size_ -= min(n, size_);
   }
 
   constexpr bool empty() const { return size_ == 0; }

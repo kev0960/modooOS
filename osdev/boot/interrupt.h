@@ -34,7 +34,8 @@ class IDTManager {
  public:
   IDTManager() = default;
 
-  void InitializeIDT();
+  void InitializeIDTForCPUException();
+  void InitializeIDTForIRQ();
 };
 
 // Interrupt handlers; Defined in interrupt_asm.S
@@ -75,7 +76,24 @@ void _cpu_ih31();
 
 }  // namespace Kernel
 
+struct CPUInterruptHandlerArgsWithErrorCode {
+  uint64_t error_code;
+  uint64_t rip;
+  uint64_t cs;
+  uint64_t rflags;
+  uint64_t rsp;
+  uint64_t ss;
+} __attribute__((packed)) ;
+
 struct CPUInterruptHandlerArgs {
+  uint64_t rip;
+  uint64_t cs;
+  uint64_t rflags;
+  uint64_t rsp;
+  uint64_t ss;
+} __attribute__((packed)) ;
+
+struct CPUInterruptHandlerArgsAsm {
   uint64_t rbp;
   uint64_t interrupt_index;
   uint64_t error_code;
@@ -86,10 +104,10 @@ struct CPUInterruptHandlerArgs {
   uint64_t ss;
 } __attribute__((packed)) ;
 
+
 // CPU Exception handler (should be outside of the namespace to be called from
 // assembly)
 extern "C" {
-void CPUInterruptHandler(CPUInterruptHandlerArgs* args);
+void CPUInterruptHandlerAsm(CPUInterruptHandlerArgsAsm* args);
 }
-
 #endif

@@ -95,10 +95,9 @@ multiboot_success:
 
   movl %cr0, %eax
   or $CONTROL_REGISTER0_PAGE, %eax
-#  movl $KERNEL_CR0, %eax
   movl %eax, %cr0
 
-  movl $0x2f4b2f4f, (0xb8000)
+  #movl $0x2f4b2f4f, (0xb8000)
 
   lgdt gdt_ptr
 
@@ -125,7 +124,7 @@ _start64:
 
   movb $0x5B, %al
   movl $0xb8000, %ebx
-  movb %al, (%ebx)
+#  movb %al, (%ebx)
 
   call _init
   call KernelMain
