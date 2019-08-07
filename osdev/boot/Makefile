@@ -4,8 +4,8 @@ SHARED_FLAGS = -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wex
 CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
-OBJS := boot.o interrupt_asm.o
-OBJS += kmain.o string_util.o interrupt.o
+OBJS := boot.o
+OBJS += kmain.o string_util.o interrupt.o keyboard.o
 
 CRTI_OBJ = crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)

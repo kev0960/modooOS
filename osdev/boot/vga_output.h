@@ -99,6 +99,12 @@ class VGAOutput {
     return (*this);
   }
 
+  VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(char c) {
+    string_view s(&c, 1);
+    PrintString(s);
+    return (*this);
+  }
+
  private:
   const size_t num_rows_;
   const size_t num_cols_;

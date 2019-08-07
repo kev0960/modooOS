@@ -97,8 +97,6 @@ multiboot_success:
   or $CONTROL_REGISTER0_PAGE, %eax
   movl %eax, %cr0
 
-  #movl $0x2f4b2f4f, (0xb8000)
-
   lgdt gdt_ptr
 
   # Our Code Descriptor is the second one. (+8 offset from GDT)
@@ -122,10 +120,6 @@ _start64:
 
   movq $0x1, %rax
 
-  movb $0x5B, %al
-  movl $0xb8000, %ebx
-#  movb %al, (%ebx)
-
   call _init
   call KernelMain
   cli
@@ -133,4 +127,3 @@ _start64:
 
 1:
   jmp 1b
-

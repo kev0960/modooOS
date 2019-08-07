@@ -36,54 +36,8 @@ class IDTManager {
 
   void InitializeIDTForCPUException();
   void InitializeIDTForIRQ();
+  void LoadIDT();
 };
-
-// Interrupt handlers; Defined in interrupt_asm.S
-extern "C" {
-void _cpu_ih0();
-void _cpu_ih1();
-void _cpu_ih2();
-void _cpu_ih3();
-void _cpu_ih4();
-void _cpu_ih5();
-void _cpu_ih6();
-void _cpu_ih7();
-void _cpu_ih8();
-void _cpu_ih9();
-void _cpu_ih10();
-void _cpu_ih11();
-void _cpu_ih12();
-void _cpu_ih13();
-void _cpu_ih14();
-void _cpu_ih15();
-void _cpu_ih16();
-void _cpu_ih17();
-void _cpu_ih18();
-void _cpu_ih19();
-void _cpu_ih20();
-void _cpu_ih21();
-void _cpu_ih22();
-void _cpu_ih23();
-void _cpu_ih24();
-void _cpu_ih25();
-void _cpu_ih26();
-void _cpu_ih27();
-void _cpu_ih28();
-void _cpu_ih29();
-void _cpu_ih30();
-void _cpu_ih31();
-}
-
-}  // namespace Kernel
-
-struct CPUInterruptHandlerArgsWithErrorCode {
-  uint64_t error_code;
-  uint64_t rip;
-  uint64_t cs;
-  uint64_t rflags;
-  uint64_t rsp;
-  uint64_t ss;
-} __attribute__((packed)) ;
 
 struct CPUInterruptHandlerArgs {
   uint64_t rip;
@@ -93,21 +47,6 @@ struct CPUInterruptHandlerArgs {
   uint64_t ss;
 } __attribute__((packed)) ;
 
-struct CPUInterruptHandlerArgsAsm {
-  uint64_t rbp;
-  uint64_t interrupt_index;
-  uint64_t error_code;
-  uint64_t rip;
-  uint64_t cs;
-  uint64_t rflags;
-  uint64_t rsp;
-  uint64_t ss;
-} __attribute__((packed)) ;
+}  // namespace Kernel
 
-
-// CPU Exception handler (should be outside of the namespace to be called from
-// assembly)
-extern "C" {
-void CPUInterruptHandlerAsm(CPUInterruptHandlerArgsAsm* args);
-}
 #endif
