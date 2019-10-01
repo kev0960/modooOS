@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "timer.h"
 #include "vga_output.h"
 
 namespace Kernel {
@@ -99,8 +100,7 @@ KeyInfo ScanCodeToASCII(uint8_t scan_code) {
   if (scan_code <= 0x58) {
     return {static_cast<KEY_CODES>(kScanCodeToASCII[scan_code]), KEY_DOWN};
   } else if (0x81 <= scan_code && scan_code <= 0xD8) {
-    return {static_cast<KEY_CODES>(kScanCodeToASCII[scan_code - 0x80]),
-            KEY_UP};
+    return {static_cast<KEY_CODES>(kScanCodeToASCII[scan_code - 0x80]), KEY_UP};
   }
   return {CODE_NOT_EXIST, KEY_ERROR};
 }
@@ -110,16 +110,27 @@ PS2Keyboard ps2_keyboard;
 
 void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
   KeyInfo key_info = ScanCodeToASCII(scan_code);
+  auto& key_press_info = key_press_list[key_info.key];
+
   if (key_info.action == KEY_DOWN) {
-    vga_output << "<KEY DOWN>";
+    if (key_press_info.time_down == 0) {
+      key_press_info.time_down = pic_timer.GetClock();
+    } else {
+      uint64_t first_key_pressed_time = key_press_info.time_down;
+      if (pic_timer.GetClock() - first_key_pressed_time < 40) {
+        return;
+      }
+    }
   } else {
-    vga_output << "<KEY UP>";
+    key_press_info.time_down = 0;
   }
 
-  if (key_info.key < 128) {
-    vga_output << static_cast<char>(key_info.key);
-  } else {
-    vga_output << static_cast<int>(key_info.key);
+  if (key_info.action == KEY_DOWN) {
+    if (key_info.key < 128) {
+      vga_output << static_cast<char>(key_info.key);
+    } else {
+      vga_output << static_cast<int>(key_info.key);
+    }
   }
 }
 }  // namespace Kernel

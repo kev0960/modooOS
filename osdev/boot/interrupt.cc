@@ -197,7 +197,7 @@ void IDTManager::LoadIDT() {
   asm volatile("sti");
 }
 void IDTManager::InitializeIDTForIRQ() {
-  pic_timer.InstallPITimer(100);
+  pic_timer.InstallPITimer();
 
   InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);

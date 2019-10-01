@@ -9,10 +9,11 @@ void PITimer::TimerInterruptHandler() {
     timer_tick_lower_ = 0;
     timer_tick_upper_++;
   }
+  timer_tick_lower_++;
 }
 
-void PITimer::InstallPITimer(uint32_t hz) const {
-  const uint16_t divisor = 1193180 / hz;
+void PITimer::InstallPITimer() const {
+  const uint16_t divisor = 1193180 / PITIMER_HZ;
 
   outb(PIT_CONTROL, 0x36);
   outb(PIT_1, divisor & 0xFF);  // Lower 1 byte

@@ -45,7 +45,8 @@ enum KEY_CODES {
   KEYPAD_DOT,
   F11,
   F12,
-  CODE_NOT_EXIST
+  CODE_NOT_EXIST,
+  NUM_KEY_CODES  // Must be the last enum item.
 };
 
 enum KEY_ACTION { KEY_DOWN, KEY_UP, KEY_ERROR };
@@ -55,11 +56,23 @@ struct KeyInfo {
   KEY_ACTION action;
 };
 
+struct KeyPressTracker {
+  // Last time that the key press was DOWN.
+  uint64_t time_down;
+};
+
 class PS2Keyboard {
  public:
-  PS2Keyboard() = default;
+  PS2Keyboard() {
+    for (size_t i = 0; i < NUM_KEY_CODES; i++) {
+      key_press_list[i].time_down = 0;
+    }
+  }
 
   void MainKeyboardHandler(uint8_t scan_code);
+
+ private:
+  KeyPressTracker key_press_list[NUM_KEY_CODES];
 };
 
 extern PS2Keyboard ps2_keyboard;

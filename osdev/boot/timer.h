@@ -9,6 +9,7 @@
 #define PIT_3 0x42
 
 #define PIT_CONTROL 0x43
+#define PITIMER_HZ 100
 
 namespace Kernel {
 
@@ -19,7 +20,7 @@ class PITimer {
   void TimerInterruptHandler();
 
   // Install PIT.
-  void InstallPITimer(uint32_t hz) const;
+  void InstallPITimer() const;
 
   uint64_t GetClock() const {
     return timer_tick_lower_;
