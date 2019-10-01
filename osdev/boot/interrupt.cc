@@ -1,6 +1,7 @@
 #include "interrupt.h"
 #include "io.h"
 #include "keyboard.h"
+#include "timer.h"
 #include "types.h"
 #include "utility.h"
 #include "vga_output.h"
@@ -103,14 +104,53 @@ void InstallIDTEntry(void (*handler)(CPUInterruptHandlerArgs*),
   entry.zero = 0;
 }
 
+[[maybe_unused]] void IRQSetMask(uint8_t irq_line) {
+  uint16_t port;
+  uint8_t value;
+
+  if (irq_line < 8) {
+    port = PIC_MASTER_DATA;
+  } else {
+    port = PIC_SLAVE_DATA;
+    irq_line -= 8;
+  }
+  value = inb(port) | (1 << irq_line);
+  outb(port, value);
+}
+
+[[maybe_unused]] void IRQClearMask(uint8_t irq_line) {
+  uint16_t port;
+  uint8_t value;
+
+  if (irq_line < 8) {
+    port = PIC_MASTER_DATA;
+  } else {
+    port = PIC_SLAVE_DATA;
+    irq_line -= 8;
+  }
+  value = inb(port) & ~(1 << irq_line);
+  outb(port, value);
+}
+
+inline void EndOfIRQ() {
+  outb(0x20, 0x20);
+}
+
 }  // namespace
+
+__attribute__((interrupt)) void PITimerHandler(CPUInterruptHandlerArgs* args) {
+  UNUSED(args);
+
+  pic_timer.TimerInterruptHandler();
+  EndOfIRQ();
+}
 
 __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
   uint8_t scan_code = inb(0x60);
   ps2_keyboard.MainKeyboardHandler(scan_code);
-  outb(0x20, 0x20);
+  EndOfIRQ();
 }
 
 void IDTManager::InitializeIDTForCPUException() {
@@ -145,7 +185,7 @@ void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<28>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<29>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<30>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
-  InstallIDTEntry<31>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
+  InstallIDTEntry<31>({INTERRUPT_GATE_32_BIT, 0, 1}, false);  // 0x19
 }
 
 void IDTManager::LoadIDT() {
@@ -157,7 +197,9 @@ void IDTManager::LoadIDT() {
   asm volatile("sti");
 }
 void IDTManager::InitializeIDTForIRQ() {
-  // InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
+  pic_timer.InstallPITimer(100);
+
+  InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
 
   // PIC Remap.
@@ -189,8 +231,11 @@ void IDTManager::InitializeIDTForIRQ() {
   outb(PIC_MASTER_DATA, mask_master);
   outb(PIC_SLAVE_DATA, mask_slave);
 
-  outb(PIC_MASTER_DATA, 0xFD);
-  outb(PIC_SLAVE_DATA, 0xFF);
+  IRQClearMask(0);
+  IRQClearMask(1);
+
+  // outb(PIC_MASTER_DATA, 0xFD);
+  // outb(PIC_SLAVE_DATA, 0xFF);
 }
 
 }  // namespace Kernel

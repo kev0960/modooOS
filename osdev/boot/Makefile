@@ -5,7 +5,7 @@ CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
 OBJS := boot.o
-OBJS += kmain.o string_util.o interrupt.o keyboard.o
+OBJS += kmain.o string_util.o interrupt.o keyboard.o timer.o
 
 CRTI_OBJ = crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)

@@ -127,17 +127,6 @@ __extension__ typedef unsigned long long int uintmax_t;
 
 /* The ISO C99 standard specifies that in C++ implementations these
    macros should only be defined if explicitly requested.  */
-#if !defined __cplusplus || defined __STDC_LIMIT_MACROS
-
-#if __WORDSIZE == 64
-#define __INT64_C(c) c##L
-#define __UINT64_C(c) c##UL
-#else
-#define __INT64_C(c) c##LL
-#define __UINT64_C(c) c##ULL
-#endif
-
-/* Limits of integral types.  */
 
 /* Minimum of signed integral types.  */
 #define INT8_MIN (-128)
@@ -291,7 +280,5 @@ __extension__ typedef unsigned long long int uintmax_t;
 #define INTMAX_C(c) c##LL
 #define UINTMAX_C(c) c##ULL
 #endif
-
-#endif /* C++ && constant macros */
 
 #endif /* stdint.h */
