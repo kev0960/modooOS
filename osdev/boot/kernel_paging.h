@@ -21,7 +21,7 @@
 #define PAGE_PAGE_SIZE \
   (1 << 7)  // For 2MB paging, must be set on PDE (also the CR4.PAE)
 
-#define KERNEL_BOOT_STACK_SIZE 0x4000
+#define KERNEL_BOOT_STACK_SIZE 0x8000 // 8 KB
 #define KERNEL_BOOT_STACK_ALIGN 0x1000
 #define KERNEL_CR4 (1 << 5)  // PAE
 
