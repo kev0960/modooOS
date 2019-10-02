@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "char_util.h"
 #include "timer.h"
 #include "vga_output.h"
 
@@ -62,7 +63,7 @@ static const int kScanCodeToASCII[] = {
     KEY_CODES::RSHIFT,
     KEY_CODES::KEYPAD_STAR,
     KEY_CODES::LALT,
-    KEY_CODES::SPACE,
+    ' ',
     KEY_CODES::CAPSLOCK,
     KEY_CODES::F1,
     KEY_CODES::F2,
@@ -104,13 +105,47 @@ KeyInfo ScanCodeToASCII(uint8_t scan_code) {
   }
   return {CODE_NOT_EXIST, KEY_ERROR};
 }
+
+char CharWhenShiftPressed(char c) {
+  // 0 .. 9
+  char shift_number[] = {')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
+  if ('a' <= c && c <= 'z') {
+    return ToUpperCase(c);
+  } else if ('0' <= c && c <= '9') {
+    return shift_number[c - '0'];
+  }
+  switch (c) {
+    case '`':
+      return '~';
+    case '-':
+      return '_';
+    case '=':
+      return '+';
+    case '[':
+      return '{';
+    case ']':
+      return '}';
+    case ';':
+      return ':';
+    case '\'':
+      return '"';
+    case ',':
+      return '<';
+    case '.':
+      return '>';
+    case '/':
+      return '?';
+  }
+  return c;
+}
+
 }  // namespace
 
 PS2Keyboard ps2_keyboard;
 
 void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
   KeyInfo key_info = ScanCodeToASCII(scan_code);
-  auto& key_press_info = key_press_list[key_info.key];
+  auto& key_press_info = key_press_list_[key_info.key];
 
   if (key_info.action == KEY_DOWN) {
     if (key_press_info.time_down == 0) {
@@ -127,10 +162,32 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
 
   if (key_info.action == KEY_DOWN) {
     if (key_info.key < 128) {
-      vga_output << static_cast<char>(key_info.key);
+      if (IsShiftDown()) {
+        vga_output << CharWhenShiftPressed(static_cast<char>(key_info.key));
+      } else {
+        vga_output << static_cast<char>(key_info.key);
+      }
     } else {
-      vga_output << static_cast<int>(key_info.key);
+      if (key_info.key == ENTER) {
+        vga_output << "\n";
+      }
+      // vga_output << static_cast<int>(key_info.key);
     }
   }
 }
+
+bool PS2Keyboard::IsShiftDown() const {
+  return (key_press_list_[KEY_CODES::LSHIFT].time_down != 0) ||
+         (key_press_list_[KEY_CODES::RSHIFT].time_down != 0);
+}
+
+bool PS2Keyboard::IsControlDown() const {
+  return (key_press_list_[KEY_CODES::LCTRL].time_down != 0) ||
+         (key_press_list_[KEY_CODES::RCTRL].time_down != 0);
+}
+
+bool PS2Keyboard::IsAltDown() const {
+  return key_press_list_[KEY_CODES::LALT].time_down != 0;
+}
+
 }  // namespace Kernel

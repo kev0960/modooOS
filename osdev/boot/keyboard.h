@@ -65,14 +65,18 @@ class PS2Keyboard {
  public:
   PS2Keyboard() {
     for (size_t i = 0; i < NUM_KEY_CODES; i++) {
-      key_press_list[i].time_down = 0;
+      key_press_list_[i].time_down = 0;
     }
   }
 
   void MainKeyboardHandler(uint8_t scan_code);
 
  private:
-  KeyPressTracker key_press_list[NUM_KEY_CODES];
+  KeyPressTracker key_press_list_[NUM_KEY_CODES];
+
+  bool IsShiftDown() const;
+  bool IsControlDown() const;
+  bool IsAltDown() const;
 };
 
 extern PS2Keyboard ps2_keyboard;
