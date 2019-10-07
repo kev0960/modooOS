@@ -23,6 +23,10 @@
 #ifndef _STDINT_H
 #define _STDINT_H 1
 
+#define __WORDSIZE 64 /* x86_64 */
+
+#ifndef KERNEL_TEST
+
 /* Exact integral types.  */
 
 /* Signed.  */
@@ -281,4 +285,5 @@ __extension__ typedef unsigned long long int uintmax_t;
 #define UINTMAX_C(c) c##ULL
 #endif
 
+#endif
 #endif /* stdint.h */

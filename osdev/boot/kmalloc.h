@@ -17,31 +17,37 @@ namespace Kernel {
 class KernelMemoryManager {
  public:
   KernelMemoryManager()
-      : heap_start_(reinterpret_cast<void*>(KERNEL_VIRTUAL_START +
-                                            KERNEL_HEAP_MEMORY_START_OFFSET +
-                                            MEMORY_ALGIN_OFFSET)),
+      : heap_start_(reinterpret_cast<uint8_t*>(KERNEL_VIRTUAL_START +
+                                               KERNEL_HEAP_MEMORY_START_OFFSET +
+                                               MEMORY_ALGIN_OFFSET)),
         heap_memory_limit_(ONE_GB - KERNEL_HEAP_MEMORY_START_OFFSET -
                            MEMORY_ALGIN_OFFSET),
         current_heap_size_(0) {
     for (int i = 0; i < NUM_BUCKETS; i++) {
-      free_list_[i] = nullptr;
+      free_list_[i] = 0;
     }
   }
 
-  void* GetMemoryFromBucket(int bucket_index, uint32_t bytes);
+  uint8_t* GetMemoryFromBucket(int bucket_index, uint32_t bytes);
 
  private:
-  void* SplitMemory(void* addr, uint32_t split_size);
+  uint8_t* SplitMemory(uint8_t* addr, uint32_t split_size, int bucket_index);
 
   // Total 8 + memory_size will be allocated.
-  void* CreateNewChunkAt(void* addr, uint32_t memory_size);
+  uint8_t* CreateNewChunkAt(uint8_t* addr, uint32_t memory_size);
 
-  void* GetAddressByOffset(int offset_size);
+  uint8_t* GetAddressByOffset(uint32_t offset_size) const;
+
+  // Get the actual memory address (not including the prefix info).
+  uint8_t* GetActualMemoryAddressByOffset(uint32_t offset_size) const;
+  uint32_t GetOffsetFromHeapStart(uint8_t* addr) const;
+
+  uint32_t IterateFreeList(uint32_t free_list, uint32_t memory_size);
 
   // Virtual memory where heap start. Because of the identity mapping, the
   // physical address of kernel memory will simply be (current memory address -
   // KERNEL_VIRTUAL_START).
-  void* heap_start_;
+  uint8_t* heap_start_;
 
   // Size of the maximum heap. Since we are using 1 GB paging for the kernel and
   // the kernel VM is 1 GB of identity mapping, the usable heap size will simply
@@ -52,13 +58,14 @@ class KernelMemoryManager {
   int current_heap_size_;
 
   // Buckets for 2^3, 2^4, ..., 2^18 bytes, total of 16 buckets.
-  void* free_list_[NUM_BUCKETS];
+  // Each bucket contains the offset to the available memory chunk.
+  uint32_t free_list_[NUM_BUCKETS];
 };
 
 extern KernelMemoryManager kernel_memory_manager;
 
-void* KernelMalloc(uint32_t bytes);
-void KernelFree(void* ptr);
+void* kmalloc(uint32_t bytes);
+void kfree(void* ptr);
 
 }  // namespace Kernel
 
