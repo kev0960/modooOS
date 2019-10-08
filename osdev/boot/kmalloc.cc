@@ -2,6 +2,10 @@
 
 namespace Kernel {
 namespace {
+
+const int kKmallocMagic = 0x7DDDDDDD;
+const int kKmallocMagicOccupied = 0xFDDDDDDD;
+
 int GetNearestPowerOfTwoLog(uint32_t bytes) {
   // For example,
   // 0000 0000 | 0000 0000 | 0000 0001 | 0010 0000
@@ -40,11 +44,23 @@ int GetBucketIndex(uint32_t bytes) {
 
 void SetOccupied(uint8_t* byte) { (*byte) |= 0b10000000; }
 void SetFree(uint8_t* byte) { (*byte) &= 0b01111111; }
-void SetChunkSize(uint32_t* addr, uint32_t size) {
+bool IsOccupied(uint8_t* byte) { return (*byte) & 0b10000000; }
+
+// Check the magic value.
+bool CheckMagic(uint8_t* suffix) {
+  uint32_t* s = reinterpret_cast<uint32_t*>(suffix);
+  return (*s) == kKmallocMagic || (*s) == kKmallocMagicOccupied;
+}
+
+void SetChunkSize(uint8_t* addr, uint32_t size) {
   // Write the size of the chunk. Note that maximum size of the chunk will be
   // 2^30. That means, the left most bit of size will be 0.
-  (*addr) |= size;
+  (*reinterpret_cast<uint32_t*>(addr)) |= size;
 }
+void SetMagic(uint8_t* addr) {
+  (*reinterpret_cast<uint32_t*>(addr)) |= kKmallocMagic;
+}
+
 uint32_t GetChunkSize(uint8_t* addr) {
   uint32_t prefix_block = *reinterpret_cast<uint32_t*>(addr);
 
@@ -52,10 +68,14 @@ uint32_t GetChunkSize(uint8_t* addr) {
   return (prefix_block << 1) >> 1;
 }
 
-void SetNextChunkOffset(uint32_t* addr, uint32_t next_chunk_offset) {
-  // left-most bit is obviously 0 considering the total size of heap memory.
-  // Hence, this will not erase the free bit.
-  (*addr) |= next_chunk_offset;
+void SetPrevOffset(uint8_t* chunk_addr, uint32_t prev_chunk_offset) {
+  uint32_t* addr = reinterpret_cast<uint32_t*>(chunk_addr);
+  addr[1] = prev_chunk_offset;
+}
+
+void SetNextOffset(uint8_t* chunk_addr, uint32_t next_chunk_offset) {
+  uint32_t* addr = reinterpret_cast<uint32_t*>(chunk_addr);
+  addr[2] = next_chunk_offset;
 }
 
 uint32_t GetNextChunkOffset(uint8_t* addr) {
@@ -80,6 +100,20 @@ uint8_t* GetSuffixBlockAddressFromChunkStart(uint8_t* addr,
   return addr + memory_size + 4;
 }
 
+uint8_t* GetEndOfChunkFromStart(uint8_t* addr, uint32_t memory_size) {
+  return addr + memory_size + 8;
+}
+
+uint8_t* GetStartOfChunkFromSuffix(uint8_t* suffix) {
+  auto mem_size = GetChunkSize(suffix);
+  return suffix - mem_size - 4;
+}
+
+KernelMemoryManager::PrevAndNext GetPrevAndNextFromFreeChunk(uint8_t* addr) {
+  uint32_t* data = reinterpret_cast<uint32_t*>(addr + 4);
+  return {data[0], data[1]};
+}
+
 }  // namespace
 
 KernelMemoryManager kernel_memory_manager;
@@ -96,8 +130,8 @@ uint8_t* KernelMemoryManager::GetMemoryFromBucket(int bucket_index,
 
   // If no memory free memory is available.
   size_t allocate_size = GetNearestPowerOfTwo(bytes);
-  return CreateNewChunkAt(GetAddressByOffset(current_heap_size_),
-                          allocate_size);
+  return CreateNewUsedChunkAt(GetAddressByOffset(current_heap_size_),
+                              allocate_size);
 }
 
 uint32_t KernelMemoryManager::IterateFreeList(uint32_t free_list,
@@ -123,12 +157,58 @@ uint32_t KernelMemoryManager::IterateFreeList(uint32_t free_list,
 
 uint8_t* KernelMemoryManager::SplitMemory(uint8_t* addr, uint32_t split_size,
                                           int bucket_index) {
-  
+  PrevAndNext prev_and_next = GetPrevAndNextFromFreeChunk(addr);
+  uint32_t memory_size = GetChunkSize(addr);
 
+  // If the remaining size is smaller than the smallest possible chunk, then we
+  // simply use entire available space.
+  if (memory_size - split_size < 16) {
+    split_size = memory_size;
+  }
+
+  WeaveTwoChunksTogether(prev_and_next, bucket_index);
+
+  // Now assign "split_size" to the new chunk.
+  CreateNewUsedChunkAt(addr, split_size);
+
+  memory_size -= split_size;  // Remaining available memory size.
+  if (memory_size == 0) {
+    return addr;
+  }
+
+  // Create new free chunk
+  uint8_t* free_chunk_start = GetEndOfChunkFromStart(addr, split_size);
+  CreateNewFreeChunkAt(free_chunk_start, memory_size, bucket_index);
+
+  return addr;
 }
 
-uint8_t* KernelMemoryManager::CreateNewChunkAt(uint8_t* addr,
-                                               uint32_t memory_size) {
+void KernelMemoryManager::CreateNewFreeChunkAt(uint8_t* addr,
+                                               uint32_t memory_size,
+                                               int bucket_index) {
+  SetFree(addr);
+  SetChunkSize(addr, memory_size);
+
+  auto my_offset = GetOffsetFromHeapStart(addr);
+  // Add chunk to the free list.
+  auto next = free_list_[bucket_index];
+  free_list_[bucket_index] = my_offset;
+
+  if (next != 0) {
+    uint8_t* chunk = GetAddressByOffset(next);
+    SetPrevOffset(chunk, my_offset);
+  }
+
+  SetPrevOffset(addr, 0);
+  SetNextOffset(addr, next);
+
+  uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(addr, memory_size);
+  SetFree(suffix);
+  SetChunkSize(suffix, memory_size);
+}
+
+uint8_t* KernelMemoryManager::CreateNewUsedChunkAt(uint8_t* addr,
+                                                   uint32_t memory_size) {
   size_t allocated_size = memory_size + 8;
 
   // Increase the heap size by allocated size. If not possible, return nullptr.
@@ -141,23 +221,52 @@ uint8_t* KernelMemoryManager::CreateNewChunkAt(uint8_t* addr,
   SetOccupied(addr);
 
   // Mark the size of the chunk.
-  SetChunkSize(reinterpret_cast<uint32_t*>(addr), memory_size);
-
-  // Add the chunk at the bucket.
-  uint32_t next_chunk_in_bucket = 0;
-  if (!free_list_[bucket_index]) {
-    free_list_[bucket_index] = GetOffsetFromHeapStart(addr);
-  } else {
-    next_chunk_in_bucket = free_list_[bucket_index];
-    free_list_[bucket_index] = GetOffsetFromHeapStart(addr);
-  }
+  SetChunkSize(addr, memory_size);
 
   uint8_t* suffix_addr = GetSuffixBlockAddressFromChunkStart(addr, memory_size);
-  SetNextChunkOffset(reinterpret_cast<uint32_t*>(suffix_addr),
-                     next_chunk_in_bucket);
   SetOccupied(suffix_addr);
+  SetMagic(suffix_addr);
 
   return GetMemoryBlockAddressFromChunkStart(addr);
+}
+
+// Coalsce Two free chunks.
+void KernelMemoryManager::CoalsceTwoChunks(uint8_t* left, uint8_t* right) {
+  auto left_size = GetChunkSize(left);
+  auto right_size = GetChunkSize(right);
+
+  // Detach left and right chunk from the free list.
+  WeaveTwoChunksTogether(GetPrevAndNextFromFreeChunk(left),
+                         GetBucketIndex(left_size));
+  WeaveTwoChunksTogether(GetPrevAndNextFromFreeChunk(right),
+                         GetBucketIndex(right_size));
+
+  int total_size = left_size + right_size + 8;
+  int bucket_index = GetBucketIndex(total_size);
+  CreateNewFreeChunkAt(left, total_size, bucket_index);
+}
+
+void KernelMemoryManager::FreeOccupiedChunk(uint8_t* addr) {
+  // Mark current chunk as free.
+  auto chunk_size = GetChunkSize(addr);
+  CreateNewFreeChunkAt(addr, chunk_size, GetBucketIndex(chunk_size));
+
+  // Check whether the chunk on the left side is free.
+  uint8_t* suffix_of_left_chunk = reinterpret_cast<uint8_t*>(addr) - 4;
+  if (suffix_of_left_chunk >= heap_start_ &&
+      !IsOccupied(suffix_of_left_chunk)) {
+    uint8_t* left = GetStartOfChunkFromSuffix(suffix_of_left_chunk);
+    CoalsceTwoChunks(left, addr);
+    addr = left;
+  }
+
+  uint8_t* prefix_of_right_chunk =
+      GetEndOfChunkFromStart(addr, GetChunkSize(addr));
+  // Check whether the chunk on right side is free.
+  if (GetOffsetFromHeapStart(prefix_of_right_chunk) < current_heap_size_ &&
+      !IsOccupied(prefix_of_right_chunk)) {
+    CoalsceTwoChunks(addr, prefix_of_right_chunk);
+  }
 }
 
 uint8_t* KernelMemoryManager::GetAddressByOffset(uint32_t offset_size) const {
@@ -174,6 +283,22 @@ uint8_t* KernelMemoryManager::GetActualMemoryAddressByOffset(
   return heap_start_ + offset_size + /* prefix size = */ 4;
 }
 
+void KernelMemoryManager::WeaveTwoChunksTogether(
+    const PrevAndNext& prev_and_next, int bucket_index) {
+  // This means the prev chunk waas just the free_list.
+  if (prev_and_next.prev_offset == 0) {
+    free_list_[bucket_index] = prev_and_next.next_offset;
+  } else {
+    uint8_t* chunk = GetAddressByOffset(prev_and_next.prev_offset);
+    SetNextOffset(chunk, prev_and_next.next_offset);
+  }
+
+  if (prev_and_next.next_offset != 0) {
+    uint8_t* chunk = GetAddressByOffset(prev_and_next.next_offset);
+    SetPrevOffset(chunk, prev_and_next.prev_offset);
+  }
+}
+
 void* kmalloc(size_t bytes) {
   if (bytes == 0) {
     return nullptr;
@@ -184,6 +309,8 @@ void* kmalloc(size_t bytes) {
       kernel_memory_manager.GetMemoryFromBucket(bucket_index, bytes));
 }
 
-void kfree(void* ptr) {}
+void kfree(void* ptr) {
+  kernel_memory_manager.FreeOccupiedChunk(reinterpret_cast<uint8_t*>(ptr));
+}
 
 }  // namespace Kernel

@@ -29,12 +29,21 @@ class KernelMemoryManager {
   }
 
   uint8_t* GetMemoryFromBucket(int bucket_index, uint32_t bytes);
+  void FreeOccupiedChunk(uint8_t* addr);
+
+  struct PrevAndNext {
+    uint32_t prev_offset;
+    uint32_t next_offset;
+  };
 
  private:
   uint8_t* SplitMemory(uint8_t* addr, uint32_t split_size, int bucket_index);
 
   // Total 8 + memory_size will be allocated.
-  uint8_t* CreateNewChunkAt(uint8_t* addr, uint32_t memory_size);
+  uint8_t* CreateNewUsedChunkAt(uint8_t* addr, uint32_t memory_size);
+
+  void CreateNewFreeChunkAt(uint8_t* addr, uint32_t memory_size,
+                                int bucket_index);
 
   uint8_t* GetAddressByOffset(uint32_t offset_size) const;
 
@@ -43,6 +52,12 @@ class KernelMemoryManager {
   uint32_t GetOffsetFromHeapStart(uint8_t* addr) const;
 
   uint32_t IterateFreeList(uint32_t free_list, uint32_t memory_size);
+
+  // Weave two chunks in free list together.
+  void WeaveTwoChunksTogether(const PrevAndNext& prev_and_next,
+                              int bucket_index);
+
+  void CoalsceTwoChunks(uint8_t* left, uint8_t* right);
 
   // Virtual memory where heap start. Because of the identity mapping, the
   // physical address of kernel memory will simply be (current memory address -
