@@ -22,7 +22,7 @@ class KernelMemoryManager {
                                                MEMORY_ALGIN_OFFSET)),
         heap_memory_limit_(ONE_GB - KERNEL_HEAP_MEMORY_START_OFFSET -
                            MEMORY_ALGIN_OFFSET),
-        current_heap_size_(0) {
+        current_heap_size_(8 /* Added initial offset*/) {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       free_list_[i] = 0;
     }
@@ -36,6 +36,8 @@ class KernelMemoryManager {
     uint32_t next_offset;
   };
 
+  void ShowDebugInfo();
+
  private:
   uint8_t* SplitMemory(uint8_t* addr, uint32_t split_size, int bucket_index);
 
@@ -43,7 +45,7 @@ class KernelMemoryManager {
   uint8_t* CreateNewUsedChunkAt(uint8_t* addr, uint32_t memory_size);
 
   void CreateNewFreeChunkAt(uint8_t* addr, uint32_t memory_size,
-                                int bucket_index);
+                            int bucket_index);
 
   uint8_t* GetAddressByOffset(uint32_t offset_size) const;
 
@@ -67,10 +69,10 @@ class KernelMemoryManager {
   // Size of the maximum heap. Since we are using 1 GB paging for the kernel and
   // the kernel VM is 1 GB of identity mapping, the usable heap size will simply
   // be 1 GB - offset.
-  const int heap_memory_limit_;
+  const uint32_t heap_memory_limit_;
 
   // Current end of heap.
-  int current_heap_size_;
+  uint32_t current_heap_size_;
 
   // Buckets for 2^3, 2^4, ..., 2^18 bytes, total of 16 buckets.
   // Each bucket contains the offset to the available memory chunk.

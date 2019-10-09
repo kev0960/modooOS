@@ -4,6 +4,7 @@
 #include "algorithm.h"
 #include "string_view.h"
 #include "type_traits.h"
+#include "printf.h"
 
 namespace Kernel {
 
@@ -149,6 +150,7 @@ class VGAOutput {
 };
 
 extern VGAOutput<> vga_output;
+
 }  // namespace Kernel
 
 #endif

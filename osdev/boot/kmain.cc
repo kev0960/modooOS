@@ -1,5 +1,6 @@
 #include "interrupt.h"
 #include "vga_output.h"
+#include "kernel_test.h"
 
 Kernel::VGAOutput<> Kernel::vga_output{};
 
@@ -13,10 +14,7 @@ void KernelMain() {
   idt_manager.LoadIDT();
 
   Kernel::vga_output << "IDT setup is done! \n";
-  /*
-  for (int i = 0; i < 20; i++) {
-    Kernel::vga_output.PrintString("Hello World!\n", Kernel::VGAColor::Red);
-  }*/
+  Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   /*
   asm volatile ("int $10");

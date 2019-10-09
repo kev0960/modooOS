@@ -1,10 +1,11 @@
 #include "kmalloc.h"
+#include "printf.h"
 
 namespace Kernel {
 namespace {
 
-const int kKmallocMagic = 0x7DDDDDDD;
-const int kKmallocMagicOccupied = 0xFDDDDDDD;
+const uint32_t kKmallocMagic = 0xDDDDDDD7u;
+const uint32_t kKmallocMagicOccupied = 0xDDDDDDDFu;
 
 int GetNearestPowerOfTwoLog(uint32_t bytes) {
   // For example,
@@ -22,9 +23,9 @@ int GetNearestPowerOfTwoLog(uint32_t bytes) {
 
   // bytes is the power of 2.
   if (num_leading_zeros + num_trailing_zeros == 32) {
-    return num_trailing_zeros;
+    return num_trailing_zeros - 1;
   } else {
-    return 32 - num_leading_zeros + 1;
+    return 32 - num_leading_zeros;
   }
 }
 
@@ -42,21 +43,36 @@ int GetBucketIndex(uint32_t bytes) {
   return NUM_BUCKETS - 1;
 }
 
-void SetOccupied(uint8_t* byte) { (*byte) |= 0b10000000; }
-void SetFree(uint8_t* byte) { (*byte) &= 0b01111111; }
-bool IsOccupied(uint8_t* byte) { return (*byte) & 0b10000000; }
+// Last bit of first 8 bit is the free bit. This is due to the little endian
+// representation.
+// Low addr ------------------------> High addr
+// [wwww wwwF] [xxxx xxxx] [yyyy yyyy] [zzzz zzzz]
+//
+// (Note that zz.... www are where size of the chunk is stored.)
+//
+// When we convert above into uint32_t, it becomes
+// [zzzz zzzz] [yyyy yyyy] [xxxx xxxx] [wwww wwwF]
+void SetOccupied(uint8_t* byte) { (*byte) |= 0b00000001; }
+void SetFree(uint8_t* byte) { (*byte) &= 0b11111110; }
+bool IsOccupied(uint8_t* byte) { return (*byte) & 0b000000001; }
 
 // Check the magic value.
-bool CheckMagic(uint8_t* suffix) {
+[[maybe_unused]] bool CheckMagic(uint8_t* suffix) {
   uint32_t* s = reinterpret_cast<uint32_t*>(suffix);
   return (*s) == kKmallocMagic || (*s) == kKmallocMagicOccupied;
 }
 
 void SetChunkSize(uint8_t* addr, uint32_t size) {
   // Write the size of the chunk. Note that maximum size of the chunk will be
-  // 2^30. That means, the left most bit of size will be 0.
-  (*reinterpret_cast<uint32_t*>(addr)) |= size;
+  // 2^30. We have enough space to write down the size.
+
+  // First clear the "size" area.
+  (*reinterpret_cast<uint32_t*>(addr)) &= 1;
+
+  // Now set the actual size.
+  (*reinterpret_cast<uint32_t*>(addr)) |= (size << 1);
 }
+
 void SetMagic(uint8_t* addr) {
   (*reinterpret_cast<uint32_t*>(addr)) |= kKmallocMagic;
 }
@@ -65,7 +81,7 @@ uint32_t GetChunkSize(uint8_t* addr) {
   uint32_t prefix_block = *reinterpret_cast<uint32_t*>(addr);
 
   // Drop the left most "free" bit.
-  return (prefix_block << 1) >> 1;
+  return prefix_block >> 1;
 }
 
 void SetPrevOffset(uint8_t* chunk_addr, uint32_t prev_chunk_offset) {
@@ -81,13 +97,6 @@ void SetNextOffset(uint8_t* chunk_addr, uint32_t next_chunk_offset) {
 uint32_t GetNextChunkOffset(uint8_t* addr) {
   uint32_t suffix_block = *reinterpret_cast<uint32_t*>(addr);
   return (suffix_block << 1) >> 1;
-}
-
-uint32_t GetChunkSize(uint32_t* addr) {
-  uint32_t data = *addr;
-
-  // Drop the left most bit (which is Free bit).
-  return (data << 1) >> 1;
 }
 
 // 4 byte prefix.
@@ -205,11 +214,13 @@ void KernelMemoryManager::CreateNewFreeChunkAt(uint8_t* addr,
   uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(addr, memory_size);
   SetFree(suffix);
   SetChunkSize(suffix, memory_size);
+
+  ShowDebugInfo();
 }
 
 uint8_t* KernelMemoryManager::CreateNewUsedChunkAt(uint8_t* addr,
                                                    uint32_t memory_size) {
-  size_t allocated_size = memory_size + 8;
+  uint32_t allocated_size = memory_size + 8;
 
   // Increase the heap size by allocated size. If not possible, return nullptr.
   if (current_heap_size_ + allocated_size >= heap_memory_limit_) {
@@ -234,6 +245,8 @@ uint8_t* KernelMemoryManager::CreateNewUsedChunkAt(uint8_t* addr,
 void KernelMemoryManager::CoalsceTwoChunks(uint8_t* left, uint8_t* right) {
   auto left_size = GetChunkSize(left);
   auto right_size = GetChunkSize(right);
+  printf("%d %d" ,left_size, right_size);
+  while(1){}
 
   // Detach left and right chunk from the free list.
   WeaveTwoChunksTogether(GetPrevAndNextFromFreeChunk(left),
@@ -247,13 +260,17 @@ void KernelMemoryManager::CoalsceTwoChunks(uint8_t* left, uint8_t* right) {
 }
 
 void KernelMemoryManager::FreeOccupiedChunk(uint8_t* addr) {
+  // Move addr to point start of the chunk.
+  addr -= 4;
+
   // Mark current chunk as free.
   auto chunk_size = GetChunkSize(addr);
+
   CreateNewFreeChunkAt(addr, chunk_size, GetBucketIndex(chunk_size));
 
   // Check whether the chunk on the left side is free.
   uint8_t* suffix_of_left_chunk = reinterpret_cast<uint8_t*>(addr) - 4;
-  if (suffix_of_left_chunk >= heap_start_ &&
+  if (suffix_of_left_chunk >= heap_start_ + 8 /* initial offset */ &&
       !IsOccupied(suffix_of_left_chunk)) {
     uint8_t* left = GetStartOfChunkFromSuffix(suffix_of_left_chunk);
     CoalsceTwoChunks(left, addr);
@@ -267,6 +284,8 @@ void KernelMemoryManager::FreeOccupiedChunk(uint8_t* addr) {
       !IsOccupied(prefix_of_right_chunk)) {
     CoalsceTwoChunks(addr, prefix_of_right_chunk);
   }
+
+  current_heap_size_ -= (chunk_size + 8);
 }
 
 uint8_t* KernelMemoryManager::GetAddressByOffset(uint32_t offset_size) const {
@@ -296,6 +315,15 @@ void KernelMemoryManager::WeaveTwoChunksTogether(
   if (prev_and_next.next_offset != 0) {
     uint8_t* chunk = GetAddressByOffset(prev_and_next.next_offset);
     SetPrevOffset(chunk, prev_and_next.prev_offset);
+  }
+}
+
+void KernelMemoryManager::ShowDebugInfo() {
+  printf("---------- kmalloc Debug Info ---------- \n");
+  printf("Current Total heap size : %d \n", current_heap_size_ - 8);
+  printf("---------- Free list offsets  ---------- \n");
+  for (int i = 0; i < NUM_BUCKETS; i++) {
+    printf("%5d", free_list_[i]);
   }
 }
 
