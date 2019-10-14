@@ -63,6 +63,20 @@ class KernelTest {
     }
   }
 
+  void ExpectTrue(const char* file, int line, bool t) {
+    if (!t) {
+      printf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
+      bad_count_++;
+    }
+  }
+
+  void ExpectFalse(const char* file, int line, bool t) {
+    if (t) {
+      printf("EXPECT_FALSE Failed at: %s:%d\n", file, line);
+      bad_count_++;
+    }
+  }
+
   const char* GetTestSuiteName() const { return test_suite_name_; }
   const char* GetTestName() const { return test_name_; }
   int GetBadCount() const { return bad_count_; }
@@ -93,10 +107,10 @@ class KernelTest {
   void TEST_CLASS_NAME_(test_suite_name, test_name)::TestBody()
 
 #define EXPECT_EQ(T, U) ExpectEq(__FILE__, __LINE__, T, U);
+#define EXPECT_TRUE(T) ExpectTrue(__FILE__, __LINE__, T);
+#define EXPECT_FALSE(T) ExpectFalse(__FILE__, __LINE__, T);
 
 extern "C" void __cxa_pure_virtual();
-
-
 
 }  // namespace kernel_test
 }  // namespace Kernel

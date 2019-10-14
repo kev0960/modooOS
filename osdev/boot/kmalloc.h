@@ -36,7 +36,13 @@ class KernelMemoryManager {
     uint32_t next_offset;
   };
 
-  void ShowDebugInfo();
+  void ShowDebugInfo() const;
+
+  // Resets entire heap allocation. All the previously allocated memory will be
+  // unusable. ONLY USE THIS FOR TESTING PURPOSES!
+  void Reset();
+  bool SanityCheck();
+  void DumpMemory();
 
  private:
   uint8_t* SplitMemory(uint8_t* addr, uint32_t split_size, int bucket_index);
@@ -82,6 +88,7 @@ class KernelMemoryManager {
 extern KernelMemoryManager kernel_memory_manager;
 
 void* kmalloc(uint32_t bytes);
+void* kcalloc(uint32_t bytes);
 void kfree(void* ptr);
 
 }  // namespace Kernel
