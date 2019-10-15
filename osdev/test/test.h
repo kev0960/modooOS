@@ -55,7 +55,7 @@ class Test {
   template <typename T, typename U>
   void ExpectEq(const char* file, int line, const T& t, const U& u) {
     if (t != u) {
-      printf("EXPECT_EQ Failed at: %s:%d\n", file, line);
+      kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
       bad_count_++;
     }
   }
@@ -98,20 +98,20 @@ extern "C" void __cxa_pure_virtual() {
 
 void TestRunner::RunTest() {
   for (int i = 0; i < num_tests_; i++) {
-    printf(KGRN "[ RUN      ] " KWHT "%s.%s\n", tests_[i]->GetTestSuiteName(),
+    kprintf(KGRN "[ RUN      ] " KWHT "%s.%s\n", tests_[i]->GetTestSuiteName(),
            tests_[i]->GetTestName());
     tests_[i]->TestBody();
     if (!tests_[i]->GetBadCount()) {
-      printf(KGRN "[       OK ] " KWHT);
+      kprintf(KGRN "[       OK ] " KWHT);
     } else {
-      printf(KRED "[  FAILED  ] " KWHT);
+      kprintf(KRED "[  FAILED  ] " KWHT);
     }
-    printf("%s.%s\n", tests_[i]->GetTestSuiteName(), tests_[i]->GetTestName());
+    kprintf("%s.%s\n", tests_[i]->GetTestSuiteName(), tests_[i]->GetTestName());
   }
 }
 
 extern "C" int TestMain() {
-  printf("Starting Test ---- \n");
+  kprintf("Starting Test ---- \n");
   TestRunner::GetTestRunner().RunTest();
   return 0;
 }

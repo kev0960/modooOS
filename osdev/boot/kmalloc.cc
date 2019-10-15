@@ -44,7 +44,7 @@ int RoundUpNearestPowerOfTwo(uint32_t bytes) {
 int GetBucketIndexOfFreeChunk(uint32_t bytes) {
   int power = RoundDownNearestPowerOfTwoLog(bytes);
   if (power <= 2) {
-    printf("kmalloc : Cannot create bucket with too small memory %d \n", bytes);
+    kprintf("kmalloc : Cannot create bucket with too small memory %d \n", bytes);
     return -1;
   } else if (3 <= power && power < 3 + NUM_BUCKETS) {
     return power - 3;
@@ -357,11 +357,11 @@ void KernelMemoryManager::WeaveTwoChunksTogether(
 }
 
 void KernelMemoryManager::ShowDebugInfo() const {
-  printf("---------- kmalloc Debug Info ---------- \n");
-  printf("Current Total heap size : %d \n", current_heap_size_ - 8);
-  printf("---------- Free list offsets  ---------- \n");
+  kprintf("---------- kmalloc Debug Info ---------- \n");
+  kprintf("Current Total heap size : %d \n", current_heap_size_ - 8);
+  kprintf("---------- Free list offsets  ---------- \n");
   for (int i = 0; i < NUM_BUCKETS; i++) {
-    printf("%5d", free_list_[i]);
+    kprintf("%5d", free_list_[i]);
   }
 }
 
@@ -382,7 +382,7 @@ bool KernelMemoryManager::SanityCheck() {
     if (IsOccupied(chunk)) {
       uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(chunk, chunk_size);
       if (!CheckMagic(suffix)) {
-        printf("Magic Corrupted at : %d of %x \n", current_offset, chunk);
+        kprintf("Magic Corrupted at : %d of %x \n", current_offset, chunk);
         return false;
       }
     }
@@ -397,27 +397,27 @@ void KernelMemoryManager::DumpMemory() {
   while (current_offset < current_heap_size_) {
     uint8_t* chunk = GetAddressByOffset(current_offset);
     uint32_t chunk_size = GetChunkSize(chunk);
-    printf("Offset [%d] Chunk Size : [%d] ", current_offset, chunk_size);
+    kprintf("Offset [%d] Chunk Size : [%d] ", current_offset, chunk_size);
 
     bool is_occupied = IsOccupied(chunk);
     if (is_occupied) {
-      printf("O ");
+      kprintf("O ");
     } else {
-      printf("F ");
+      kprintf("F ");
     }
 
     if (is_occupied) {
       uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(chunk, chunk_size);
       if (!CheckMagic(suffix)) {
-        printf("MAGIC FAILED!");
+        kprintf("MAGIC FAILED!");
       }
     } else {
       auto prev_and_next = GetPrevAndNextFromFreeChunk(chunk);
-      printf(" prev : [%d] next : [%d]", prev_and_next.prev_offset,
+      kprintf(" prev : [%d] next : [%d]", prev_and_next.prev_offset,
              prev_and_next.next_offset);
     }
 
-    printf("\n");
+    kprintf("\n");
 
     current_offset += (8 + chunk_size);
   }

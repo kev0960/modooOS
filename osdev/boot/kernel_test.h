@@ -24,7 +24,7 @@ class KernelTestRunner {
 
   void AddTest(KernelTest* test) {
     if (num_tests_ >= kMaxNumTest) {
-      printf("Max Test Number Exceeded!");
+      kprintf("Max Test Number Exceeded!");
       return;
     }
 
@@ -58,21 +58,21 @@ class KernelTest {
   template <typename T, typename U>
   void ExpectEq(const char* file, int line, const T& t, const U& u) {
     if (t != u) {
-      printf("EXPECT_EQ Failed at: %s:%d\n", file, line);
+      kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
       bad_count_++;
     }
   }
 
   void ExpectTrue(const char* file, int line, bool t) {
     if (!t) {
-      printf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
+      kprintf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
       bad_count_++;
     }
   }
 
   void ExpectFalse(const char* file, int line, bool t) {
     if (t) {
-      printf("EXPECT_FALSE Failed at: %s:%d\n", file, line);
+      kprintf("EXPECT_FALSE Failed at: %s:%d\n", file, line);
       bad_count_++;
     }
   }

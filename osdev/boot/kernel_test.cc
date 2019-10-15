@@ -10,15 +10,15 @@ namespace kernel_test {
 
 void KernelTestRunner::RunTest() {
   for (int i = 0; i < num_tests_; i++) {
-    printf("[ RUN      ]  %s.%s\n", tests_[i]->GetTestSuiteName(),
+    kprintf("[ RUN      ]  %s.%s\n", tests_[i]->GetTestSuiteName(),
            tests_[i]->GetTestName());
     tests_[i]->TestBody();
     if (!tests_[i]->GetBadCount()) {
-      printf("[       OK ] ");
+      kprintf("[       OK ] ");
     } else {
-      printf("[  FAILED  ] ");
+      kprintf("[  FAILED  ] ");
     }
-    printf("%s.%s\n", tests_[i]->GetTestSuiteName(), tests_[i]->GetTestName());
+    kprintf("%s.%s\n", tests_[i]->GetTestSuiteName(), tests_[i]->GetTestName());
   }
 }
 }  // namespace kernel_test
