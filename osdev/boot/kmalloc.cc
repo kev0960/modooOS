@@ -307,6 +307,23 @@ void KernelMemoryManager::FreeOccupiedChunk(uint8_t* addr) {
       !IsOccupied(prefix_of_right_chunk)) {
     CoalsceTwoChunks(addr, prefix_of_right_chunk);
   }
+
+  auto merged_chunk_size = GetChunkSize(addr);
+  if (GetOffsetFromHeapStart(addr) + merged_chunk_size + 8 ==
+      current_heap_size_) {
+    RemoveFreeChunkFromHeap(addr);
+  }
+}
+
+void KernelMemoryManager::RemoveFreeChunkFromHeap(uint8_t* addr) {
+  auto chunk_size = GetChunkSize(addr);
+
+  // Remve current chunk from the free list.
+  WeaveTwoChunksTogether(GetPrevAndNextFromFreeChunk(addr),
+                         GetBucketIndexOfFreeChunk(chunk_size));
+
+  // Decrease the length of the heap memory.
+  current_heap_size_ -= (chunk_size + 8);
 }
 
 uint8_t* KernelMemoryManager::GetAddressByOffset(uint32_t offset_size) const {
@@ -325,7 +342,6 @@ uint8_t* KernelMemoryManager::GetActualMemoryAddressByOffset(
 
 void KernelMemoryManager::WeaveTwoChunksTogether(
     const PrevAndNext& prev_and_next, int bucket_index) {
-
   // This means the prev chunk was just the free_list.
   if (prev_and_next.prev_offset == 0) {
     free_list_[bucket_index] = prev_and_next.next_offset;

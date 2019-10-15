@@ -67,10 +67,14 @@ class KernelMemoryManager {
 
   void CoalsceTwoChunks(uint8_t* left, uint8_t* right);
 
+  // Completely remove free chunk from heap. The chunk MUST be at the end of the
+  // heap boundary.
+  void RemoveFreeChunkFromHeap(uint8_t* addr);
+
   // Virtual memory where heap start. Because of the identity mapping, the
   // physical address of kernel memory will simply be (current memory address -
   // KERNEL_VIRTUAL_START).
-  uint8_t* heap_start_;
+  uint8_t* const heap_start_;
 
   // Size of the maximum heap. Since we are using 1 GB paging for the kernel and
   // the kernel VM is 1 GB of identity mapping, the usable heap size will simply

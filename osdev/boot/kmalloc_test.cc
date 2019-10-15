@@ -34,9 +34,8 @@ TEST(kmallocTest, MergeThreeChunksToOne) {
   kfree(mem2);
 
   EXPECT_TRUE(kernel_memory_manager.SanityCheck());
-  kernel_memory_manager.ShowDebugInfo();
-  kernel_memory_manager.DumpMemory();
 }
+
 TEST(kmallocTest, DecreaseSize) {
   kernel_memory_manager.Reset();
   for (int i = 50; i >= 1; i--) {
