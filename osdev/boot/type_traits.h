@@ -4,7 +4,7 @@
 #include "types.h"
 
 namespace Kernel {
-
+namespace std {
 template <class T, T v>
 struct integral_constant {
   static constexpr T value = v;
@@ -89,6 +89,28 @@ struct _is_integral_base<uint64_t> : true_type {};
 
 template <typename T>
 struct is_integral : _is_integral_base<typename remove_cv<T>::type> {};
-}  // namespace Kernel
 
+template <typename T>
+struct remove_reference {
+  using type = T;
+};
+
+template <typename T>
+struct remove_reference<T&> {
+  using type = T;
+};
+
+template <typename T>
+struct remove_reference<T&&> {
+  using type = T;
+};
+
+template <typename T>
+struct is_lvalue_reference : true_type {};
+
+template <typename T>
+struct is_lvalue_reference<T&> : false_type {};
+
+}  // namespace std
+}  // namespace Kernel
 #endif

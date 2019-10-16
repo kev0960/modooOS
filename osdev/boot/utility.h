@@ -1,9 +1,25 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
-#define UNUSED(expr) \
-  do {               \
-    (void)(expr);    \
-  } while (0)
+#include "type_traits.h"
 
+namespace Kernel {
+namespace std {
+
+// Blatantly copied from
+// https://stackoverflow.com/questions/27501400/the-implementation-of-stdforward
+template <typename T>
+constexpr T&& forward(typename remove_reference<T>::type& t) noexcept {
+  return static_cast<T&&>(t);
+}
+
+template <typename T>
+constexpr T&& forward(typename remove_reference<T>::type&& t) noexcept {
+  static_assert(!std::is_lvalue_reference<T>::value,
+                "Can not forward an rvalue as an lvalue.");
+  return static_cast<T&&>(t);
+}
+
+}  // namespace std
+}  // namespace Kernel
 #endif

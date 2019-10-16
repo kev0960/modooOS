@@ -44,7 +44,8 @@ int RoundUpNearestPowerOfTwo(uint32_t bytes) {
 int GetBucketIndexOfFreeChunk(uint32_t bytes) {
   int power = RoundDownNearestPowerOfTwoLog(bytes);
   if (power <= 2) {
-    kprintf("kmalloc : Cannot create bucket with too small memory %d \n", bytes);
+    kprintf("kmalloc : Cannot create bucket with too small memory %d \n",
+            bytes);
     return -1;
   } else if (3 <= power && power < 3 + NUM_BUCKETS) {
     return power - 3;
@@ -372,6 +373,12 @@ void KernelMemoryManager::Reset() {
   }
 }
 
+bool KernelMemoryManager::CheckMemoryDeleteSize(uint8_t* addr,
+                                                uint32_t bytes) const {
+  auto chunk_size = GetChunkSize(addr - /* Get suffix block */ 4);
+  return chunk_size >= bytes;
+}
+
 bool KernelMemoryManager::SanityCheck() {
   // First scan the entire heap from the start to the end.
   uint32_t current_offset = 8;
@@ -414,7 +421,7 @@ void KernelMemoryManager::DumpMemory() {
     } else {
       auto prev_and_next = GetPrevAndNextFromFreeChunk(chunk);
       kprintf(" prev : [%d] next : [%d]", prev_and_next.prev_offset,
-             prev_and_next.next_offset);
+              prev_and_next.next_offset);
     }
 
     kprintf("\n");

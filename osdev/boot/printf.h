@@ -34,11 +34,14 @@
 #define _PRINTF_H_
 
 #include <stdarg.h>
-#include <stddef.h>
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+using size_t = Kernel::size_t;
+using ptrdiff_t = Kernel::ptrdiff_t;
 
 /**
  * Output a character to a custom device like UART, used by the printf()

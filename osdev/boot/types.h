@@ -5,7 +5,9 @@
 
 namespace Kernel {
 
-using size_t = unsigned int;
+using size_t = unsigned long;
+using ptrdiff_t = long long;
+
 static const size_t npos = -1;
 
 }  // namespace Kernel

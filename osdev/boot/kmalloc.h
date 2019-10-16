@@ -30,6 +30,7 @@ class KernelMemoryManager {
 
   uint8_t* GetMemoryFromBucket(int bucket_index, uint32_t bytes);
   void FreeOccupiedChunk(uint8_t* addr);
+  bool CheckMemoryDeleteSize(uint8_t* addr, uint32_t bytes) const;
 
   struct PrevAndNext {
     uint32_t prev_offset;
@@ -91,8 +92,8 @@ class KernelMemoryManager {
 
 extern KernelMemoryManager kernel_memory_manager;
 
-void* kmalloc(uint32_t bytes);
-void* kcalloc(uint32_t bytes);
+void* kmalloc(size_t bytes);
+void* kcalloc(size_t bytes);
 void kfree(void* ptr);
 
 }  // namespace Kernel

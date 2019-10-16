@@ -3,7 +3,7 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "types.h"
-#include "utility.h"
+#include "cpp_macro.h"
 #include "vga_output.h"
 
 #define INTERRUPT_GATE_32_BIT (0b01110)

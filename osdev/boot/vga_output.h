@@ -2,9 +2,9 @@
 #define VGA_OUTPUT_H
 
 #include "algorithm.h"
+#include "printf.h"
 #include "string_view.h"
 #include "type_traits.h"
-#include "printf.h"
 
 namespace Kernel {
 
@@ -91,7 +91,8 @@ class VGAOutput {
     return (*this);
   }
 
-  template <typename Int, enable_if_t<is_integral<Int>::value, int>* = nullptr>
+  template <typename Int,
+            std::enable_if_t<std::is_integral<Int>::value, int>* = nullptr>
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(Int s) {
     char temp[20];
     ntoa(temp, 20, s, 16);

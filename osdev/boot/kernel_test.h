@@ -2,6 +2,7 @@
 #define KERNEL_TEST_H
 
 #include "printf.h"
+#include "types.h"
 
 namespace Kernel {
 namespace kernel_test {
