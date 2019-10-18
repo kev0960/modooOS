@@ -1,12 +1,13 @@
 CC=~/opt/cross/bin/x86_64-elf-g++
 SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
                -Werror -I. -MMD -mno-red-zone -mcmodel=kernel -fno-pie -mgeneral-regs-only \
-							 -fno-threadsafe-statics -fno-rtti
+							 -fno-threadsafe-statics -fno-rtti -fno-exceptions
 CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
 OBJS := boot.o
-OBJS += kmain.o string_util.o interrupt.o keyboard.o timer.o printf.o kmalloc.o kernel_test.o kmalloc_test.o
+OBJS += kmain.o string_util.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  kthread.o memory.o
+OBJS += kernel_test.o util_test.o
 
 CRTI_OBJ = crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
