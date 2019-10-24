@@ -1,8 +1,28 @@
 #include "kthread.h"
+#include "sync.h"
 
 namespace Kernel {
 
-KernelList<KernelThread*> kernel_thread_list;
+class ThreadIdManager {
+ public:
+  static size_t GetThreadId() {
+    static ThreadIdManager thread_id_manager;
+    return thread_id_manager.GetId();
+  }
+
+  ThreadIdManager(const ThreadIdManager&) = delete;
+  void operator=(const ThreadIdManager&) = delete;
+
+ private:
+  ThreadIdManager() = default;
+  size_t GetId() {
+    std::lock_guard<IrqLock> l(lock_);
+    return current_id_++;
+  }
+
+  size_t current_id_ = 0;
+  IrqLock lock_;
+};
 
 KernelThread* KernelThread::CurrentThread() {
   KernelThread* current_thread;
@@ -27,5 +47,9 @@ KernelThread::KernelThread()
   kernel_list_elem.Set(this);
   kernel_list_elem.PushBack();
 }
+
+void Semaphore::Up() {}
+
+void Semaphore::Down() {}
 
 }  // namespace Kernel

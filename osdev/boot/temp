@@ -139,7 +139,7 @@ _start64:
   4000a8:	48 c7 c0 01 00 00 00 	mov    $0x1,%rax
 
   call _init
-  4000af:	e8 d0 aa 01 80       	callq  ffffffff8041ab84 <_init>
+  4000af:	e8 80 ab 01 80       	callq  ffffffff8041ac34 <_init>
   call KernelMain
   4000b4:	e8 97 d0 00 80       	callq  ffffffff8040d150 <KernelMain>
   cli
@@ -154,21 +154,21 @@ _start64:
 Disassembly of section .text:
 
 ffffffff8040d000 <deregister_tm_clones>:
-ffffffff8040d000:	48 c7 c0 f8 db 41 80 	mov    $0xffffffff8041dbf8,%rax
-ffffffff8040d007:	48 3d f8 db 41 80    	cmp    $0xffffffff8041dbf8,%rax
+ffffffff8040d000:	48 c7 c0 68 dc 41 80 	mov    $0xffffffff8041dc68,%rax
+ffffffff8040d007:	48 3d 68 dc 41 80    	cmp    $0xffffffff8041dc68,%rax
 ffffffff8040d00d:	74 19                	je     ffffffff8040d028 <deregister_tm_clones+0x28>
 ffffffff8040d00f:	48 c7 c0 00 00 00 00 	mov    $0x0,%rax
 ffffffff8040d016:	48 85 c0             	test   %rax,%rax
 ffffffff8040d019:	74 0d                	je     ffffffff8040d028 <deregister_tm_clones+0x28>
-ffffffff8040d01b:	48 c7 c7 f8 db 41 80 	mov    $0xffffffff8041dbf8,%rdi
+ffffffff8040d01b:	48 c7 c7 68 dc 41 80 	mov    $0xffffffff8041dc68,%rdi
 ffffffff8040d022:	ff e0                	jmpq   *%rax
 ffffffff8040d024:	0f 1f 40 00          	nopl   0x0(%rax)
 ffffffff8040d028:	c3                   	retq   
 ffffffff8040d029:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
 
 ffffffff8040d030 <register_tm_clones>:
-ffffffff8040d030:	48 c7 c6 f8 db 41 80 	mov    $0xffffffff8041dbf8,%rsi
-ffffffff8040d037:	48 81 ee f8 db 41 80 	sub    $0xffffffff8041dbf8,%rsi
+ffffffff8040d030:	48 c7 c6 68 dc 41 80 	mov    $0xffffffff8041dc68,%rsi
+ffffffff8040d037:	48 81 ee 68 dc 41 80 	sub    $0xffffffff8041dc68,%rsi
 ffffffff8040d03e:	48 89 f0             	mov    %rsi,%rax
 ffffffff8040d041:	48 c1 ee 3f          	shr    $0x3f,%rsi
 ffffffff8040d045:	48 c1 f8 03          	sar    $0x3,%rax
@@ -178,7 +178,7 @@ ffffffff8040d04f:	74 1f                	je     ffffffff8040d070 <register_tm_clo
 ffffffff8040d051:	48 c7 c0 00 00 00 00 	mov    $0x0,%rax
 ffffffff8040d058:	48 85 c0             	test   %rax,%rax
 ffffffff8040d05b:	74 13                	je     ffffffff8040d070 <register_tm_clones+0x40>
-ffffffff8040d05d:	48 c7 c7 f8 db 41 80 	mov    $0xffffffff8041dbf8,%rdi
+ffffffff8040d05d:	48 c7 c7 68 dc 41 80 	mov    $0xffffffff8041dc68,%rdi
 ffffffff8040d064:	ff e0                	jmpq   *%rax
 ffffffff8040d066:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
 ffffffff8040d06d:	00 00 00 
@@ -194,10 +194,10 @@ ffffffff8040d089:	55                   	push   %rbp
 ffffffff8040d08a:	48 8b 05 77 0f 01 00 	mov    0x10f77(%rip),%rax        # ffffffff8041e008 <dtor_idx.4610>
 ffffffff8040d091:	48 89 e5             	mov    %rsp,%rbp
 ffffffff8040d094:	41 54                	push   %r12
-ffffffff8040d096:	49 c7 c4 e8 db 41 80 	mov    $0xffffffff8041dbe8,%r12
+ffffffff8040d096:	49 c7 c4 58 dc 41 80 	mov    $0xffffffff8041dc58,%r12
 ffffffff8040d09d:	53                   	push   %rbx
-ffffffff8040d09e:	48 c7 c3 f0 db 41 80 	mov    $0xffffffff8041dbf0,%rbx
-ffffffff8040d0a5:	48 81 eb e8 db 41 80 	sub    $0xffffffff8041dbe8,%rbx
+ffffffff8040d09e:	48 c7 c3 60 dc 41 80 	mov    $0xffffffff8041dc60,%rbx
+ffffffff8040d0a5:	48 81 eb 58 dc 41 80 	sub    $0xffffffff8041dc58,%rbx
 ffffffff8040d0ac:	48 c1 fb 03          	sar    $0x3,%rbx
 ffffffff8040d0b0:	48 83 eb 01          	sub    $0x1,%rbx
 ffffffff8040d0b4:	48 39 d8             	cmp    %rbx,%rax
@@ -278,7 +278,7 @@ ffffffff8040d17e:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff8040d183:	48 c7 c6 e8 b7 41 80 	mov    $0xffffffff8041b7e8,%rsi
 ffffffff8040d18a:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8040d191:	89 c2                	mov    %eax,%edx
-ffffffff8040d193:	e8 68 d3 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8040d193:	e8 18 d4 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
 class KernelTest;
 
 class KernelTestRunner {
@@ -301,7 +301,7 @@ ffffffff8040d1ab:	c6 05 0e 39 01 00 01 	movb   $0x1,0x1390e(%rip)        # fffff
   Kernel::vga_output << "IDT setup is done! \n";
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 ffffffff8040d1b2:	48 c7 c7 e0 0a 42 80 	mov    $0xffffffff80420ae0,%rdi
-ffffffff8040d1b9:	e8 32 cb 00 00       	callq  ffffffff80419cf0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv>
+ffffffff8040d1b9:	e8 e2 cb 00 00       	callq  ffffffff80419da0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv>
 
   /*
   asm volatile ("int $10");
@@ -443,7 +443,7 @@ ffffffff8040d276:	66 89 15 c3 1d 01 00 	mov    %dx,0x11dc3(%rip)        # ffffff
 
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
-ffffffff8040d27d:	0f b6 05 7c dd 00 00 	movzbl 0xdd7c(%rip),%eax        # ffffffff8041b000 <_init+0x47c>
+ffffffff8040d27d:	0f b6 05 7c dd 00 00 	movzbl 0xdd7c(%rip),%eax        # ffffffff8041b000 <_init+0x3cc>
   entry.selector = 0x8;  // Code segment.
 ffffffff8040d284:	41 b8 08 00 00 00    	mov    $0x8,%r8d
 ffffffff8040d28a:	41 b9 08 00 00 00    	mov    $0x8,%r9d
@@ -1230,7 +1230,7 @@ ffffffff8040dbe5:	be 08 00 00 00       	mov    $0x8,%esi
 ffffffff8040dbea:	48 c7 c0 f0 d1 40 80 	mov    $0xffffffff8040d1f0,%rax
 
   InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
-ffffffff8040dbf1:	0f b6 15 08 d4 00 00 	movzbl 0xd408(%rip),%edx        # ffffffff8041b000 <_init+0x47c>
+ffffffff8040dbf1:	0f b6 15 08 d4 00 00 	movzbl 0xd408(%rip),%edx        # ffffffff8041b000 <_init+0x3cc>
   entry.offset_1 = ih_addr & 0xFFFF;
 ffffffff8040dbf8:	66 89 05 41 16 01 00 	mov    %ax,0x11641(%rip)        # ffffffff8041f240 <idt_entries+0x200>
   entry.selector = 0x8;  // Code segment.
@@ -1929,14 +1929,14 @@ ffffffff8040e395:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff8040e39a:	48 c7 c6 fb b7 41 80 	mov    $0xffffffff8041b7fb,%rsi
 ffffffff8040e3a1:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8040e3a8:	89 c2                	mov    %eax,%edx
-ffffffff8040e3aa:	e8 51 c1 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8040e3aa:	e8 01 c2 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
 ffffffff8040e3af:	48 c7 c7 54 b8 41 80 	mov    $0xffffffff8041b854,%rdi
 ffffffff8040e3b6:	e8 05 ee ff ff       	callq  ffffffff8040d1c0 <_ZN6Kernel6strlenEPKc>
 ffffffff8040e3bb:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff8040e3c0:	48 c7 c6 54 b8 41 80 	mov    $0xffffffff8041b854,%rsi
 ffffffff8040e3c7:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8040e3ce:	89 c2                	mov    %eax,%edx
-ffffffff8040e3d0:	e8 2b c1 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8040e3d0:	e8 db c1 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
   vga_output << " cs : " << args->cs << "\n";
 ffffffff8040e3d5:	48 8b 04 24          	mov    (%rsp),%rax
   size_t num_len = 0;
@@ -2165,7 +2165,7 @@ ffffffff8040e679:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff8040e67e:	48 c7 c6 fb b7 41 80 	mov    $0xffffffff8041b7fb,%rsi
 ffffffff8040e685:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8040e68c:	89 c2                	mov    %eax,%edx
-ffffffff8040e68e:	e8 6d be 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8040e68e:	e8 1d bf 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
 ffffffff8040e693:	48 c7 c7 3a b8 41 80 	mov    $0xffffffff8041b83a,%rdi
 ffffffff8040e69a:	e8 21 eb ff ff       	callq  ffffffff8040d1c0 <_ZN6Kernel6strlenEPKc>
 ffffffff8040e69f:	89 c0                	mov    %eax,%eax
@@ -2720,7 +2720,7 @@ ffffffff8040ed49:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff8040ed4e:	48 c7 c6 5b b8 41 80 	mov    $0xffffffff8041b85b,%rsi
 ffffffff8040ed55:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8040ed5c:	89 c2                	mov    %eax,%edx
-ffffffff8040ed5e:	e8 9d b7 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8040ed5e:	e8 4d b8 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
   vga_output << " rflags : " << args->rflags << "\n";
 ffffffff8040ed63:	48 8b 04 24          	mov    (%rsp),%rax
   size_t num_len = 0;
@@ -6024,7 +6024,7 @@ ffffffff8041165c:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff80411661:	48 c7 c6 51 b8 41 80 	mov    $0xffffffff8041b851,%rsi
 ffffffff80411668:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8041166f:	89 c2                	mov    %eax,%edx
-ffffffff80411671:	e8 8a 8e 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff80411671:	e8 3a 8f 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
     vga_output << " [" << kCPUExceptionErrorMessages[int_num] << "]";
 ffffffff80411676:	48 8b 44 24 08       	mov    0x8(%rsp),%rax
 ffffffff8041167b:	48 8b 2c c5 20 b0 41 	mov    -0x7fbe4fe0(,%rax,8),%rbp
@@ -6035,14 +6035,14 @@ ffffffff8041168b:	48 89 ee             	mov    %rbp,%rsi
 ffffffff8041168e:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff80411693:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff8041169a:	89 c2                	mov    %eax,%edx
-ffffffff8041169c:	e8 5f 8e 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff8041169c:	e8 0f 8f 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
 ffffffff804116a1:	48 c7 c7 11 ba 41 80 	mov    $0xffffffff8041ba11,%rdi
 ffffffff804116a8:	e8 13 bb ff ff       	callq  ffffffff8040d1c0 <_ZN6Kernel6strlenEPKc>
 ffffffff804116ad:	b9 0f 00 00 00       	mov    $0xf,%ecx
 ffffffff804116b2:	48 c7 c6 11 ba 41 80 	mov    $0xffffffff8041ba11,%rsi
 ffffffff804116b9:	48 c7 c7 60 e0 41 80 	mov    $0xffffffff8041e060,%rdi
 ffffffff804116c0:	89 c2                	mov    %eax,%edx
-ffffffff804116c2:	e8 39 8e 00 00       	callq  ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
+ffffffff804116c2:	e8 e9 8e 00 00       	callq  ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>
 ffffffff804116c7:	e9 bd cc ff ff       	jmpq   ffffffff8040e389 <_ZN6Kernel12_GLOBAL__N_122PrintCPUInterruptFrameEPNS_23CPUInterruptHandlerArgsEm+0x6b9>
 ffffffff804116cc:	0f 1f 40 00          	nopl   0x0(%rax)
 ffffffff804116d0:	4c 8b 05 a1 c9 00 00 	mov    0xc9a1(%rip),%r8        # ffffffff8041e078 <_ZN6Kernel10vga_outputE+0x18>
@@ -14578,36 +14578,36 @@ ffffffff80417aac:	0f 1f 40 00          	nopl   0x0(%rax)
 ffffffff80417ab0 <_ZN6Kernel7PITimerC1Ev>:
 #include "timer.h"
 #include "stdint.h"
+#include "scheduler.h"
 
 namespace Kernel {
-PITimer::PITimer() : timer_tick_lower_(0), timer_tick_upper_(0) {}
 ffffffff80417ab0:	48 c7 07 00 00 00 00 	movq   $0x0,(%rdi)
 ffffffff80417ab7:	48 c7 47 08 00 00 00 	movq   $0x0,0x8(%rdi)
 ffffffff80417abe:	00 
 ffffffff80417abf:	c3                   	retq   
 
 ffffffff80417ac0 <_ZN6Kernel7PITimer21TimerInterruptHandlerEv>:
+PITimer::PITimer() : timer_tick_lower_(0), timer_tick_upper_(0) {}
 
 void PITimer::TimerInterruptHandler() {
-  if (timer_tick_lower_ == UINT64_MAX) {
 ffffffff80417ac0:	48 8b 07             	mov    (%rdi),%rax
 ffffffff80417ac3:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
 ffffffff80417ac7:	74 0f                	je     ffffffff80417ad8 <_ZN6Kernel7PITimer21TimerInterruptHandlerEv+0x18>
 ffffffff80417ac9:	48 83 c0 01          	add    $0x1,%rax
+  if (timer_tick_lower_ == UINT64_MAX) {
     timer_tick_lower_ = 0;
     timer_tick_upper_++;
   }
-  timer_tick_lower_++;
 ffffffff80417acd:	48 89 07             	mov    %rax,(%rdi)
-}
+  timer_tick_lower_++;
 ffffffff80417ad0:	c3                   	retq   
 ffffffff80417ad1:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
-    timer_tick_upper_++;
+    timer_tick_lower_ = 0;
 ffffffff80417ad8:	b8 01 00 00 00       	mov    $0x1,%eax
 ffffffff80417add:	48 83 47 08 01       	addq   $0x1,0x8(%rdi)
-  timer_tick_lower_++;
+  }
 ffffffff80417ae2:	48 89 07             	mov    %rax,(%rdi)
-}
+  timer_tick_lower_++;
 ffffffff80417ae5:	c3                   	retq   
 ffffffff80417ae6:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
 ffffffff80417aed:	00 00 00 
@@ -14619,12 +14619,12 @@ ffffffff80417af7:	b8 9b ff ff ff       	mov    $0xffffff9b,%eax
 ffffffff80417afc:	e6 40                	out    %al,$0x40
 ffffffff80417afe:	b8 2e 00 00 00       	mov    $0x2e,%eax
 ffffffff80417b03:	e6 40                	out    %al,$0x40
-  const uint16_t divisor = 1193180 / PITIMER_HZ;
-
-  outb(PIT_CONTROL, 0x36);
-  outb(PIT_1, divisor & 0xFF);  // Lower 1 byte
-  outb(PIT_1, divisor >> 8);    // High 1 byte
+    KernelThreadScheduler::GetKernelThreadScheduler().schedule();
+  }
 }
+
+void PITimer::InstallPITimer() const {
+  const uint16_t divisor = 1193180 / PITIMER_HZ;
 ffffffff80417b05:	c3                   	retq   
 ffffffff80417b06:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
 ffffffff80417b0d:	00 00 00 
@@ -18111,1434 +18111,1506 @@ ffffffff80419c54:	48 c7 c7 a0 09 42 80 	mov    $0xffffffff804209a0,%rdi
 ffffffff80419c5b:	e9 30 fc ff ff       	jmpq   ffffffff80419890 <_ZN6Kernel19KernelMemoryManager17FreeOccupiedChunkEPh>
 
 ffffffff80419c60 <_ZN6Kernel12KernelThread13CurrentThreadEv>:
-
-KernelThread* KernelThread::CurrentThread() {
-  KernelThread* current_thread;
-
-  // Current thread block is stored in fs register.
-  asm volatile("movq %%fs, %0" : "=r"(current_thread)::);
+class ThreadIdManager {
+ public:
+  static size_t GetThreadId() {
+    static ThreadIdManager thread_id_manager;
+    return thread_id_manager.GetId();
+  }
 ffffffff80419c60:	48 8c e0             	mov    %fs,%rax
-  return current_thread;
-}
+
+  ThreadIdManager(const ThreadIdManager&) = delete;
 ffffffff80419c63:	c3                   	retq   
 ffffffff80419c64:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
 ffffffff80419c6b:	00 00 00 00 
 ffffffff80419c6f:	90                   	nop
 
-ffffffff80419c70 <_ZN6Kernel12KernelThreadC1Ev>:
+ffffffff80419c70 <_ZN6Kernel12KernelThread10InitThreadEv>:
+  void operator=(const ThreadIdManager&) = delete;
+
+ffffffff80419c70:	48 83 ec 08          	sub    $0x8,%rsp
+ private:
+ffffffff80419c74:	bf 38 00 00 00       	mov    $0x38,%edi
+ffffffff80419c79:	e8 e2 00 00 00       	callq  ffffffff80419d60 <_Znwm>
       head_ = elem;
     }
   }
 
   void push_back(KernelListElement<T>* elem) {
     size_++;
-ffffffff80419c70:	83 05 89 6d 00 00 01 	addl   $0x1,0x6d89(%rip)        # ffffffff80420a00 <_ZN6Kernel18kernel_thread_listE+0x10>
+ffffffff80419c7e:	83 05 7b 6d 00 00 01 	addl   $0x1,0x6d7b(%rip)        # ffffffff80420a00 <_ZN6Kernel18kernel_thread_listE+0x10>
 
     if (empty()) {
-ffffffff80419c77:	48 83 3d 71 6d 00 00 	cmpq   $0x0,0x6d71(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
-ffffffff80419c7e:	00 
+ffffffff80419c85:	48 83 3d 63 6d 00 00 	cmpq   $0x0,0x6d63(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
+ffffffff80419c8c:	00 
+  size_t GetId() {
+    std::lock_guard<IrqLock> l(lock_);
+    return current_id_++;
+  }
 
-KernelThread::KernelThread()
-    : status_(THREAD_RUN), kernel_list_elem(&kernel_thread_list) {
-ffffffff80419c7f:	48 8d 47 10          	lea    0x10(%rdi),%rax
-ffffffff80419c83:	c7 47 08 00 00 00 00 	movl   $0x0,0x8(%rdi)
+  size_t current_id_ = 0;
+ffffffff80419c8d:	c7 40 08 00 00 00 00 	movl   $0x0,0x8(%rax)
+ffffffff80419c94:	48 8d 50 10          	lea    0x10(%rax),%rdx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419c8a:	48 c7 47 10 00 00 00 	movq   $0x0,0x10(%rdi)
-ffffffff80419c91:	00 
-ffffffff80419c92:	48 c7 47 18 00 00 00 	movq   $0x0,0x18(%rdi)
-ffffffff80419c99:	00 
-ffffffff80419c9a:	48 c7 47 28 f0 09 42 	movq   $0xffffffff804209f0,0x28(%rdi)
-ffffffff80419ca1:	80 
+ffffffff80419c98:	48 c7 40 10 00 00 00 	movq   $0x0,0x10(%rax)
+ffffffff80419c9f:	00 
+ffffffff80419ca0:	48 c7 40 18 00 00 00 	movq   $0x0,0x18(%rax)
+ffffffff80419ca7:	00 
+ffffffff80419ca8:	48 c7 40 28 f0 09 42 	movq   $0xffffffff804209f0,0x28(%rax)
+ffffffff80419caf:	80 
   void Set(const T& data) { t = data; }
-ffffffff80419ca2:	48 89 7f 20          	mov    %rdi,0x20(%rdi)
+ffffffff80419cb0:	48 89 40 20          	mov    %rax,0x20(%rax)
     if (empty()) {
-ffffffff80419ca6:	74 28                	je     ffffffff80419cd0 <_ZN6Kernel12KernelThreadC1Ev+0x60>
+ffffffff80419cb4:	74 2a                	je     ffffffff80419ce0 <_ZN6Kernel12KernelThread10InitThreadEv+0x70>
       head_ = tail_ = elem;
       elem->prev = elem->next = nullptr;
     } else {
       // Link previous tail and new tail together.
       tail_->next = elem;
-ffffffff80419ca8:	48 8b 15 49 6d 00 00 	mov    0x6d49(%rip),%rdx        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
-ffffffff80419caf:	48 89 42 08          	mov    %rax,0x8(%rdx)
+ffffffff80419cb6:	48 8b 0d 3b 6d 00 00 	mov    0x6d3b(%rip),%rcx        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+ffffffff80419cbd:	48 89 51 08          	mov    %rdx,0x8(%rcx)
       elem->prev = tail_;
-ffffffff80419cb3:	48 89 57 10          	mov    %rdx,0x10(%rdi)
+ffffffff80419cc1:	48 89 48 10          	mov    %rcx,0x10(%rax)
 
       // There is nothing on the right side of new tail.
       elem->next = nullptr;
-ffffffff80419cb7:	48 c7 47 18 00 00 00 	movq   $0x0,0x18(%rdi)
-ffffffff80419cbe:	00 
+ffffffff80419cc5:	48 c7 40 18 00 00 00 	movq   $0x0,0x18(%rax)
+ffffffff80419ccc:	00 
 
       // Set tail point new element.
       tail_ = elem;
-ffffffff80419cbf:	48 89 05 32 6d 00 00 	mov    %rax,0x6d32(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
-  kernel_list_elem.Set(this);
-  kernel_list_elem.PushBack();
-
-  // Save current KernelThread object address at FS.
-  asm volatile("movq %0, %%fs" ::"r"(this) :);
-ffffffff80419cc6:	48 8e e7             	mov    %rdi,%fs
-}
-ffffffff80419cc9:	c3                   	retq   
-ffffffff80419cca:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ffffffff80419ccd:	48 89 15 24 6d 00 00 	mov    %rdx,0x6d24(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+    std::lock_guard<IrqLock> l(lock_);
+ffffffff80419cd4:	48 8e e0             	mov    %rax,%fs
+    return current_id_++;
+ffffffff80419cd7:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff80419cdb:	c3                   	retq   
+ffffffff80419cdc:	0f 1f 40 00          	nopl   0x0(%rax)
       head_ = tail_ = elem;
-ffffffff80419cd0:	48 89 05 21 6d 00 00 	mov    %rax,0x6d21(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
-ffffffff80419cd7:	48 89 05 12 6d 00 00 	mov    %rax,0x6d12(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
-ffffffff80419cde:	eb e6                	jmp    ffffffff80419cc6 <_ZN6Kernel12KernelThreadC1Ev+0x56>
+ffffffff80419ce0:	48 89 15 11 6d 00 00 	mov    %rdx,0x6d11(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+ffffffff80419ce7:	48 89 15 02 6d 00 00 	mov    %rdx,0x6d02(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
+ffffffff80419cee:	eb e4                	jmp    ffffffff80419cd4 <_ZN6Kernel12KernelThread10InitThreadEv+0x64>
 
-ffffffff80419ce0 <__cxa_pure_virtual>:
+ffffffff80419cf0 <_ZN6Kernel12KernelThreadC1Ev>:
+    size_++;
+ffffffff80419cf0:	83 05 09 6d 00 00 01 	addl   $0x1,0x6d09(%rip)        # ffffffff80420a00 <_ZN6Kernel18kernel_thread_listE+0x10>
+    if (empty()) {
+ffffffff80419cf7:	48 83 3d f1 6c 00 00 	cmpq   $0x0,0x6cf1(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
+ffffffff80419cfe:	00 
+  size_t current_id_ = 0;
+ffffffff80419cff:	48 8d 47 10          	lea    0x10(%rdi),%rax
+ffffffff80419d03:	c7 47 08 00 00 00 00 	movl   $0x0,0x8(%rdi)
+      : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
+ffffffff80419d0a:	48 c7 47 10 00 00 00 	movq   $0x0,0x10(%rdi)
+ffffffff80419d11:	00 
+ffffffff80419d12:	48 c7 47 18 00 00 00 	movq   $0x0,0x18(%rdi)
+ffffffff80419d19:	00 
+ffffffff80419d1a:	48 c7 47 28 f0 09 42 	movq   $0xffffffff804209f0,0x28(%rdi)
+ffffffff80419d21:	80 
+  void Set(const T& data) { t = data; }
+ffffffff80419d22:	48 89 7f 20          	mov    %rdi,0x20(%rdi)
+    if (empty()) {
+ffffffff80419d26:	74 28                	je     ffffffff80419d50 <_ZN6Kernel12KernelThreadC1Ev+0x60>
+      tail_->next = elem;
+ffffffff80419d28:	48 8b 15 c9 6c 00 00 	mov    0x6cc9(%rip),%rdx        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+ffffffff80419d2f:	48 89 42 08          	mov    %rax,0x8(%rdx)
+      elem->prev = tail_;
+ffffffff80419d33:	48 89 57 10          	mov    %rdx,0x10(%rdi)
+      elem->next = nullptr;
+ffffffff80419d37:	48 c7 47 18 00 00 00 	movq   $0x0,0x18(%rdi)
+ffffffff80419d3e:	00 
+      tail_ = elem;
+ffffffff80419d3f:	48 89 05 b2 6c 00 00 	mov    %rax,0x6cb2(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+  IrqLock lock_;
+};
+
+KernelThread* KernelThread::CurrentThread() {
+ffffffff80419d46:	c3                   	retq   
+ffffffff80419d47:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff80419d4e:	00 00 
+      head_ = tail_ = elem;
+ffffffff80419d50:	48 89 05 a1 6c 00 00 	mov    %rax,0x6ca1(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+ffffffff80419d57:	48 89 05 92 6c 00 00 	mov    %rax,0x6c92(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
+ffffffff80419d5e:	c3                   	retq   
+ffffffff80419d5f:	90                   	nop
+
+ffffffff80419d60 <_Znwm>:
+#include "memory.h"
+
+// Overriding global new and delete.
+// NOTE THAT WE DO NOT USE new[] or delete[] IN KERNEL CONTEXT.
+void* operator new(Kernel::size_t count) { return Kernel::kmalloc(count); }
+ffffffff80419d60:	e9 4b fe ff ff       	jmpq   ffffffff80419bb0 <_ZN6Kernel7kmallocEm>
+ffffffff80419d65:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+ffffffff80419d6c:	00 00 00 00 
+
+ffffffff80419d70 <_ZdlPv>:
+void operator delete(void* p) noexcept { Kernel::kfree(p); }
+ffffffff80419d70:	e9 db fe ff ff       	jmpq   ffffffff80419c50 <_ZN6Kernel5kfreeEPv>
+ffffffff80419d75:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+ffffffff80419d7c:	00 00 00 00 
+
+ffffffff80419d80 <_ZdlPvm>:
+void operator delete(void* p, Kernel::size_t) noexcept { Kernel::kfree(p); }
+ffffffff80419d80:	e9 cb fe ff ff       	jmpq   ffffffff80419c50 <_ZN6Kernel5kfreeEPv>
+ffffffff80419d85:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff80419d8c:	00 00 00 
+ffffffff80419d8f:	90                   	nop
+
+ffffffff80419d90 <__cxa_pure_virtual>:
 #include "kernel_test.h"
 
 extern "C" void __cxa_pure_virtual() {
   while (1)
-ffffffff80419ce0:	eb fe                	jmp    ffffffff80419ce0 <__cxa_pure_virtual>
-ffffffff80419ce2:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
-ffffffff80419ce9:	00 00 00 00 
-ffffffff80419ced:	0f 1f 00             	nopl   (%rax)
+ffffffff80419d90:	eb fe                	jmp    ffffffff80419d90 <__cxa_pure_virtual>
+ffffffff80419d92:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+ffffffff80419d99:	00 00 00 00 
+ffffffff80419d9d:	0f 1f 00             	nopl   (%rax)
 
-ffffffff80419cf0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv>:
+ffffffff80419da0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv>:
 
 namespace Kernel {
 namespace kernel_test {
 
 void KernelTestRunner::RunTest() {
   for (int i = 0; i < num_tests_; i++) {
-ffffffff80419cf0:	8b 97 20 03 00 00    	mov    0x320(%rdi),%edx
-ffffffff80419cf6:	85 d2                	test   %edx,%edx
-ffffffff80419cf8:	0f 8e a2 00 00 00    	jle    ffffffff80419da0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0xb0>
+ffffffff80419da0:	8b 97 20 03 00 00    	mov    0x320(%rdi),%edx
+ffffffff80419da6:	85 d2                	test   %edx,%edx
+ffffffff80419da8:	0f 8e a2 00 00 00    	jle    ffffffff80419e50 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0xb0>
 void KernelTestRunner::RunTest() {
-ffffffff80419cfe:	55                   	push   %rbp
-ffffffff80419cff:	48 89 fd             	mov    %rdi,%rbp
-ffffffff80419d02:	53                   	push   %rbx
+ffffffff80419dae:	55                   	push   %rbp
+ffffffff80419daf:	48 89 fd             	mov    %rdi,%rbp
+ffffffff80419db2:	53                   	push   %rbx
   for (int i = 0; i < num_tests_; i++) {
-ffffffff80419d03:	31 db                	xor    %ebx,%ebx
+ffffffff80419db3:	31 db                	xor    %ebx,%ebx
 void KernelTestRunner::RunTest() {
-ffffffff80419d05:	48 83 ec 08          	sub    $0x8,%rsp
-ffffffff80419d09:	eb 3a                	jmp    ffffffff80419d45 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x55>
-ffffffff80419d0b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff80419db5:	48 83 ec 08          	sub    $0x8,%rsp
+ffffffff80419db9:	eb 3a                	jmp    ffffffff80419df5 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x55>
+ffffffff80419dbb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
     kprintf("[ RUN      ]  %s.%s\n", tests_[i]->GetTestSuiteName(),
            tests_[i]->GetTestName());
     tests_[i]->TestBody();
     if (!tests_[i]->GetBadCount()) {
       kprintf("[       OK ] ");
-ffffffff80419d10:	48 c7 c7 36 ba 41 80 	mov    $0xffffffff8041ba36,%rdi
-ffffffff80419d17:	31 c0                	xor    %eax,%eax
-ffffffff80419d19:	e8 b2 f5 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff80419dc0:	48 c7 c7 36 ba 41 80 	mov    $0xffffffff8041ba36,%rdi
+ffffffff80419dc7:	31 c0                	xor    %eax,%eax
+ffffffff80419dc9:	e8 02 f5 ff ff       	callq  ffffffff804192d0 <printf_>
     } else {
       kprintf("[  FAILED  ] ");
     }
     kprintf("%s.%s\n", tests_[i]->GetTestSuiteName(), tests_[i]->GetTestName());
-ffffffff80419d1e:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
-ffffffff80419d23:	48 c7 c7 2f ba 41 80 	mov    $0xffffffff8041ba2f,%rdi
-ffffffff80419d2a:	48 83 c3 01          	add    $0x1,%rbx
-ffffffff80419d2e:	48 8b 50 10          	mov    0x10(%rax),%rdx
-ffffffff80419d32:	48 8b 70 08          	mov    0x8(%rax),%rsi
-ffffffff80419d36:	31 c0                	xor    %eax,%eax
-ffffffff80419d38:	e8 93 f5 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff80419dce:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
+ffffffff80419dd3:	48 c7 c7 2f ba 41 80 	mov    $0xffffffff8041ba2f,%rdi
+ffffffff80419dda:	48 83 c3 01          	add    $0x1,%rbx
+ffffffff80419dde:	48 8b 50 10          	mov    0x10(%rax),%rdx
+ffffffff80419de2:	48 8b 70 08          	mov    0x8(%rax),%rsi
+ffffffff80419de6:	31 c0                	xor    %eax,%eax
+ffffffff80419de8:	e8 e3 f4 ff ff       	callq  ffffffff804192d0 <printf_>
   for (int i = 0; i < num_tests_; i++) {
-ffffffff80419d3d:	39 9d 20 03 00 00    	cmp    %ebx,0x320(%rbp)
-ffffffff80419d43:	7e 4b                	jle    ffffffff80419d90 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0xa0>
+ffffffff80419ded:	39 9d 20 03 00 00    	cmp    %ebx,0x320(%rbp)
+ffffffff80419df3:	7e 4b                	jle    ffffffff80419e40 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0xa0>
            tests_[i]->GetTestName());
-ffffffff80419d45:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
+ffffffff80419df5:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
     kprintf("[ RUN      ]  %s.%s\n", tests_[i]->GetTestSuiteName(),
-ffffffff80419d4a:	48 c7 c7 21 ba 41 80 	mov    $0xffffffff8041ba21,%rdi
-ffffffff80419d51:	48 8b 50 10          	mov    0x10(%rax),%rdx
-ffffffff80419d55:	48 8b 70 08          	mov    0x8(%rax),%rsi
-ffffffff80419d59:	31 c0                	xor    %eax,%eax
-ffffffff80419d5b:	e8 70 f5 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff80419dfa:	48 c7 c7 21 ba 41 80 	mov    $0xffffffff8041ba21,%rdi
+ffffffff80419e01:	48 8b 50 10          	mov    0x10(%rax),%rdx
+ffffffff80419e05:	48 8b 70 08          	mov    0x8(%rax),%rsi
+ffffffff80419e09:	31 c0                	xor    %eax,%eax
+ffffffff80419e0b:	e8 c0 f4 ff ff       	callq  ffffffff804192d0 <printf_>
     tests_[i]->TestBody();
-ffffffff80419d60:	48 8b 7c dd 00       	mov    0x0(%rbp,%rbx,8),%rdi
-ffffffff80419d65:	48 8b 07             	mov    (%rdi),%rax
-ffffffff80419d68:	ff 10                	callq  *(%rax)
+ffffffff80419e10:	48 8b 7c dd 00       	mov    0x0(%rbp,%rbx,8),%rdi
+ffffffff80419e15:	48 8b 07             	mov    (%rdi),%rax
+ffffffff80419e18:	ff 10                	callq  *(%rax)
     if (!tests_[i]->GetBadCount()) {
-ffffffff80419d6a:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
-ffffffff80419d6f:	8b 40 18             	mov    0x18(%rax),%eax
-ffffffff80419d72:	85 c0                	test   %eax,%eax
-ffffffff80419d74:	74 9a                	je     ffffffff80419d10 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x20>
+ffffffff80419e1a:	48 8b 44 dd 00       	mov    0x0(%rbp,%rbx,8),%rax
+ffffffff80419e1f:	8b 40 18             	mov    0x18(%rax),%eax
+ffffffff80419e22:	85 c0                	test   %eax,%eax
+ffffffff80419e24:	74 9a                	je     ffffffff80419dc0 <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x20>
       kprintf("[  FAILED  ] ");
-ffffffff80419d76:	48 c7 c7 44 ba 41 80 	mov    $0xffffffff8041ba44,%rdi
-ffffffff80419d7d:	31 c0                	xor    %eax,%eax
-ffffffff80419d7f:	e8 4c f5 ff ff       	callq  ffffffff804192d0 <printf_>
-ffffffff80419d84:	eb 98                	jmp    ffffffff80419d1e <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x2e>
-ffffffff80419d86:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff80419d8d:	00 00 00 
+ffffffff80419e26:	48 c7 c7 44 ba 41 80 	mov    $0xffffffff8041ba44,%rdi
+ffffffff80419e2d:	31 c0                	xor    %eax,%eax
+ffffffff80419e2f:	e8 9c f4 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff80419e34:	eb 98                	jmp    ffffffff80419dce <_ZN6Kernel11kernel_test16KernelTestRunner7RunTestEv+0x2e>
+ffffffff80419e36:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff80419e3d:	00 00 00 
   }
 }
-ffffffff80419d90:	48 83 c4 08          	add    $0x8,%rsp
-ffffffff80419d94:	5b                   	pop    %rbx
-ffffffff80419d95:	5d                   	pop    %rbp
-ffffffff80419d96:	c3                   	retq   
-ffffffff80419d97:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-ffffffff80419d9e:	00 00 
-ffffffff80419da0:	c3                   	retq   
-ffffffff80419da1:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff80419da8:	00 00 00 
-ffffffff80419dab:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff80419e40:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff80419e44:	5b                   	pop    %rbx
+ffffffff80419e45:	5d                   	pop    %rbp
+ffffffff80419e46:	c3                   	retq   
+ffffffff80419e47:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff80419e4e:	00 00 
+ffffffff80419e50:	c3                   	retq   
+ffffffff80419e51:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff80419e58:	00 00 00 
+ffffffff80419e5b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-ffffffff80419db0 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv>:
+ffffffff80419e60 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv>:
   KernelList<int> list;
   INSERT_BACK(1)
   INSERT_BACK(2)
   INSERT_BACK(3)
 
   int result[] = {1, 2, 3};
-ffffffff80419db0:	48 be 02 00 00 00 03 	movabs $0x300000002,%rsi
-ffffffff80419db7:	00 00 00 
+ffffffff80419e60:	48 be 02 00 00 00 03 	movabs $0x300000002,%rsi
+ffffffff80419e67:	00 00 00 
 TEST(KernelListTest, SimplePushBack) {
-ffffffff80419dba:	41 55                	push   %r13
-ffffffff80419dbc:	49 89 fd             	mov    %rdi,%r13
-ffffffff80419dbf:	41 54                	push   %r12
-ffffffff80419dc1:	55                   	push   %rbp
-ffffffff80419dc2:	53                   	push   %rbx
-ffffffff80419dc3:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
+ffffffff80419e6a:	41 55                	push   %r13
+ffffffff80419e6c:	49 89 fd             	mov    %rdi,%r13
+ffffffff80419e6f:	41 54                	push   %r12
+ffffffff80419e71:	55                   	push   %rbp
+ffffffff80419e72:	53                   	push   %rbx
+ffffffff80419e73:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419dca:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
+ffffffff80419e7a:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
       tail_->next = elem;
-ffffffff80419dcf:	48 8d 54 24 70       	lea    0x70(%rsp),%rdx
+ffffffff80419e7f:	48 8d 54 24 70       	lea    0x70(%rsp),%rdx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419dd4:	48 c7 44 24 78 00 00 	movq   $0x0,0x78(%rsp)
-ffffffff80419ddb:	00 00 
+ffffffff80419e84:	48 c7 44 24 78 00 00 	movq   $0x0,0x78(%rsp)
+ffffffff80419e8b:	00 00 
       head_ = tail_ = elem;
-ffffffff80419ddd:	48 8d 5c 24 30       	lea    0x30(%rsp),%rbx
+ffffffff80419e8d:	48 8d 5c 24 30       	lea    0x30(%rsp),%rbx
       tail_->next = elem;
-ffffffff80419de2:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
-ffffffff80419de7:	48 8d 4c 24 50       	lea    0x50(%rsp),%rcx
-ffffffff80419dec:	49 89 c4             	mov    %rax,%r12
+ffffffff80419e92:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
+ffffffff80419e97:	48 8d 4c 24 50       	lea    0x50(%rsp),%rcx
+ffffffff80419e9c:	49 89 c4             	mov    %rax,%r12
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419def:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+ffffffff80419e9f:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
   void push_back(KernelListElement<T>* elem) {
-ffffffff80419df4:	48 8d 6c 24 0c       	lea    0xc(%rsp),%rbp
+ffffffff80419ea4:	48 8d 6c 24 0c       	lea    0xc(%rsp),%rbp
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419df9:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
-ffffffff80419dfe:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
-ffffffff80419e05:	00 
+ffffffff80419ea9:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
+ffffffff80419eae:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
+ffffffff80419eb5:	00 
   int result[] = {1, 2, 3};
-ffffffff80419e06:	b8 01 00 00 00       	mov    $0x1,%eax
+ffffffff80419eb6:	b8 01 00 00 00       	mov    $0x1,%eax
       tail_ = elem;
-ffffffff80419e0b:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
-ffffffff80419e10:	ba 01 00 00 00       	mov    $0x1,%edx
+ffffffff80419ebb:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
+ffffffff80419ec0:	ba 01 00 00 00       	mov    $0x1,%edx
       head_ = tail_ = elem;
-ffffffff80419e15:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+ffffffff80419ec5:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
       tail_->next = elem;
-ffffffff80419e1a:	48 89 4c 24 38       	mov    %rcx,0x38(%rsp)
+ffffffff80419eca:	48 89 4c 24 38       	mov    %rcx,0x38(%rsp)
       elem->prev = tail_;
-ffffffff80419e1f:	48 89 5c 24 50       	mov    %rbx,0x50(%rsp)
+ffffffff80419ecf:	48 89 5c 24 50       	mov    %rbx,0x50(%rsp)
       current_ = current_->next;
-ffffffff80419e24:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+ffffffff80419ed4:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419e28:	48 c7 44 24 30 00 00 	movq   $0x0,0x30(%rsp)
-ffffffff80419e2f:	00 00 
+ffffffff80419ed8:	48 c7 44 24 30 00 00 	movq   $0x0,0x30(%rsp)
+ffffffff80419edf:	00 00 
   void Set(const T& data) { t = data; }
-ffffffff80419e31:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
-ffffffff80419e38:	00 
-ffffffff80419e39:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
-ffffffff80419e40:	00 
+ffffffff80419ee1:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
+ffffffff80419ee8:	00 
+ffffffff80419ee9:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
+ffffffff80419ef0:	00 
     size_++;
-ffffffff80419e41:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
-ffffffff80419e48:	00 
+ffffffff80419ef1:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
+ffffffff80419ef8:	00 
       elem->prev = tail_;
-ffffffff80419e49:	48 89 4c 24 70       	mov    %rcx,0x70(%rsp)
+ffffffff80419ef9:	48 89 4c 24 70       	mov    %rcx,0x70(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff80419e4e:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
-ffffffff80419e55:	03 00 00 00 
-ffffffff80419e59:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
+ffffffff80419efe:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
+ffffffff80419f05:	03 00 00 00 
+ffffffff80419f09:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
     KernelTestRunner::GetTestRunner().AddTest(this);
   }
 
   template <typename T, typename U>
   void ExpectEq(const char* file, int line, const T& t, const U& u) {
     if (t != u) {
-ffffffff80419e5e:	39 d0                	cmp    %edx,%eax
-ffffffff80419e60:	74 1f                	je     ffffffff80419e81 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xd1>
+ffffffff80419f0e:	39 d0                	cmp    %edx,%eax
+ffffffff80419f10:	74 1f                	je     ffffffff80419f31 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xd1>
       kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff80419e62:	ba 27 00 00 00       	mov    $0x27,%edx
-ffffffff80419e67:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff80419e6e:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff80419e75:	31 c0                	xor    %eax,%eax
-ffffffff80419e77:	e8 54 f4 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff80419f12:	ba 27 00 00 00       	mov    $0x27,%edx
+ffffffff80419f17:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff80419f1e:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
+ffffffff80419f25:	31 c0                	xor    %eax,%eax
+ffffffff80419f27:	e8 a4 f3 ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
-ffffffff80419e7c:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
+ffffffff80419f2c:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
   auto itr = list.begin();
   for (int i = 0; i < 3; i++) {
     EXPECT_EQ(*itr++, result[i]);
-ffffffff80419e81:	48 83 c5 04          	add    $0x4,%rbp
+ffffffff80419f31:	48 83 c5 04          	add    $0x4,%rbp
   for (int i = 0; i < 3; i++) {
-ffffffff80419e85:	4c 39 e5             	cmp    %r12,%rbp
-ffffffff80419e88:	74 17                	je     ffffffff80419ea1 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xf1>
-ffffffff80419e8a:	8b 43 10             	mov    0x10(%rbx),%eax
-ffffffff80419e8d:	8b 55 00             	mov    0x0(%rbp),%edx
+ffffffff80419f35:	4c 39 e5             	cmp    %r12,%rbp
+ffffffff80419f38:	74 17                	je     ffffffff80419f51 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xf1>
+ffffffff80419f3a:	8b 43 10             	mov    0x10(%rbx),%eax
+ffffffff80419f3d:	8b 55 00             	mov    0x0(%rbp),%edx
       current_ = current_->next;
-ffffffff80419e90:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+ffffffff80419f40:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
     if (t != u) {
-ffffffff80419e94:	39 d0                	cmp    %edx,%eax
-ffffffff80419e96:	75 ca                	jne    ffffffff80419e62 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xb2>
+ffffffff80419f44:	39 d0                	cmp    %edx,%eax
+ffffffff80419f46:	75 ca                	jne    ffffffff80419f12 <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xb2>
     EXPECT_EQ(*itr++, result[i]);
-ffffffff80419e98:	48 83 c5 04          	add    $0x4,%rbp
+ffffffff80419f48:	48 83 c5 04          	add    $0x4,%rbp
   for (int i = 0; i < 3; i++) {
-ffffffff80419e9c:	4c 39 e5             	cmp    %r12,%rbp
-ffffffff80419e9f:	75 e9                	jne    ffffffff80419e8a <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xda>
+ffffffff80419f4c:	4c 39 e5             	cmp    %r12,%rbp
+ffffffff80419f4f:	75 e9                	jne    ffffffff80419f3a <_ZN6Kernel11kernel_test34KernelListTest_SimplePushBack_Test8TestBodyEv+0xda>
   }
 }
-ffffffff80419ea1:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
-ffffffff80419ea8:	5b                   	pop    %rbx
-ffffffff80419ea9:	5d                   	pop    %rbp
-ffffffff80419eaa:	41 5c                	pop    %r12
-ffffffff80419eac:	41 5d                	pop    %r13
-ffffffff80419eae:	c3                   	retq   
-ffffffff80419eaf:	90                   	nop
+ffffffff80419f51:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
+ffffffff80419f58:	5b                   	pop    %rbx
+ffffffff80419f59:	5d                   	pop    %rbp
+ffffffff80419f5a:	41 5c                	pop    %r12
+ffffffff80419f5c:	41 5d                	pop    %r13
+ffffffff80419f5e:	c3                   	retq   
+ffffffff80419f5f:	90                   	nop
 
-ffffffff80419eb0 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv>:
+ffffffff80419f60 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv>:
   int result[] = {3, 2, 1};
-ffffffff80419eb0:	48 be 02 00 00 00 01 	movabs $0x100000002,%rsi
-ffffffff80419eb7:	00 00 00 
+ffffffff80419f60:	48 be 02 00 00 00 01 	movabs $0x100000002,%rsi
+ffffffff80419f67:	00 00 00 
 TEST(KernelListTest, SimplePushFront) {
-ffffffff80419eba:	41 55                	push   %r13
-ffffffff80419ebc:	49 89 fd             	mov    %rdi,%r13
-ffffffff80419ebf:	41 54                	push   %r12
-ffffffff80419ec1:	55                   	push   %rbp
-ffffffff80419ec2:	53                   	push   %rbx
-ffffffff80419ec3:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
+ffffffff80419f6a:	41 55                	push   %r13
+ffffffff80419f6c:	49 89 fd             	mov    %rdi,%r13
+ffffffff80419f6f:	41 54                	push   %r12
+ffffffff80419f71:	55                   	push   %rbp
+ffffffff80419f72:	53                   	push   %rbx
+ffffffff80419f73:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419eca:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
+ffffffff80419f7a:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
       head_->prev = elem;
-ffffffff80419ecf:	48 8d 54 24 50       	lea    0x50(%rsp),%rdx
+ffffffff80419f7f:	48 8d 54 24 50       	lea    0x50(%rsp),%rdx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419ed4:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
-ffffffff80419edb:	00 00 
+ffffffff80419f84:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
+ffffffff80419f8b:	00 00 
       head_->prev = elem;
-ffffffff80419edd:	48 8d 5c 24 70       	lea    0x70(%rsp),%rbx
+ffffffff80419f8d:	48 8d 5c 24 70       	lea    0x70(%rsp),%rbx
       elem->next = head_;
-ffffffff80419ee2:	48 89 54 24 78       	mov    %rdx,0x78(%rsp)
+ffffffff80419f92:	48 89 54 24 78       	mov    %rdx,0x78(%rsp)
       head_ = tail_ = elem;
-ffffffff80419ee7:	48 8d 4c 24 30       	lea    0x30(%rsp),%rcx
-ffffffff80419eec:	49 89 c4             	mov    %rax,%r12
+ffffffff80419f97:	48 8d 4c 24 30       	lea    0x30(%rsp),%rcx
+ffffffff80419f9c:	49 89 c4             	mov    %rax,%r12
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419eef:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+ffffffff80419f9f:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
   void push_front(KernelListElement<T>* elem) {
-ffffffff80419ef4:	48 8d 6c 24 0c       	lea    0xc(%rsp),%rbp
+ffffffff80419fa4:	48 8d 6c 24 0c       	lea    0xc(%rsp),%rbp
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419ef9:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
+ffffffff80419fa9:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
       head_->prev = elem;
-ffffffff80419efe:	48 89 54 24 30       	mov    %rdx,0x30(%rsp)
+ffffffff80419fae:	48 89 54 24 30       	mov    %rdx,0x30(%rsp)
   int result[] = {3, 2, 1};
-ffffffff80419f03:	ba 03 00 00 00       	mov    $0x3,%edx
+ffffffff80419fb3:	ba 03 00 00 00       	mov    $0x3,%edx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419f08:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
-ffffffff80419f0f:	00 
-ffffffff80419f10:	b8 03 00 00 00       	mov    $0x3,%eax
+ffffffff80419fb8:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
+ffffffff80419fbf:	00 
+ffffffff80419fc0:	b8 03 00 00 00       	mov    $0x3,%eax
       elem->next = head_;
-ffffffff80419f15:	48 89 4c 24 58       	mov    %rcx,0x58(%rsp)
+ffffffff80419fc5:	48 89 4c 24 58       	mov    %rcx,0x58(%rsp)
       head_->prev = elem;
-ffffffff80419f1a:	48 89 5c 24 50       	mov    %rbx,0x50(%rsp)
+ffffffff80419fca:	48 89 5c 24 50       	mov    %rbx,0x50(%rsp)
       head_ = elem;
-ffffffff80419f1f:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+ffffffff80419fcf:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
       current_ = current_->next;
-ffffffff80419f24:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+ffffffff80419fd4:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
       head_ = tail_ = elem;
-ffffffff80419f28:	48 89 4c 24 20       	mov    %rcx,0x20(%rsp)
+ffffffff80419fd8:	48 89 4c 24 20       	mov    %rcx,0x20(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff80419f2d:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
-ffffffff80419f34:	00 
-ffffffff80419f35:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
-ffffffff80419f3c:	00 
+ffffffff80419fdd:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
+ffffffff80419fe4:	00 
+ffffffff80419fe5:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
+ffffffff80419fec:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419f3d:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
-ffffffff80419f44:	00 00 
+ffffffff80419fed:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
+ffffffff80419ff4:	00 00 
     size_++;
-ffffffff80419f46:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
-ffffffff80419f4d:	00 
+ffffffff80419ff6:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
+ffffffff80419ffd:	00 
   void Set(const T& data) { t = data; }
-ffffffff80419f4e:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
-ffffffff80419f55:	03 00 00 00 
-ffffffff80419f59:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
-ffffffff80419f5e:	39 d0                	cmp    %edx,%eax
-ffffffff80419f60:	74 1f                	je     ffffffff80419f81 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xd1>
+ffffffff80419ffe:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
+ffffffff8041a005:	03 00 00 00 
+ffffffff8041a009:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
+ffffffff8041a00e:	39 d0                	cmp    %edx,%eax
+ffffffff8041a010:	74 1f                	je     ffffffff8041a031 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xd1>
       kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff80419f62:	ba 1a 00 00 00       	mov    $0x1a,%edx
-ffffffff80419f67:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff80419f6e:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff80419f75:	31 c0                	xor    %eax,%eax
-ffffffff80419f77:	e8 54 f3 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff8041a012:	ba 1a 00 00 00       	mov    $0x1a,%edx
+ffffffff8041a017:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a01e:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
+ffffffff8041a025:	31 c0                	xor    %eax,%eax
+ffffffff8041a027:	e8 a4 f2 ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
-ffffffff80419f7c:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
+ffffffff8041a02c:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
     EXPECT_EQ(*itr++, result[i]);
-ffffffff80419f81:	48 83 c5 04          	add    $0x4,%rbp
+ffffffff8041a031:	48 83 c5 04          	add    $0x4,%rbp
   for (int i = 0; i < 3; i++) {
-ffffffff80419f85:	4c 39 e5             	cmp    %r12,%rbp
-ffffffff80419f88:	74 17                	je     ffffffff80419fa1 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xf1>
-ffffffff80419f8a:	8b 43 10             	mov    0x10(%rbx),%eax
-ffffffff80419f8d:	8b 55 00             	mov    0x0(%rbp),%edx
+ffffffff8041a035:	4c 39 e5             	cmp    %r12,%rbp
+ffffffff8041a038:	74 17                	je     ffffffff8041a051 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xf1>
+ffffffff8041a03a:	8b 43 10             	mov    0x10(%rbx),%eax
+ffffffff8041a03d:	8b 55 00             	mov    0x0(%rbp),%edx
       current_ = current_->next;
-ffffffff80419f90:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+ffffffff8041a040:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
     if (t != u) {
-ffffffff80419f94:	39 d0                	cmp    %edx,%eax
-ffffffff80419f96:	75 ca                	jne    ffffffff80419f62 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xb2>
+ffffffff8041a044:	39 d0                	cmp    %edx,%eax
+ffffffff8041a046:	75 ca                	jne    ffffffff8041a012 <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xb2>
     EXPECT_EQ(*itr++, result[i]);
-ffffffff80419f98:	48 83 c5 04          	add    $0x4,%rbp
+ffffffff8041a048:	48 83 c5 04          	add    $0x4,%rbp
   for (int i = 0; i < 3; i++) {
-ffffffff80419f9c:	4c 39 e5             	cmp    %r12,%rbp
-ffffffff80419f9f:	75 e9                	jne    ffffffff80419f8a <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xda>
+ffffffff8041a04c:	4c 39 e5             	cmp    %r12,%rbp
+ffffffff8041a04f:	75 e9                	jne    ffffffff8041a03a <_ZN6Kernel11kernel_test35KernelListTest_SimplePushFront_Test8TestBodyEv+0xda>
 }
-ffffffff80419fa1:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
-ffffffff80419fa8:	5b                   	pop    %rbx
-ffffffff80419fa9:	5d                   	pop    %rbp
-ffffffff80419faa:	41 5c                	pop    %r12
-ffffffff80419fac:	41 5d                	pop    %r13
-ffffffff80419fae:	c3                   	retq   
-ffffffff80419faf:	90                   	nop
+ffffffff8041a051:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
+ffffffff8041a058:	5b                   	pop    %rbx
+ffffffff8041a059:	5d                   	pop    %rbp
+ffffffff8041a05a:	41 5c                	pop    %r12
+ffffffff8041a05c:	41 5d                	pop    %r13
+ffffffff8041a05e:	c3                   	retq   
+ffffffff8041a05f:	90                   	nop
 
-ffffffff80419fb0 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv>:
+ffffffff8041a060 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv>:
     EXPECT_EQ(list.pop_front()->Get(), result[i]);
   }
   EXPECT_TRUE(list.empty());
 }
 
 TEST(KernelListTest, PopBack) {
-ffffffff80419fb0:	41 55                	push   %r13
-ffffffff80419fb2:	49 89 fd             	mov    %rdi,%r13
-ffffffff80419fb5:	41 54                	push   %r12
-ffffffff80419fb7:	55                   	push   %rbp
-ffffffff80419fb8:	53                   	push   %rbx
-ffffffff80419fb9:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
+ffffffff8041a060:	41 55                	push   %r13
+ffffffff8041a062:	49 89 fd             	mov    %rdi,%r13
+ffffffff8041a065:	41 54                	push   %r12
+ffffffff8041a067:	55                   	push   %rbp
+ffffffff8041a068:	53                   	push   %rbx
+ffffffff8041a069:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
       head_->prev = elem;
-ffffffff80419fc0:	48 8d 44 24 50       	lea    0x50(%rsp),%rax
+ffffffff8041a070:	48 8d 44 24 50       	lea    0x50(%rsp),%rax
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419fc5:	4c 8d 64 24 18       	lea    0x18(%rsp),%r12
-ffffffff80419fca:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
-ffffffff80419fd1:	00 00 
+ffffffff8041a075:	4c 8d 64 24 18       	lea    0x18(%rsp),%r12
+ffffffff8041a07a:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
+ffffffff8041a081:	00 00 
       head_ = tail_ = elem;
-ffffffff80419fd3:	48 8d 54 24 30       	lea    0x30(%rsp),%rdx
+ffffffff8041a083:	48 8d 54 24 30       	lea    0x30(%rsp),%rdx
       head_->prev = elem;
-ffffffff80419fd8:	48 8d 6c 24 70       	lea    0x70(%rsp),%rbp
-ffffffff80419fdd:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+ffffffff8041a088:	48 8d 6c 24 70       	lea    0x70(%rsp),%rbp
+ffffffff8041a08d:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
       elem->next = head_;
-ffffffff80419fe2:	48 89 44 24 78       	mov    %rax,0x78(%rsp)
-ffffffff80419fe7:	48 8d 5c 24 0c       	lea    0xc(%rsp),%rbx
+ffffffff8041a092:	48 89 44 24 78       	mov    %rax,0x78(%rsp)
+ffffffff8041a097:	48 8d 5c 24 0c       	lea    0xc(%rsp),%rbx
   KernelList<int> list;
   INSERT_FRONT(1)
   INSERT_FRONT(2)
   INSERT_FRONT(3)
 
   int result[] = {1, 2, 3};
-ffffffff80419fec:	48 b8 01 00 00 00 02 	movabs $0x200000001,%rax
-ffffffff80419ff3:	00 00 00 
+ffffffff8041a09c:	48 b8 01 00 00 00 02 	movabs $0x200000001,%rax
+ffffffff8041a0a3:	00 00 00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff80419ff6:	4c 89 64 24 48       	mov    %r12,0x48(%rsp)
+ffffffff8041a0a6:	4c 89 64 24 48       	mov    %r12,0x48(%rsp)
       head_ = tail_ = elem;
-ffffffff80419ffb:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
+ffffffff8041a0ab:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a000:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
-ffffffff8041a007:	00 
+ffffffff8041a0b0:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
+ffffffff8041a0b7:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a008:	4c 89 64 24 68       	mov    %r12,0x68(%rsp)
+ffffffff8041a0b8:	4c 89 64 24 68       	mov    %r12,0x68(%rsp)
       elem->next = head_;
-ffffffff8041a00d:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
+ffffffff8041a0bd:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a012:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
-ffffffff8041a019:	00 
+ffffffff8041a0c2:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
+ffffffff8041a0c9:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a01a:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
-ffffffff8041a021:	00 00 
-ffffffff8041a023:	4c 89 a4 24 88 00 00 	mov    %r12,0x88(%rsp)
-ffffffff8041a02a:	00 
+ffffffff8041a0ca:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
+ffffffff8041a0d1:	00 00 
+ffffffff8041a0d3:	4c 89 a4 24 88 00 00 	mov    %r12,0x88(%rsp)
+ffffffff8041a0da:	00 
     size_++;
-ffffffff8041a02b:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
-ffffffff8041a032:	00 
+ffffffff8041a0db:	c7 44 24 28 03 00 00 	movl   $0x3,0x28(%rsp)
+ffffffff8041a0e2:	00 
       head_->prev = elem;
-ffffffff8041a033:	48 89 6c 24 50       	mov    %rbp,0x50(%rsp)
+ffffffff8041a0e3:	48 89 6c 24 50       	mov    %rbp,0x50(%rsp)
       head_ = elem;
-ffffffff8041a038:	48 89 6c 24 18       	mov    %rbp,0x18(%rsp)
+ffffffff8041a0e8:	48 89 6c 24 18       	mov    %rbp,0x18(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a03d:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
-ffffffff8041a044:	03 00 00 00 
-ffffffff8041a048:	48 89 44 24 0c       	mov    %rax,0xc(%rsp)
-ffffffff8041a04d:	c7 44 24 14 03 00 00 	movl   $0x3,0x14(%rsp)
-ffffffff8041a054:	00 
+ffffffff8041a0ed:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
+ffffffff8041a0f4:	03 00 00 00 
+ffffffff8041a0f8:	48 89 44 24 0c       	mov    %rax,0xc(%rsp)
+ffffffff8041a0fd:	c7 44 24 14 03 00 00 	movl   $0x3,0x14(%rsp)
+ffffffff8041a104:	00 
     if (empty()) {
       return nullptr;
     } else {
       size_--;
 
       auto* tail_to_return = tail_;
-ffffffff8041a055:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+ffffffff8041a105:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
       size_--;
-ffffffff8041a05a:	83 6c 24 28 01       	subl   $0x1,0x28(%rsp)
+ffffffff8041a10a:	83 6c 24 28 01       	subl   $0x1,0x28(%rsp)
       auto* new_tail = tail_->prev;
-ffffffff8041a05f:	48 8b 10             	mov    (%rax),%rdx
+ffffffff8041a10f:	48 8b 10             	mov    (%rax),%rdx
   void RemoveSelfFromList() {
-ffffffff8041a062:	48 8b 48 08          	mov    0x8(%rax),%rcx
+ffffffff8041a112:	48 8b 48 08          	mov    0x8(%rax),%rcx
     if (prev) {
-ffffffff8041a066:	48 85 d2             	test   %rdx,%rdx
-ffffffff8041a069:	74 7d                	je     ffffffff8041a0e8 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x138>
+ffffffff8041a116:	48 85 d2             	test   %rdx,%rdx
+ffffffff8041a119:	74 7d                	je     ffffffff8041a198 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x138>
       prev->next = next;
-ffffffff8041a06b:	48 89 4a 08          	mov    %rcx,0x8(%rdx)
+ffffffff8041a11b:	48 89 4a 08          	mov    %rcx,0x8(%rdx)
     if (next) {
-ffffffff8041a06f:	48 8b 48 08          	mov    0x8(%rax),%rcx
-ffffffff8041a073:	48 85 c9             	test   %rcx,%rcx
-ffffffff8041a076:	74 0b                	je     ffffffff8041a083 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xd3>
+ffffffff8041a11f:	48 8b 48 08          	mov    0x8(%rax),%rcx
+ffffffff8041a123:	48 85 c9             	test   %rcx,%rcx
+ffffffff8041a126:	74 0b                	je     ffffffff8041a133 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xd3>
       next->prev = prev;
-ffffffff8041a078:	48 89 11             	mov    %rdx,(%rcx)
+ffffffff8041a128:	48 89 11             	mov    %rdx,(%rcx)
     prev = next = nullptr;
-ffffffff8041a07b:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
-ffffffff8041a082:	00 
-ffffffff8041a083:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
+ffffffff8041a12b:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
+ffffffff8041a132:	00 
+ffffffff8041a133:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
 
       // If current tail is the ONLY element.
       if (!new_tail) {
         head_ = tail_ = nullptr;
       } else {
         tail_ = new_tail;
-ffffffff8041a08a:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
-ffffffff8041a08f:	8b 33                	mov    (%rbx),%esi
-ffffffff8041a091:	39 70 10             	cmp    %esi,0x10(%rax)
-ffffffff8041a094:	74 1f                	je     ffffffff8041a0b5 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x105>
+ffffffff8041a13a:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
+ffffffff8041a13f:	8b 33                	mov    (%rbx),%esi
+ffffffff8041a141:	39 70 10             	cmp    %esi,0x10(%rax)
+ffffffff8041a144:	74 1f                	je     ffffffff8041a165 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x105>
       kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff8041a096:	ba 52 00 00 00       	mov    $0x52,%edx
-ffffffff8041a09b:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a0a2:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff8041a0a9:	31 c0                	xor    %eax,%eax
-ffffffff8041a0ab:	e8 20 f2 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff8041a146:	ba 52 00 00 00       	mov    $0x52,%edx
+ffffffff8041a14b:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a152:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
+ffffffff8041a159:	31 c0                	xor    %eax,%eax
+ffffffff8041a15b:	e8 70 f1 ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
-ffffffff8041a0b0:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
+ffffffff8041a160:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
   for (int i = 0; i < 3; i++) {
     EXPECT_EQ(list.pop_back()->Get(), result[i]);
-ffffffff8041a0b5:	48 83 c3 04          	add    $0x4,%rbx
+ffffffff8041a165:	48 83 c3 04          	add    $0x4,%rbx
   for (int i = 0; i < 3; i++) {
-ffffffff8041a0b9:	4c 39 e3             	cmp    %r12,%rbx
-ffffffff8041a0bc:	74 12                	je     ffffffff8041a0d0 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x120>
+ffffffff8041a169:	4c 39 e3             	cmp    %r12,%rbx
+ffffffff8041a16c:	74 12                	je     ffffffff8041a180 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x120>
     if (empty()) {
-ffffffff8041a0be:	48 85 ed             	test   %rbp,%rbp
-ffffffff8041a0c1:	75 92                	jne    ffffffff8041a055 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xa5>
-ffffffff8041a0c3:	e9 fa 08 00 00       	jmpq   ffffffff8041a9c2 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv.cold>
-ffffffff8041a0c8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-ffffffff8041a0cf:	00 
+ffffffff8041a16e:	48 85 ed             	test   %rbp,%rbp
+ffffffff8041a171:	75 92                	jne    ffffffff8041a105 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xa5>
+ffffffff8041a173:	e9 fa 08 00 00       	jmpq   ffffffff8041aa72 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv.cold>
+ffffffff8041a178:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+ffffffff8041a17f:	00 
     }
   }
 
   void ExpectTrue(const char* file, int line, bool t) {
     if (!t) {
-ffffffff8041a0d0:	48 85 ed             	test   %rbp,%rbp
-ffffffff8041a0d3:	75 4b                	jne    ffffffff8041a120 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x170>
+ffffffff8041a180:	48 85 ed             	test   %rbp,%rbp
+ffffffff8041a183:	75 4b                	jne    ffffffff8041a1d0 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x170>
   }
   EXPECT_TRUE(list.empty());
 }
-ffffffff8041a0d5:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
-ffffffff8041a0dc:	5b                   	pop    %rbx
-ffffffff8041a0dd:	5d                   	pop    %rbp
-ffffffff8041a0de:	41 5c                	pop    %r12
-ffffffff8041a0e0:	41 5d                	pop    %r13
-ffffffff8041a0e2:	c3                   	retq   
-ffffffff8041a0e3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a185:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
+ffffffff8041a18c:	5b                   	pop    %rbx
+ffffffff8041a18d:	5d                   	pop    %rbp
+ffffffff8041a18e:	41 5c                	pop    %r12
+ffffffff8041a190:	41 5d                	pop    %r13
+ffffffff8041a192:	c3                   	retq   
+ffffffff8041a193:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
     if (next) {
-ffffffff8041a0e8:	48 85 c9             	test   %rcx,%rcx
-ffffffff8041a0eb:	74 16                	je     ffffffff8041a103 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x153>
+ffffffff8041a198:	48 85 c9             	test   %rcx,%rcx
+ffffffff8041a19b:	74 16                	je     ffffffff8041a1b3 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0x153>
       next->prev = prev;
-ffffffff8041a0ed:	48 c7 01 00 00 00 00 	movq   $0x0,(%rcx)
+ffffffff8041a19d:	48 c7 01 00 00 00 00 	movq   $0x0,(%rcx)
     prev = next = nullptr;
-ffffffff8041a0f4:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
-ffffffff8041a0fb:	00 
-ffffffff8041a0fc:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
+ffffffff8041a1a4:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
+ffffffff8041a1ab:	00 
+ffffffff8041a1ac:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
         head_ = tail_ = nullptr;
-ffffffff8041a103:	48 c7 44 24 20 00 00 	movq   $0x0,0x20(%rsp)
-ffffffff8041a10a:	00 00 
-ffffffff8041a10c:	31 ed                	xor    %ebp,%ebp
-ffffffff8041a10e:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
-ffffffff8041a115:	00 00 
-ffffffff8041a117:	e9 73 ff ff ff       	jmpq   ffffffff8041a08f <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xdf>
-ffffffff8041a11c:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041a1b3:	48 c7 44 24 20 00 00 	movq   $0x0,0x20(%rsp)
+ffffffff8041a1ba:	00 00 
+ffffffff8041a1bc:	31 ed                	xor    %ebp,%ebp
+ffffffff8041a1be:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
+ffffffff8041a1c5:	00 00 
+ffffffff8041a1c7:	e9 73 ff ff ff       	jmpq   ffffffff8041a13f <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv+0xdf>
+ffffffff8041a1cc:	0f 1f 40 00          	nopl   0x0(%rax)
       kprintf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
-ffffffff8041a120:	ba 54 00 00 00       	mov    $0x54,%edx
-ffffffff8041a125:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a12c:	48 c7 c7 7b ba 41 80 	mov    $0xffffffff8041ba7b,%rdi
-ffffffff8041a133:	31 c0                	xor    %eax,%eax
-ffffffff8041a135:	e8 96 f1 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff8041a1d0:	ba 54 00 00 00       	mov    $0x54,%edx
+ffffffff8041a1d5:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a1dc:	48 c7 c7 7b ba 41 80 	mov    $0xffffffff8041ba7b,%rdi
+ffffffff8041a1e3:	31 c0                	xor    %eax,%eax
+ffffffff8041a1e5:	e8 e6 f0 ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
-ffffffff8041a13a:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
-ffffffff8041a13f:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
-ffffffff8041a146:	5b                   	pop    %rbx
-ffffffff8041a147:	5d                   	pop    %rbp
-ffffffff8041a148:	41 5c                	pop    %r12
-ffffffff8041a14a:	41 5d                	pop    %r13
-ffffffff8041a14c:	c3                   	retq   
-ffffffff8041a14d:	90                   	nop
-ffffffff8041a14e:	66 90                	xchg   %ax,%ax
+ffffffff8041a1ea:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
+ffffffff8041a1ef:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
+ffffffff8041a1f6:	5b                   	pop    %rbx
+ffffffff8041a1f7:	5d                   	pop    %rbp
+ffffffff8041a1f8:	41 5c                	pop    %r12
+ffffffff8041a1fa:	41 5d                	pop    %r13
+ffffffff8041a1fc:	c3                   	retq   
+ffffffff8041a1fd:	90                   	nop
+ffffffff8041a1fe:	66 90                	xchg   %ax,%ax
 
-ffffffff8041a150 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv>:
+ffffffff8041a200 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv>:
 TEST(KernelListTest, ZigZag) {
-ffffffff8041a150:	41 55                	push   %r13
-ffffffff8041a152:	49 89 fd             	mov    %rdi,%r13
-ffffffff8041a155:	41 54                	push   %r12
-ffffffff8041a157:	55                   	push   %rbp
-ffffffff8041a158:	53                   	push   %rbx
-ffffffff8041a159:	48 81 ec f8 00 00 00 	sub    $0xf8,%rsp
+ffffffff8041a200:	41 55                	push   %r13
+ffffffff8041a202:	49 89 fd             	mov    %rdi,%r13
+ffffffff8041a205:	41 54                	push   %r12
+ffffffff8041a207:	55                   	push   %rbp
+ffffffff8041a208:	53                   	push   %rbx
+ffffffff8041a209:	48 81 ec f8 00 00 00 	sub    $0xf8,%rsp
       head_->prev = elem;
-ffffffff8041a160:	48 8d 44 24 70       	lea    0x70(%rsp),%rax
+ffffffff8041a210:	48 8d 44 24 70       	lea    0x70(%rsp),%rax
       tail_->next = elem;
-ffffffff8041a165:	48 8d 4c 24 50       	lea    0x50(%rsp),%rcx
+ffffffff8041a215:	48 8d 4c 24 50       	lea    0x50(%rsp),%rcx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a16a:	48 89 64 24 48       	mov    %rsp,0x48(%rsp)
+ffffffff8041a21a:	48 89 64 24 48       	mov    %rsp,0x48(%rsp)
       head_->prev = elem;
-ffffffff8041a16f:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
+ffffffff8041a21f:	48 89 44 24 30       	mov    %rax,0x30(%rsp)
       elem->prev = tail_;
-ffffffff8041a174:	4c 8d 64 24 30       	lea    0x30(%rsp),%r12
-ffffffff8041a179:	48 8d 5c 24 1c       	lea    0x1c(%rsp),%rbx
+ffffffff8041a224:	4c 8d 64 24 30       	lea    0x30(%rsp),%r12
+ffffffff8041a229:	48 8d 5c 24 1c       	lea    0x1c(%rsp),%rbx
       elem->next = head_;
-ffffffff8041a17e:	48 89 84 24 b8 00 00 	mov    %rax,0xb8(%rsp)
-ffffffff8041a185:	00 
+ffffffff8041a22e:	48 89 84 24 b8 00 00 	mov    %rax,0xb8(%rsp)
+ffffffff8041a235:	00 
       tail_->next = elem;
-ffffffff8041a186:	48 8d 84 24 d0 00 00 	lea    0xd0(%rsp),%rax
-ffffffff8041a18d:	00 
-ffffffff8041a18e:	48 8d 94 24 90 00 00 	lea    0x90(%rsp),%rdx
-ffffffff8041a195:	00 
-ffffffff8041a196:	48 89 84 24 98 00 00 	mov    %rax,0x98(%rsp)
-ffffffff8041a19d:	00 
+ffffffff8041a236:	48 8d 84 24 d0 00 00 	lea    0xd0(%rsp),%rax
+ffffffff8041a23d:	00 
+ffffffff8041a23e:	48 8d 94 24 90 00 00 	lea    0x90(%rsp),%rdx
+ffffffff8041a245:	00 
+ffffffff8041a246:	48 89 84 24 98 00 00 	mov    %rax,0x98(%rsp)
+ffffffff8041a24d:	00 
       head_->prev = elem;
-ffffffff8041a19e:	48 8d ac 24 b0 00 00 	lea    0xb0(%rsp),%rbp
-ffffffff8041a1a5:	00 
+ffffffff8041a24e:	48 8d ac 24 b0 00 00 	lea    0xb0(%rsp),%rbp
+ffffffff8041a255:	00 
       tail_ = elem;
-ffffffff8041a1a6:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+ffffffff8041a256:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
   int result[] = {5, 3, 1, 2, 4, 6};
-ffffffff8041a1ab:	48 b8 03 00 00 00 01 	movabs $0x100000003,%rax
-ffffffff8041a1b2:	00 00 00 
+ffffffff8041a25b:	48 b8 03 00 00 00 01 	movabs $0x100000003,%rax
+ffffffff8041a262:	00 00 00 
       tail_->next = elem;
-ffffffff8041a1b5:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
+ffffffff8041a265:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
       elem->prev = tail_;
-ffffffff8041a1ba:	48 89 94 24 d0 00 00 	mov    %rdx,0xd0(%rsp)
-ffffffff8041a1c1:	00 
-ffffffff8041a1c2:	ba 05 00 00 00       	mov    $0x5,%edx
+ffffffff8041a26a:	48 89 94 24 d0 00 00 	mov    %rdx,0xd0(%rsp)
+ffffffff8041a271:	00 
+ffffffff8041a272:	ba 05 00 00 00       	mov    $0x5,%edx
   void Set(const T& data) { t = data; }
-ffffffff8041a1c7:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
-ffffffff8041a1ce:	00 
+ffffffff8041a277:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
+ffffffff8041a27e:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a1cf:	48 89 64 24 68       	mov    %rsp,0x68(%rsp)
+ffffffff8041a27f:	48 89 64 24 68       	mov    %rsp,0x68(%rsp)
       tail_->next = elem;
-ffffffff8041a1d4:	48 89 4c 24 38       	mov    %rcx,0x38(%rsp)
+ffffffff8041a284:	48 89 4c 24 38       	mov    %rcx,0x38(%rsp)
       elem->prev = tail_;
-ffffffff8041a1d9:	4c 89 64 24 50       	mov    %r12,0x50(%rsp)
+ffffffff8041a289:	4c 89 64 24 50       	mov    %r12,0x50(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a1de:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
-ffffffff8041a1e5:	00 
+ffffffff8041a28e:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
+ffffffff8041a295:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a1e6:	48 89 a4 24 88 00 00 	mov    %rsp,0x88(%rsp)
-ffffffff8041a1ed:	00 
+ffffffff8041a296:	48 89 a4 24 88 00 00 	mov    %rsp,0x88(%rsp)
+ffffffff8041a29d:	00 
       elem->next = head_;
-ffffffff8041a1ee:	4c 89 64 24 78       	mov    %r12,0x78(%rsp)
+ffffffff8041a29e:	4c 89 64 24 78       	mov    %r12,0x78(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a1f3:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
-ffffffff8041a1fa:	03 00 00 00 
+ffffffff8041a2a3:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
+ffffffff8041a2aa:	03 00 00 00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a1fe:	48 89 a4 24 a8 00 00 	mov    %rsp,0xa8(%rsp)
-ffffffff8041a205:	00 
+ffffffff8041a2ae:	48 89 a4 24 a8 00 00 	mov    %rsp,0xa8(%rsp)
+ffffffff8041a2b5:	00 
       elem->prev = tail_;
-ffffffff8041a206:	48 89 8c 24 90 00 00 	mov    %rcx,0x90(%rsp)
-ffffffff8041a20d:	00 
+ffffffff8041a2b6:	48 89 8c 24 90 00 00 	mov    %rcx,0x90(%rsp)
+ffffffff8041a2bd:	00 
   void Set(const T& data) { t = data; }
-ffffffff8041a20e:	c7 84 24 a0 00 00 00 	movl   $0x4,0xa0(%rsp)
-ffffffff8041a215:	04 00 00 00 
+ffffffff8041a2be:	c7 84 24 a0 00 00 00 	movl   $0x4,0xa0(%rsp)
+ffffffff8041a2c5:	04 00 00 00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a219:	48 c7 84 24 b0 00 00 	movq   $0x0,0xb0(%rsp)
-ffffffff8041a220:	00 00 00 00 00 
-ffffffff8041a225:	48 89 a4 24 c8 00 00 	mov    %rsp,0xc8(%rsp)
-ffffffff8041a22c:	00 
+ffffffff8041a2c9:	48 c7 84 24 b0 00 00 	movq   $0x0,0xb0(%rsp)
+ffffffff8041a2d0:	00 00 00 00 00 
+ffffffff8041a2d5:	48 89 a4 24 c8 00 00 	mov    %rsp,0xc8(%rsp)
+ffffffff8041a2dc:	00 
       head_->prev = elem;
-ffffffff8041a22d:	48 89 6c 24 70       	mov    %rbp,0x70(%rsp)
+ffffffff8041a2dd:	48 89 6c 24 70       	mov    %rbp,0x70(%rsp)
       head_ = elem;
-ffffffff8041a232:	48 89 2c 24          	mov    %rbp,(%rsp)
+ffffffff8041a2e2:	48 89 2c 24          	mov    %rbp,(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a236:	c7 84 24 c0 00 00 00 	movl   $0x5,0xc0(%rsp)
-ffffffff8041a23d:	05 00 00 00 
+ffffffff8041a2e6:	c7 84 24 c0 00 00 00 	movl   $0x5,0xc0(%rsp)
+ffffffff8041a2ed:	05 00 00 00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a241:	48 c7 84 24 d8 00 00 	movq   $0x0,0xd8(%rsp)
-ffffffff8041a248:	00 00 00 00 00 
-ffffffff8041a24d:	48 89 a4 24 e8 00 00 	mov    %rsp,0xe8(%rsp)
-ffffffff8041a254:	00 
+ffffffff8041a2f1:	48 c7 84 24 d8 00 00 	movq   $0x0,0xd8(%rsp)
+ffffffff8041a2f8:	00 00 00 00 00 
+ffffffff8041a2fd:	48 89 a4 24 e8 00 00 	mov    %rsp,0xe8(%rsp)
+ffffffff8041a304:	00 
     size_++;
-ffffffff8041a255:	c7 44 24 10 06 00 00 	movl   $0x6,0x10(%rsp)
-ffffffff8041a25c:	00 
+ffffffff8041a305:	c7 44 24 10 06 00 00 	movl   $0x6,0x10(%rsp)
+ffffffff8041a30c:	00 
   void Set(const T& data) { t = data; }
-ffffffff8041a25d:	c7 84 24 e0 00 00 00 	movl   $0x6,0xe0(%rsp)
-ffffffff8041a264:	06 00 00 00 
-ffffffff8041a268:	48 89 44 24 1c       	mov    %rax,0x1c(%rsp)
-ffffffff8041a26d:	48 b8 02 00 00 00 04 	movabs $0x400000002,%rax
-ffffffff8041a274:	00 00 00 
-ffffffff8041a277:	48 89 44 24 24       	mov    %rax,0x24(%rsp)
-ffffffff8041a27c:	b8 05 00 00 00       	mov    $0x5,%eax
-ffffffff8041a281:	c7 44 24 2c 06 00 00 	movl   $0x6,0x2c(%rsp)
-ffffffff8041a288:	00 
+ffffffff8041a30d:	c7 84 24 e0 00 00 00 	movl   $0x6,0xe0(%rsp)
+ffffffff8041a314:	06 00 00 00 
+ffffffff8041a318:	48 89 44 24 1c       	mov    %rax,0x1c(%rsp)
+ffffffff8041a31d:	48 b8 02 00 00 00 04 	movabs $0x400000002,%rax
+ffffffff8041a324:	00 00 00 
+ffffffff8041a327:	48 89 44 24 24       	mov    %rax,0x24(%rsp)
+ffffffff8041a32c:	b8 05 00 00 00       	mov    $0x5,%eax
+ffffffff8041a331:	c7 44 24 2c 06 00 00 	movl   $0x6,0x2c(%rsp)
+ffffffff8041a338:	00 
   for (int i = 0; i < 6; i++) {
-ffffffff8041a289:	eb 0e                	jmp    ffffffff8041a299 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x149>
-ffffffff8041a28b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-ffffffff8041a290:	8b 45 10             	mov    0x10(%rbp),%eax
-ffffffff8041a293:	8b 13                	mov    (%rbx),%edx
-ffffffff8041a295:	48 83 c3 04          	add    $0x4,%rbx
+ffffffff8041a339:	eb 0e                	jmp    ffffffff8041a349 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x149>
+ffffffff8041a33b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a340:	8b 45 10             	mov    0x10(%rbp),%eax
+ffffffff8041a343:	8b 13                	mov    (%rbx),%edx
+ffffffff8041a345:	48 83 c3 04          	add    $0x4,%rbx
       current_ = current_->next;
-ffffffff8041a299:	48 8b 6d 08          	mov    0x8(%rbp),%rbp
+ffffffff8041a349:	48 8b 6d 08          	mov    0x8(%rbp),%rbp
     if (t != u) {
-ffffffff8041a29d:	39 d0                	cmp    %edx,%eax
-ffffffff8041a29f:	74 1f                	je     ffffffff8041a2c0 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x170>
+ffffffff8041a34d:	39 d0                	cmp    %edx,%eax
+ffffffff8041a34f:	74 1f                	je     ffffffff8041a370 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x170>
       kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff8041a2a1:	ba 37 00 00 00       	mov    $0x37,%edx
-ffffffff8041a2a6:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a2ad:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff8041a2b4:	31 c0                	xor    %eax,%eax
-ffffffff8041a2b6:	e8 15 f0 ff ff       	callq  ffffffff804192d0 <printf_>
+ffffffff8041a351:	ba 37 00 00 00       	mov    $0x37,%edx
+ffffffff8041a356:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a35d:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
+ffffffff8041a364:	31 c0                	xor    %eax,%eax
+ffffffff8041a366:	e8 65 ef ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
-ffffffff8041a2bb:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
-ffffffff8041a2c0:	4c 39 e3             	cmp    %r12,%rbx
-ffffffff8041a2c3:	75 cb                	jne    ffffffff8041a290 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x140>
+ffffffff8041a36b:	41 83 45 18 01       	addl   $0x1,0x18(%r13)
+ffffffff8041a370:	4c 39 e3             	cmp    %r12,%rbx
+ffffffff8041a373:	75 cb                	jne    ffffffff8041a340 <_ZN6Kernel11kernel_test26KernelListTest_ZigZag_Test8TestBodyEv+0x140>
 }
-ffffffff8041a2c5:	48 81 c4 f8 00 00 00 	add    $0xf8,%rsp
-ffffffff8041a2cc:	5b                   	pop    %rbx
-ffffffff8041a2cd:	5d                   	pop    %rbp
-ffffffff8041a2ce:	41 5c                	pop    %r12
-ffffffff8041a2d0:	41 5d                	pop    %r13
-ffffffff8041a2d2:	c3                   	retq   
-ffffffff8041a2d3:	90                   	nop
-ffffffff8041a2d4:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
-ffffffff8041a2db:	00 00 00 00 
-ffffffff8041a2df:	90                   	nop
+ffffffff8041a375:	48 81 c4 f8 00 00 00 	add    $0xf8,%rsp
+ffffffff8041a37c:	5b                   	pop    %rbx
+ffffffff8041a37d:	5d                   	pop    %rbp
+ffffffff8041a37e:	41 5c                	pop    %r12
+ffffffff8041a380:	41 5d                	pop    %r13
+ffffffff8041a382:	c3                   	retq   
+ffffffff8041a383:	90                   	nop
+ffffffff8041a384:	66 66 2e 0f 1f 84 00 	data16 nopw %cs:0x0(%rax,%rax,1)
+ffffffff8041a38b:	00 00 00 00 
+ffffffff8041a38f:	90                   	nop
 
-ffffffff8041a2e0 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv>:
+ffffffff8041a390 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv>:
   int result[] = {3, 2, 1};
-ffffffff8041a2e0:	48 be 02 00 00 00 01 	movabs $0x100000002,%rsi
-ffffffff8041a2e7:	00 00 00 
+ffffffff8041a390:	48 be 02 00 00 00 01 	movabs $0x100000002,%rsi
+ffffffff8041a397:	00 00 00 
 TEST(KernelListTest, PopFront) {
-ffffffff8041a2ea:	41 57                	push   %r15
+ffffffff8041a39a:	41 57                	push   %r15
     EXPECT_EQ(*list.begin(), result[i]);
-ffffffff8041a2ec:	41 bf 03 00 00 00    	mov    $0x3,%r15d
+ffffffff8041a39c:	41 bf 03 00 00 00    	mov    $0x3,%r15d
 TEST(KernelListTest, PopFront) {
-ffffffff8041a2f2:	41 56                	push   %r14
+ffffffff8041a3a2:	41 56                	push   %r14
     EXPECT_EQ(*list.begin(), result[i]);
-ffffffff8041a2f4:	41 be 03 00 00 00    	mov    $0x3,%r14d
+ffffffff8041a3a4:	41 be 03 00 00 00    	mov    $0x3,%r14d
 TEST(KernelListTest, PopFront) {
-ffffffff8041a2fa:	41 55                	push   %r13
+ffffffff8041a3aa:	41 55                	push   %r13
       size_--;
-ffffffff8041a2fc:	41 bd 03 00 00 00    	mov    $0x3,%r13d
-ffffffff8041a302:	41 54                	push   %r12
-ffffffff8041a304:	49 89 fc             	mov    %rdi,%r12
-ffffffff8041a307:	55                   	push   %rbp
+ffffffff8041a3ac:	41 bd 03 00 00 00    	mov    $0x3,%r13d
+ffffffff8041a3b2:	41 54                	push   %r12
+ffffffff8041a3b4:	49 89 fc             	mov    %rdi,%r12
+ffffffff8041a3b7:	55                   	push   %rbp
   int result[] = {3, 2, 1};
-ffffffff8041a308:	bd 01 00 00 00       	mov    $0x1,%ebp
+ffffffff8041a3b8:	bd 01 00 00 00       	mov    $0x1,%ebp
 TEST(KernelListTest, PopFront) {
-ffffffff8041a30d:	53                   	push   %rbx
-ffffffff8041a30e:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
+ffffffff8041a3bd:	53                   	push   %rbx
+ffffffff8041a3be:	48 81 ec 98 00 00 00 	sub    $0x98,%rsp
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a315:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
+ffffffff8041a3c5:	48 8d 44 24 18       	lea    0x18(%rsp),%rax
       head_->prev = elem;
-ffffffff8041a31a:	48 8d 5c 24 50       	lea    0x50(%rsp),%rbx
+ffffffff8041a3ca:	48 8d 5c 24 50       	lea    0x50(%rsp),%rbx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a31f:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
-ffffffff8041a326:	00 00 
-ffffffff8041a328:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
+ffffffff8041a3cf:	48 c7 44 24 38 00 00 	movq   $0x0,0x38(%rsp)
+ffffffff8041a3d6:	00 00 
+ffffffff8041a3d8:	48 89 44 24 48       	mov    %rax,0x48(%rsp)
       head_ = tail_ = elem;
-ffffffff8041a32d:	48 8d 54 24 30       	lea    0x30(%rsp),%rdx
+ffffffff8041a3dd:	48 8d 54 24 30       	lea    0x30(%rsp),%rdx
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a332:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
-ffffffff8041a337:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
-ffffffff8041a33e:	00 
+ffffffff8041a3e2:	48 89 44 24 68       	mov    %rax,0x68(%rsp)
+ffffffff8041a3e7:	48 89 84 24 88 00 00 	mov    %rax,0x88(%rsp)
+ffffffff8041a3ee:	00 
       head_->prev = elem;
-ffffffff8041a33f:	48 8d 44 24 70       	lea    0x70(%rsp),%rax
+ffffffff8041a3ef:	48 8d 44 24 70       	lea    0x70(%rsp),%rax
   void Set(const T& data) { t = data; }
-ffffffff8041a344:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
-ffffffff8041a34b:	00 
+ffffffff8041a3f4:	c7 44 24 40 01 00 00 	movl   $0x1,0x40(%rsp)
+ffffffff8041a3fb:	00 
       head_->prev = elem;
-ffffffff8041a34c:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
+ffffffff8041a3fc:	48 89 5c 24 30       	mov    %rbx,0x30(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a351:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
-ffffffff8041a358:	00 
+ffffffff8041a401:	c7 44 24 60 02 00 00 	movl   $0x2,0x60(%rsp)
+ffffffff8041a408:	00 
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
-ffffffff8041a359:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
-ffffffff8041a360:	00 00 
+ffffffff8041a409:	48 c7 44 24 70 00 00 	movq   $0x0,0x70(%rsp)
+ffffffff8041a410:	00 00 
       head_->prev = elem;
-ffffffff8041a362:	48 89 44 24 50       	mov    %rax,0x50(%rsp)
+ffffffff8041a412:	48 89 44 24 50       	mov    %rax,0x50(%rsp)
       elem->next = head_;
-ffffffff8041a367:	48 89 5c 24 78       	mov    %rbx,0x78(%rsp)
+ffffffff8041a417:	48 89 5c 24 78       	mov    %rbx,0x78(%rsp)
       head_ = elem;
-ffffffff8041a36c:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+ffffffff8041a41c:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
   void Set(const T& data) { t = data; }
-ffffffff8041a371:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
-ffffffff8041a378:	03 00 00 00 
+ffffffff8041a421:	c7 84 24 80 00 00 00 	movl   $0x3,0x80(%rsp)
+ffffffff8041a428:	03 00 00 00 
   int result[] = {3, 2, 1};
-ffffffff8041a37c:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
+ffffffff8041a42c:	48 89 74 24 10       	mov    %rsi,0x10(%rsp)
       head_ = tail_ = elem;
-ffffffff8041a381:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
+ffffffff8041a431:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
       elem->next = head_;
-ffffffff8041a386:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
-ffffffff8041a38b:	31 d2                	xor    %edx,%edx
+ffffffff8041a436:	48 89 54 24 58       	mov    %rdx,0x58(%rsp)
+ffffffff8041a43b:	31 d2                	xor    %edx,%edx
       size_--;
-ffffffff8041a38d:	44 89 e9             	mov    %r13d,%ecx
-ffffffff8041a390:	29 e9                	sub    %ebp,%ecx
-ffffffff8041a392:	89 4c 24 28          	mov    %ecx,0x28(%rsp)
+ffffffff8041a43d:	44 89 e9             	mov    %r13d,%ecx
+ffffffff8041a440:	29 e9                	sub    %ebp,%ecx
+ffffffff8041a442:	89 4c 24 28          	mov    %ecx,0x28(%rsp)
   void RemoveSelfFromList() {
-ffffffff8041a396:	48 89 d9             	mov    %rbx,%rcx
+ffffffff8041a446:	48 89 d9             	mov    %rbx,%rcx
     if (prev) {
-ffffffff8041a399:	48 85 d2             	test   %rdx,%rdx
-ffffffff8041a39c:	74 08                	je     ffffffff8041a3a6 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xc6>
+ffffffff8041a449:	48 85 d2             	test   %rdx,%rdx
+ffffffff8041a44c:	74 08                	je     ffffffff8041a456 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xc6>
       prev->next = next;
-ffffffff8041a39e:	48 89 5a 08          	mov    %rbx,0x8(%rdx)
-ffffffff8041a3a2:	48 8b 48 08          	mov    0x8(%rax),%rcx
+ffffffff8041a44e:	48 89 5a 08          	mov    %rbx,0x8(%rdx)
+ffffffff8041a452:	48 8b 48 08          	mov    0x8(%rax),%rcx
     if (next) {
-ffffffff8041a3a6:	48 85 c9             	test   %rcx,%rcx
-ffffffff8041a3a9:	74 03                	je     ffffffff8041a3ae <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xce>
+ffffffff8041a456:	48 85 c9             	test   %rcx,%rcx
+ffffffff8041a459:	74 03                	je     ffffffff8041a45e <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xce>
       next->prev = prev;
-ffffffff8041a3ab:	48 89 11             	mov    %rdx,(%rcx)
+ffffffff8041a45b:	48 89 11             	mov    %rdx,(%rcx)
     prev = next = nullptr;
-ffffffff8041a3ae:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
-ffffffff8041a3b5:	00 
-ffffffff8041a3b6:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
+ffffffff8041a45e:	48 c7 40 08 00 00 00 	movq   $0x0,0x8(%rax)
+ffffffff8041a465:	00 
+ffffffff8041a466:	48 c7 00 00 00 00 00 	movq   $0x0,(%rax)
       if (!new_head) {
-ffffffff8041a3bd:	48 85 db             	test   %rbx,%rbx
-ffffffff8041a3c0:	0f 84 9a 00 00 00    	je     ffffffff8041a460 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x180>
+ffffffff8041a46d:	48 85 db             	test   %rbx,%rbx
+ffffffff8041a470:	0f 84 9a 00 00 00    	je     ffffffff8041a510 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x180>
         head_ = new_head;
-ffffffff8041a3c6:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
+ffffffff8041a476:	48 89 5c 24 18       	mov    %rbx,0x18(%rsp)
     if (t != u) {
-ffffffff8041a3cb:	45 39 fe             	cmp    %r15d,%r14d
-ffffffff8041a3ce:	74 20                	je     ffffffff8041a3f0 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x110>
+ffffffff8041a47b:	45 39 fe             	cmp    %r15d,%r14d
+ffffffff8041a47e:	74 20                	je     ffffffff8041a4a0 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x110>
       kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff8041a3d0:	ba 45 00 00 00       	mov    $0x45,%edx
-ffffffff8041a3d5:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a3dc:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff8041a3e3:	31 c0                	xor    %eax,%eax
-ffffffff8041a3e5:	e8 e6 ee ff ff       	callq  ffffffff804192d0 <printf_>
-      bad_count_++;
-ffffffff8041a3ea:	41 83 44 24 18 01    	addl   $0x1,0x18(%r12)
-  for (int i = 0; i < 3; i++) {
-ffffffff8041a3f0:	48 83 fd 03          	cmp    $0x3,%rbp
-ffffffff8041a3f4:	74 4a                	je     ffffffff8041a440 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x160>
-    EXPECT_EQ(*list.begin(), result[i]);
-ffffffff8041a3f6:	44 8b 73 10          	mov    0x10(%rbx),%r14d
-ffffffff8041a3fa:	44 8b 7c ac 0c       	mov    0xc(%rsp,%rbp,4),%r15d
-    if (t != u) {
-ffffffff8041a3ff:	45 39 fe             	cmp    %r15d,%r14d
-ffffffff8041a402:	74 20                	je     ffffffff8041a424 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x144>
-      kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-ffffffff8041a404:	ba 44 00 00 00       	mov    $0x44,%edx
-ffffffff8041a409:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a410:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
-ffffffff8041a417:	31 c0                	xor    %eax,%eax
-ffffffff8041a419:	e8 b2 ee ff ff       	callq  ffffffff804192d0 <printf_>
-      bad_count_++;
-ffffffff8041a41e:	41 83 44 24 18 01    	addl   $0x1,0x18(%r12)
-ffffffff8041a424:	48 8b 13             	mov    (%rbx),%rdx
-ffffffff8041a427:	48 89 d8             	mov    %rbx,%rax
-ffffffff8041a42a:	48 83 c5 01          	add    $0x1,%rbp
-ffffffff8041a42e:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
-ffffffff8041a432:	e9 56 ff ff ff       	jmpq   ffffffff8041a38d <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xad>
-ffffffff8041a437:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-ffffffff8041a43e:	00 00 
-    if (!t) {
-ffffffff8041a440:	48 85 db             	test   %rbx,%rbx
-ffffffff8041a443:	75 3b                	jne    ffffffff8041a480 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x1a0>
-}
-ffffffff8041a445:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
-ffffffff8041a44c:	5b                   	pop    %rbx
-ffffffff8041a44d:	5d                   	pop    %rbp
-ffffffff8041a44e:	41 5c                	pop    %r12
-ffffffff8041a450:	41 5d                	pop    %r13
-ffffffff8041a452:	41 5e                	pop    %r14
-ffffffff8041a454:	41 5f                	pop    %r15
-ffffffff8041a456:	c3                   	retq   
-ffffffff8041a457:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-ffffffff8041a45e:	00 00 
-        head_ = tail_ = nullptr;
-ffffffff8041a460:	48 c7 44 24 20 00 00 	movq   $0x0,0x20(%rsp)
-ffffffff8041a467:	00 00 
-ffffffff8041a469:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
-ffffffff8041a470:	00 00 
-ffffffff8041a472:	e9 54 ff ff ff       	jmpq   ffffffff8041a3cb <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xeb>
-ffffffff8041a477:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-ffffffff8041a47e:	00 00 
-      kprintf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
-ffffffff8041a480:	ba 47 00 00 00       	mov    $0x47,%edx
+ffffffff8041a480:	ba 45 00 00 00       	mov    $0x45,%edx
 ffffffff8041a485:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
-ffffffff8041a48c:	48 c7 c7 7b ba 41 80 	mov    $0xffffffff8041ba7b,%rdi
+ffffffff8041a48c:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
 ffffffff8041a493:	31 c0                	xor    %eax,%eax
 ffffffff8041a495:	e8 36 ee ff ff       	callq  ffffffff804192d0 <printf_>
       bad_count_++;
 ffffffff8041a49a:	41 83 44 24 18 01    	addl   $0x1,0x18(%r12)
-ffffffff8041a4a0:	eb a3                	jmp    ffffffff8041a445 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x165>
-ffffffff8041a4a2:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff8041a4a9:	00 00 00 
-ffffffff8041a4ac:	0f 1f 40 00          	nopl   0x0(%rax)
+  for (int i = 0; i < 3; i++) {
+ffffffff8041a4a0:	48 83 fd 03          	cmp    $0x3,%rbp
+ffffffff8041a4a4:	74 4a                	je     ffffffff8041a4f0 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x160>
+    EXPECT_EQ(*list.begin(), result[i]);
+ffffffff8041a4a6:	44 8b 73 10          	mov    0x10(%rbx),%r14d
+ffffffff8041a4aa:	44 8b 7c ac 0c       	mov    0xc(%rsp,%rbp,4),%r15d
+    if (t != u) {
+ffffffff8041a4af:	45 39 fe             	cmp    %r15d,%r14d
+ffffffff8041a4b2:	74 20                	je     ffffffff8041a4d4 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x144>
+      kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
+ffffffff8041a4b4:	ba 44 00 00 00       	mov    $0x44,%edx
+ffffffff8041a4b9:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a4c0:	48 c7 c7 5f ba 41 80 	mov    $0xffffffff8041ba5f,%rdi
+ffffffff8041a4c7:	31 c0                	xor    %eax,%eax
+ffffffff8041a4c9:	e8 02 ee ff ff       	callq  ffffffff804192d0 <printf_>
+      bad_count_++;
+ffffffff8041a4ce:	41 83 44 24 18 01    	addl   $0x1,0x18(%r12)
+ffffffff8041a4d4:	48 8b 13             	mov    (%rbx),%rdx
+ffffffff8041a4d7:	48 89 d8             	mov    %rbx,%rax
+ffffffff8041a4da:	48 83 c5 01          	add    $0x1,%rbp
+ffffffff8041a4de:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+ffffffff8041a4e2:	e9 56 ff ff ff       	jmpq   ffffffff8041a43d <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xad>
+ffffffff8041a4e7:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff8041a4ee:	00 00 
+    if (!t) {
+ffffffff8041a4f0:	48 85 db             	test   %rbx,%rbx
+ffffffff8041a4f3:	75 3b                	jne    ffffffff8041a530 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x1a0>
+}
+ffffffff8041a4f5:	48 81 c4 98 00 00 00 	add    $0x98,%rsp
+ffffffff8041a4fc:	5b                   	pop    %rbx
+ffffffff8041a4fd:	5d                   	pop    %rbp
+ffffffff8041a4fe:	41 5c                	pop    %r12
+ffffffff8041a500:	41 5d                	pop    %r13
+ffffffff8041a502:	41 5e                	pop    %r14
+ffffffff8041a504:	41 5f                	pop    %r15
+ffffffff8041a506:	c3                   	retq   
+ffffffff8041a507:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff8041a50e:	00 00 
+        head_ = tail_ = nullptr;
+ffffffff8041a510:	48 c7 44 24 20 00 00 	movq   $0x0,0x20(%rsp)
+ffffffff8041a517:	00 00 
+ffffffff8041a519:	48 c7 44 24 18 00 00 	movq   $0x0,0x18(%rsp)
+ffffffff8041a520:	00 00 
+ffffffff8041a522:	e9 54 ff ff ff       	jmpq   ffffffff8041a47b <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0xeb>
+ffffffff8041a527:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff8041a52e:	00 00 
+      kprintf("EXPECT_TRUE Failed at: %s:%d\n", file, line);
+ffffffff8041a530:	ba 47 00 00 00       	mov    $0x47,%edx
+ffffffff8041a535:	48 c7 c6 52 ba 41 80 	mov    $0xffffffff8041ba52,%rsi
+ffffffff8041a53c:	48 c7 c7 7b ba 41 80 	mov    $0xffffffff8041ba7b,%rdi
+ffffffff8041a543:	31 c0                	xor    %eax,%eax
+ffffffff8041a545:	e8 86 ed ff ff       	callq  ffffffff804192d0 <printf_>
+      bad_count_++;
+ffffffff8041a54a:	41 83 44 24 18 01    	addl   $0x1,0x18(%r12)
+ffffffff8041a550:	eb a3                	jmp    ffffffff8041a4f5 <_ZN6Kernel11kernel_test28KernelListTest_PopFront_Test8TestBodyEv+0x165>
+ffffffff8041a552:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff8041a559:	00 00 00 
+ffffffff8041a55c:	0f 1f 40 00          	nopl   0x0(%rax)
 
-ffffffff8041a4b0 <__do_global_ctors_aux>:
-ffffffff8041a4b0:	48 a1 d8 db 41 80 ff 	movabs 0xffffffff8041dbd8,%rax
-ffffffff8041a4b7:	ff ff ff 
-ffffffff8041a4ba:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
-ffffffff8041a4be:	74 30                	je     ffffffff8041a4f0 <__do_global_ctors_aux+0x40>
-ffffffff8041a4c0:	55                   	push   %rbp
-ffffffff8041a4c1:	48 89 e5             	mov    %rsp,%rbp
-ffffffff8041a4c4:	53                   	push   %rbx
-ffffffff8041a4c5:	48 bb d8 db 41 80 ff 	movabs $0xffffffff8041dbd8,%rbx
-ffffffff8041a4cc:	ff ff ff 
-ffffffff8041a4cf:	48 83 ec 08          	sub    $0x8,%rsp
-ffffffff8041a4d3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-ffffffff8041a4d8:	ff d0                	callq  *%rax
-ffffffff8041a4da:	48 8b 43 f8          	mov    -0x8(%rbx),%rax
-ffffffff8041a4de:	48 83 eb 08          	sub    $0x8,%rbx
-ffffffff8041a4e2:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
-ffffffff8041a4e6:	75 f0                	jne    ffffffff8041a4d8 <__do_global_ctors_aux+0x28>
-ffffffff8041a4e8:	48 83 c4 08          	add    $0x8,%rsp
-ffffffff8041a4ec:	5b                   	pop    %rbx
-ffffffff8041a4ed:	5d                   	pop    %rbp
-ffffffff8041a4ee:	c3                   	retq   
-ffffffff8041a4ef:	90                   	nop
-ffffffff8041a4f0:	c3                   	retq   
-ffffffff8041a4f1:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff8041a4f8:	00 00 00 
-ffffffff8041a4fb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a560 <__do_global_ctors_aux>:
+ffffffff8041a560:	48 a1 48 dc 41 80 ff 	movabs 0xffffffff8041dc48,%rax
+ffffffff8041a567:	ff ff ff 
+ffffffff8041a56a:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+ffffffff8041a56e:	74 30                	je     ffffffff8041a5a0 <__do_global_ctors_aux+0x40>
+ffffffff8041a570:	55                   	push   %rbp
+ffffffff8041a571:	48 89 e5             	mov    %rsp,%rbp
+ffffffff8041a574:	53                   	push   %rbx
+ffffffff8041a575:	48 bb 48 dc 41 80 ff 	movabs $0xffffffff8041dc48,%rbx
+ffffffff8041a57c:	ff ff ff 
+ffffffff8041a57f:	48 83 ec 08          	sub    $0x8,%rsp
+ffffffff8041a583:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a588:	ff d0                	callq  *%rax
+ffffffff8041a58a:	48 8b 43 f8          	mov    -0x8(%rbx),%rax
+ffffffff8041a58e:	48 83 eb 08          	sub    $0x8,%rbx
+ffffffff8041a592:	48 83 f8 ff          	cmp    $0xffffffffffffffff,%rax
+ffffffff8041a596:	75 f0                	jne    ffffffff8041a588 <__do_global_ctors_aux+0x28>
+ffffffff8041a598:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff8041a59c:	5b                   	pop    %rbx
+ffffffff8041a59d:	5d                   	pop    %rbp
+ffffffff8041a59e:	c3                   	retq   
+ffffffff8041a59f:	90                   	nop
+ffffffff8041a5a0:	c3                   	retq   
+ffffffff8041a5a1:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff8041a5a8:	00 00 00 
+ffffffff8041a5ab:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-ffffffff8041a500 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>:
+ffffffff8041a5b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE>:
   void PrintString(string_view s, VGAColor color = White) {
-ffffffff8041a500:	41 57                	push   %r15
-ffffffff8041a502:	41 56                	push   %r14
-ffffffff8041a504:	41 55                	push   %r13
-ffffffff8041a506:	41 54                	push   %r12
-ffffffff8041a508:	55                   	push   %rbp
-ffffffff8041a509:	53                   	push   %rbx
-ffffffff8041a50a:	48 83 ec 40          	sub    $0x40,%rsp
-ffffffff8041a50e:	4c 8b 5f 18          	mov    0x18(%rdi),%r11
-ffffffff8041a512:	4c 8b 67 10          	mov    0x10(%rdi),%r12
-ffffffff8041a516:	48 89 7c 24 38       	mov    %rdi,0x38(%rsp)
+ffffffff8041a5b0:	41 57                	push   %r15
+ffffffff8041a5b2:	41 56                	push   %r14
+ffffffff8041a5b4:	41 55                	push   %r13
+ffffffff8041a5b6:	41 54                	push   %r12
+ffffffff8041a5b8:	55                   	push   %rbp
+ffffffff8041a5b9:	53                   	push   %rbx
+ffffffff8041a5ba:	48 83 ec 40          	sub    $0x40,%rsp
+ffffffff8041a5be:	4c 8b 5f 18          	mov    0x18(%rdi),%r11
+ffffffff8041a5c2:	4c 8b 67 10          	mov    0x10(%rdi),%r12
+ffffffff8041a5c6:	48 89 7c 24 38       	mov    %rdi,0x38(%rsp)
     while (!s.empty()) {
-ffffffff8041a51b:	48 85 d2             	test   %rdx,%rdx
-ffffffff8041a51e:	0f 84 4b 01 00 00    	je     ffffffff8041a66f <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x16f>
-ffffffff8041a524:	4c 8b 6c 24 38       	mov    0x38(%rsp),%r13
-ffffffff8041a529:	48 89 d3             	mov    %rdx,%rbx
+ffffffff8041a5cb:	48 85 d2             	test   %rdx,%rdx
+ffffffff8041a5ce:	0f 84 4b 01 00 00    	je     ffffffff8041a71f <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x16f>
+ffffffff8041a5d4:	4c 8b 6c 24 38       	mov    0x38(%rsp),%r13
+ffffffff8041a5d9:	48 89 d3             	mov    %rdx,%rbx
       text_buffer_[current_row_][i] = (s[i - current_col_] | (color << 8));
-ffffffff8041a52c:	41 89 cf             	mov    %ecx,%r15d
-ffffffff8041a52f:	41 c1 e7 08          	shl    $0x8,%r15d
-ffffffff8041a533:	49 8b 45 00          	mov    0x0(%r13),%rax
-ffffffff8041a537:	4d 8b 75 08          	mov    0x8(%r13),%r14
-ffffffff8041a53b:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
-ffffffff8041a540:	48 8d 44 80 fb       	lea    -0x5(%rax,%rax,4),%rax
-ffffffff8041a545:	4b 8d bc 75 a0 00 00 	lea    0xa0(%r13,%r14,2),%rdi
-ffffffff8041a54c:	00 
-ffffffff8041a54d:	48 89 c2             	mov    %rax,%rdx
-ffffffff8041a550:	48 c1 e0 04          	shl    $0x4,%rax
-ffffffff8041a554:	48 89 7c 24 30       	mov    %rdi,0x30(%rsp)
-ffffffff8041a559:	48 c1 e2 05          	shl    $0x5,%rdx
-ffffffff8041a55d:	4c 01 f0             	add    %r14,%rax
-ffffffff8041a560:	4c 01 ea             	add    %r13,%rdx
-ffffffff8041a563:	49 8d 44 45 00       	lea    0x0(%r13,%rax,2),%rax
-ffffffff8041a568:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
-ffffffff8041a56d:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
-ffffffff8041a572:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ffffffff8041a5dc:	41 89 cf             	mov    %ecx,%r15d
+ffffffff8041a5df:	41 c1 e7 08          	shl    $0x8,%r15d
+ffffffff8041a5e3:	49 8b 45 00          	mov    0x0(%r13),%rax
+ffffffff8041a5e7:	4d 8b 75 08          	mov    0x8(%r13),%r14
+ffffffff8041a5eb:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+ffffffff8041a5f0:	48 8d 44 80 fb       	lea    -0x5(%rax,%rax,4),%rax
+ffffffff8041a5f5:	4b 8d bc 75 a0 00 00 	lea    0xa0(%r13,%r14,2),%rdi
+ffffffff8041a5fc:	00 
+ffffffff8041a5fd:	48 89 c2             	mov    %rax,%rdx
+ffffffff8041a600:	48 c1 e0 04          	shl    $0x4,%rax
+ffffffff8041a604:	48 89 7c 24 30       	mov    %rdi,0x30(%rsp)
+ffffffff8041a609:	48 c1 e2 05          	shl    $0x5,%rdx
+ffffffff8041a60d:	4c 01 f0             	add    %r14,%rax
+ffffffff8041a610:	4c 01 ea             	add    %r13,%rdx
+ffffffff8041a613:	49 8d 44 45 00       	lea    0x0(%r13,%rax,2),%rax
+ffffffff8041a618:	48 89 54 24 20       	mov    %rdx,0x20(%rsp)
+ffffffff8041a61d:	48 89 44 24 28       	mov    %rax,0x28(%rsp)
+ffffffff8041a622:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
       auto len = min(num_cols_ - current_col_, s.size());
-ffffffff8041a578:	4d 89 f2             	mov    %r14,%r10
-ffffffff8041a57b:	48 89 d8             	mov    %rbx,%rax
-ffffffff8041a57e:	4d 29 da             	sub    %r11,%r10
-ffffffff8041a581:	49 39 da             	cmp    %rbx,%r10
-ffffffff8041a584:	4c 0f 47 d3          	cmova  %rbx,%r10
+ffffffff8041a628:	4d 89 f2             	mov    %r14,%r10
+ffffffff8041a62b:	48 89 d8             	mov    %rbx,%rax
+ffffffff8041a62e:	4d 29 da             	sub    %r11,%r10
+ffffffff8041a631:	49 39 da             	cmp    %rbx,%r10
+ffffffff8041a634:	4c 0f 47 d3          	cmova  %rbx,%r10
   constexpr size_t find_first_of(CharT c, size_t pos, size_t count) const
-ffffffff8041a588:	49 39 da             	cmp    %rbx,%r10
-ffffffff8041a58b:	49 0f 46 c2          	cmovbe %r10,%rax
+ffffffff8041a638:	49 39 da             	cmp    %rbx,%r10
+ffffffff8041a63b:	49 0f 46 c2          	cmovbe %r10,%rax
     for (; i < min(size_, pos + count); i++) {
-ffffffff8041a58f:	48 85 c0             	test   %rax,%rax
-ffffffff8041a592:	0f 84 88 02 00 00    	je     ffffffff8041a820 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x320>
+ffffffff8041a63f:	48 85 c0             	test   %rax,%rax
+ffffffff8041a642:	0f 84 88 02 00 00    	je     ffffffff8041a8d0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x320>
     size_t i = pos;
-ffffffff8041a598:	31 d2                	xor    %edx,%edx
-ffffffff8041a59a:	eb 11                	jmp    ffffffff8041a5ad <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xad>
-ffffffff8041a59c:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041a648:	31 d2                	xor    %edx,%edx
+ffffffff8041a64a:	eb 11                	jmp    ffffffff8041a65d <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xad>
+ffffffff8041a64c:	0f 1f 40 00          	nopl   0x0(%rax)
     for (; i < min(size_, pos + count); i++) {
-ffffffff8041a5a0:	48 83 c2 01          	add    $0x1,%rdx
-ffffffff8041a5a4:	48 39 c2             	cmp    %rax,%rdx
-ffffffff8041a5a7:	0f 84 73 02 00 00    	je     ffffffff8041a820 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x320>
+ffffffff8041a650:	48 83 c2 01          	add    $0x1,%rdx
+ffffffff8041a654:	48 39 c2             	cmp    %rax,%rdx
+ffffffff8041a657:	0f 84 73 02 00 00    	je     ffffffff8041a8d0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x320>
       if (str_[i] == c) {
-ffffffff8041a5ad:	80 3c 16 0a          	cmpb   $0xa,(%rsi,%rdx,1)
-ffffffff8041a5b1:	75 ed                	jne    ffffffff8041a5a0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xa0>
-ffffffff8041a5b3:	48 89 54 24 10       	mov    %rdx,0x10(%rsp)
+ffffffff8041a65d:	80 3c 16 0a          	cmpb   $0xa,(%rsi,%rdx,1)
+ffffffff8041a661:	75 ed                	jne    ffffffff8041a650 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xa0>
+ffffffff8041a663:	48 89 54 24 10       	mov    %rdx,0x10(%rsp)
   constexpr basic_string_view substr(size_t pos = 0,
-ffffffff8041a5b8:	48 39 da             	cmp    %rbx,%rdx
-ffffffff8041a5bb:	48 89 d8             	mov    %rbx,%rax
-ffffffff8041a5be:	48 0f 46 c2          	cmovbe %rdx,%rax
-ffffffff8041a5c2:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+ffffffff8041a668:	48 39 da             	cmp    %rbx,%rdx
+ffffffff8041a66b:	48 89 d8             	mov    %rbx,%rax
+ffffffff8041a66e:	48 0f 46 c2          	cmovbe %rdx,%rax
+ffffffff8041a672:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
     if (current_row_ == num_rows_) {
-ffffffff8041a5c7:	4c 39 64 24 18       	cmp    %r12,0x18(%rsp)
-ffffffff8041a5cc:	0f 84 ae 01 00 00    	je     ffffffff8041a780 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x280>
+ffffffff8041a677:	4c 39 64 24 18       	cmp    %r12,0x18(%rsp)
+ffffffff8041a67c:	0f 84 ae 01 00 00    	je     ffffffff8041a830 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x280>
     for (i = current_col_; i < min(current_col_ + s.size(), num_cols_); i++) {
-ffffffff8041a5d2:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
-ffffffff8041a5d7:	4c 01 df             	add    %r11,%rdi
-ffffffff8041a5da:	4c 39 f7             	cmp    %r14,%rdi
-ffffffff8041a5dd:	49 0f 47 fe          	cmova  %r14,%rdi
-ffffffff8041a5e1:	49 39 fb             	cmp    %rdi,%r11
-ffffffff8041a5e4:	0f 83 56 02 00 00    	jae    ffffffff8041a840 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x340>
-ffffffff8041a5ea:	4b 8d 04 a4          	lea    (%r12,%r12,4),%rax
-ffffffff8041a5ee:	49 89 f8             	mov    %rdi,%r8
-ffffffff8041a5f1:	48 c1 e0 04          	shl    $0x4,%rax
-ffffffff8041a5f5:	4d 29 d8             	sub    %r11,%r8
-ffffffff8041a5f8:	49 01 c3             	add    %rax,%r11
-ffffffff8041a5fb:	31 c0                	xor    %eax,%eax
-ffffffff8041a5fd:	4f 8d 4c 5d 00       	lea    0x0(%r13,%r11,2),%r9
-ffffffff8041a602:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ffffffff8041a682:	48 8b 7c 24 08       	mov    0x8(%rsp),%rdi
+ffffffff8041a687:	4c 01 df             	add    %r11,%rdi
+ffffffff8041a68a:	4c 39 f7             	cmp    %r14,%rdi
+ffffffff8041a68d:	49 0f 47 fe          	cmova  %r14,%rdi
+ffffffff8041a691:	49 39 fb             	cmp    %rdi,%r11
+ffffffff8041a694:	0f 83 56 02 00 00    	jae    ffffffff8041a8f0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x340>
+ffffffff8041a69a:	4b 8d 04 a4          	lea    (%r12,%r12,4),%rax
+ffffffff8041a69e:	49 89 f8             	mov    %rdi,%r8
+ffffffff8041a6a1:	48 c1 e0 04          	shl    $0x4,%rax
+ffffffff8041a6a5:	4d 29 d8             	sub    %r11,%r8
+ffffffff8041a6a8:	49 01 c3             	add    %rax,%r11
+ffffffff8041a6ab:	31 c0                	xor    %eax,%eax
+ffffffff8041a6ad:	4f 8d 4c 5d 00       	lea    0x0(%r13,%r11,2),%r9
+ffffffff8041a6b2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
       text_buffer_[current_row_][i] = (s[i - current_col_] | (color << 8));
-ffffffff8041a608:	66 0f be 0c 06       	movsbw (%rsi,%rax,1),%cx
-ffffffff8041a60d:	44 09 f9             	or     %r15d,%ecx
-ffffffff8041a610:	66 41 89 4c 41 20    	mov    %cx,0x20(%r9,%rax,2)
-ffffffff8041a616:	48 83 c0 01          	add    $0x1,%rax
+ffffffff8041a6b8:	66 0f be 0c 06       	movsbw (%rsi,%rax,1),%cx
+ffffffff8041a6bd:	44 09 f9             	or     %r15d,%ecx
+ffffffff8041a6c0:	66 41 89 4c 41 20    	mov    %cx,0x20(%r9,%rax,2)
+ffffffff8041a6c6:	48 83 c0 01          	add    $0x1,%rax
     for (i = current_col_; i < min(current_col_ + s.size(), num_cols_); i++) {
-ffffffff8041a61a:	4c 39 c0             	cmp    %r8,%rax
-ffffffff8041a61d:	75 e9                	jne    ffffffff8041a608 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x108>
+ffffffff8041a6ca:	4c 39 c0             	cmp    %r8,%rax
+ffffffff8041a6cd:	75 e9                	jne    ffffffff8041a6b8 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x108>
     if (current_col_ == num_cols_) {
-ffffffff8041a61f:	49 39 fe             	cmp    %rdi,%r14
-ffffffff8041a622:	0f 84 18 01 00 00    	je     ffffffff8041a740 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x240>
+ffffffff8041a6cf:	49 39 fe             	cmp    %rdi,%r14
+ffffffff8041a6d2:	0f 84 18 01 00 00    	je     ffffffff8041a7f0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x240>
       if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
-ffffffff8041a628:	48 83 7c 24 10 ff    	cmpq   $0xffffffffffffffff,0x10(%rsp)
+ffffffff8041a6d8:	48 83 7c 24 10 ff    	cmpq   $0xffffffffffffffff,0x10(%rsp)
     current_col_ = i;
-ffffffff8041a62e:	49 89 7d 18          	mov    %rdi,0x18(%r13)
+ffffffff8041a6de:	49 89 7d 18          	mov    %rdi,0x18(%r13)
       if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
-ffffffff8041a632:	0f 84 29 01 00 00    	je     ffffffff8041a761 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x261>
-ffffffff8041a638:	48 85 ff             	test   %rdi,%rdi
-ffffffff8041a63b:	0f 84 4e 02 00 00    	je     ffffffff8041a88f <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x38f>
-ffffffff8041a641:	49 89 fb             	mov    %rdi,%r11
-ffffffff8041a644:	49 83 fc 18          	cmp    $0x18,%r12
-ffffffff8041a648:	0f 86 fa 01 00 00    	jbe    ffffffff8041a848 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x348>
+ffffffff8041a6e2:	0f 84 29 01 00 00    	je     ffffffff8041a811 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x261>
+ffffffff8041a6e8:	48 85 ff             	test   %rdi,%rdi
+ffffffff8041a6eb:	0f 84 4e 02 00 00    	je     ffffffff8041a93f <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x38f>
+ffffffff8041a6f1:	49 89 fb             	mov    %rdi,%r11
+ffffffff8041a6f4:	49 83 fc 18          	cmp    $0x18,%r12
+ffffffff8041a6f8:	0f 86 fa 01 00 00    	jbe    ffffffff8041a8f8 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x348>
         s.remove_prefix(min(endline_or_col_chars + 1, len));
-ffffffff8041a64e:	48 83 c2 01          	add    $0x1,%rdx
-ffffffff8041a652:	4c 39 d2             	cmp    %r10,%rdx
-ffffffff8041a655:	4c 0f 46 d2          	cmovbe %rdx,%r10
+ffffffff8041a6fe:	48 83 c2 01          	add    $0x1,%rdx
+ffffffff8041a702:	4c 39 d2             	cmp    %r10,%rdx
+ffffffff8041a705:	4c 0f 46 d2          	cmovbe %rdx,%r10
     str_ += n;
-ffffffff8041a659:	4c 01 d6             	add    %r10,%rsi
+ffffffff8041a709:	4c 01 d6             	add    %r10,%rsi
     size_ -= min(n, size_);
-ffffffff8041a65c:	4c 39 d3             	cmp    %r10,%rbx
-ffffffff8041a65f:	4c 0f 46 d3          	cmovbe %rbx,%r10
-ffffffff8041a663:	4c 29 d3             	sub    %r10,%rbx
+ffffffff8041a70c:	4c 39 d3             	cmp    %r10,%rbx
+ffffffff8041a70f:	4c 0f 46 d3          	cmovbe %rbx,%r10
+ffffffff8041a713:	4c 29 d3             	sub    %r10,%rbx
     while (!s.empty()) {
-ffffffff8041a666:	48 85 db             	test   %rbx,%rbx
-ffffffff8041a669:	0f 85 09 ff ff ff    	jne    ffffffff8041a578 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x78>
+ffffffff8041a716:	48 85 db             	test   %rbx,%rbx
+ffffffff8041a719:	0f 85 09 ff ff ff    	jne    ffffffff8041a628 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x78>
     for (size_t i = 0; i < current_row_; i++) {
-ffffffff8041a66f:	4d 85 e4             	test   %r12,%r12
-ffffffff8041a672:	74 60                	je     ffffffff8041a6d4 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1d4>
+ffffffff8041a71f:	4d 85 e4             	test   %r12,%r12
+ffffffff8041a722:	74 60                	je     ffffffff8041a784 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1d4>
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a674:	48 8b 74 24 38       	mov    0x38(%rsp),%rsi
+ffffffff8041a724:	48 8b 74 24 38       	mov    0x38(%rsp),%rsi
     for (size_t i = 0; i < current_row_; i++) {
-ffffffff8041a679:	31 ff                	xor    %edi,%edi
+ffffffff8041a729:	31 ff                	xor    %edi,%edi
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a67b:	4c 8b 4e 08          	mov    0x8(%rsi),%r9
-ffffffff8041a67f:	4d 89 c8             	mov    %r9,%r8
-ffffffff8041a682:	4f 8d 14 09          	lea    (%r9,%r9,1),%r10
-ffffffff8041a686:	49 f7 d8             	neg    %r8
-ffffffff8041a689:	49 8d 8a 00 80 0b 00 	lea    0xb8000(%r10),%rcx
-ffffffff8041a690:	4d 01 c0             	add    %r8,%r8
-ffffffff8041a693:	49 8d 98 a0 00 00 00 	lea    0xa0(%r8),%rbx
-ffffffff8041a69a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
-ffffffff8041a6a0:	4a 8d 04 01          	lea    (%rcx,%r8,1),%rax
-ffffffff8041a6a4:	4d 85 c9             	test   %r9,%r9
-ffffffff8041a6a7:	74 1c                	je     ffffffff8041a6c5 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1c5>
-ffffffff8041a6a9:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
+ffffffff8041a72b:	4c 8b 4e 08          	mov    0x8(%rsi),%r9
+ffffffff8041a72f:	4d 89 c8             	mov    %r9,%r8
+ffffffff8041a732:	4f 8d 14 09          	lea    (%r9,%r9,1),%r10
+ffffffff8041a736:	49 f7 d8             	neg    %r8
+ffffffff8041a739:	49 8d 8a 00 80 0b 00 	lea    0xb8000(%r10),%rcx
+ffffffff8041a740:	4d 01 c0             	add    %r8,%r8
+ffffffff8041a743:	49 8d 98 a0 00 00 00 	lea    0xa0(%r8),%rbx
+ffffffff8041a74a:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ffffffff8041a750:	4a 8d 04 01          	lea    (%rcx,%r8,1),%rax
+ffffffff8041a754:	4d 85 c9             	test   %r9,%r9
+ffffffff8041a757:	74 1c                	je     ffffffff8041a775 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1c5>
+ffffffff8041a759:	0f 1f 80 00 00 00 00 	nopl   0x0(%rax)
         vga[i * num_cols_ + j] = text_buffer_[i][j];
-ffffffff8041a6b0:	0f b7 94 06 20 80 f4 	movzwl -0xb7fe0(%rsi,%rax,1),%edx
-ffffffff8041a6b7:	ff 
-ffffffff8041a6b8:	48 83 c0 02          	add    $0x2,%rax
-ffffffff8041a6bc:	66 89 50 fe          	mov    %dx,-0x2(%rax)
+ffffffff8041a760:	0f b7 94 06 20 80 f4 	movzwl -0xb7fe0(%rsi,%rax,1),%edx
+ffffffff8041a767:	ff 
+ffffffff8041a768:	48 83 c0 02          	add    $0x2,%rax
+ffffffff8041a76c:	66 89 50 fe          	mov    %dx,-0x2(%rax)
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a6c0:	48 39 c1             	cmp    %rax,%rcx
-ffffffff8041a6c3:	75 eb                	jne    ffffffff8041a6b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1b0>
+ffffffff8041a770:	48 39 c1             	cmp    %rax,%rcx
+ffffffff8041a773:	75 eb                	jne    ffffffff8041a760 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1b0>
     for (size_t i = 0; i < current_row_; i++) {
-ffffffff8041a6c5:	48 83 c7 01          	add    $0x1,%rdi
-ffffffff8041a6c9:	48 01 de             	add    %rbx,%rsi
-ffffffff8041a6cc:	4c 01 d1             	add    %r10,%rcx
-ffffffff8041a6cf:	4c 39 e7             	cmp    %r12,%rdi
-ffffffff8041a6d2:	75 cc                	jne    ffffffff8041a6a0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1a0>
+ffffffff8041a775:	48 83 c7 01          	add    $0x1,%rdi
+ffffffff8041a779:	48 01 de             	add    %rbx,%rsi
+ffffffff8041a77c:	4c 01 d1             	add    %r10,%rcx
+ffffffff8041a77f:	4c 39 e7             	cmp    %r12,%rdi
+ffffffff8041a782:	75 cc                	jne    ffffffff8041a750 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x1a0>
     if (current_col_ != 0) {
-ffffffff8041a6d4:	4d 85 db             	test   %r11,%r11
-ffffffff8041a6d7:	74 54                	je     ffffffff8041a72d <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x22d>
+ffffffff8041a784:	4d 85 db             	test   %r11,%r11
+ffffffff8041a787:	74 54                	je     ffffffff8041a7dd <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x22d>
       for (size_t i = 0; i < num_cols_; i++) {
-ffffffff8041a6d9:	48 8b 5c 24 38       	mov    0x38(%rsp),%rbx
-ffffffff8041a6de:	48 8b 4b 08          	mov    0x8(%rbx),%rcx
-ffffffff8041a6e2:	48 85 c9             	test   %rcx,%rcx
-ffffffff8041a6e5:	74 46                	je     ffffffff8041a72d <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x22d>
+ffffffff8041a789:	48 8b 5c 24 38       	mov    0x38(%rsp),%rbx
+ffffffff8041a78e:	48 8b 4b 08          	mov    0x8(%rbx),%rcx
+ffffffff8041a792:	48 85 c9             	test   %rcx,%rcx
+ffffffff8041a795:	74 46                	je     ffffffff8041a7dd <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x22d>
         vga[num_cols_ * current_row_ + i] = text_buffer_[current_row_][i];
-ffffffff8041a6e7:	48 89 c8             	mov    %rcx,%rax
-ffffffff8041a6ea:	49 0f af c4          	imul   %r12,%rax
-ffffffff8041a6ee:	48 8d b4 01 00 c0 05 	lea    0x5c000(%rcx,%rax,1),%rsi
-ffffffff8041a6f5:	00 
-ffffffff8041a6f6:	4b 8d 0c a4          	lea    (%r12,%r12,4),%rcx
-ffffffff8041a6fa:	48 8d 94 00 00 80 0b 	lea    0xb8000(%rax,%rax,1),%rdx
-ffffffff8041a701:	00 
-ffffffff8041a702:	48 c1 e1 05          	shl    $0x5,%rcx
-ffffffff8041a706:	48 f7 d8             	neg    %rax
-ffffffff8041a709:	48 01 f6             	add    %rsi,%rsi
-ffffffff8041a70c:	48 8d 04 41          	lea    (%rcx,%rax,2),%rax
-ffffffff8041a710:	48 01 d8             	add    %rbx,%rax
-ffffffff8041a713:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-ffffffff8041a718:	0f b7 8c 10 20 80 f4 	movzwl -0xb7fe0(%rax,%rdx,1),%ecx
-ffffffff8041a71f:	ff 
-ffffffff8041a720:	48 83 c2 02          	add    $0x2,%rdx
-ffffffff8041a724:	66 89 4a fe          	mov    %cx,-0x2(%rdx)
+ffffffff8041a797:	48 89 c8             	mov    %rcx,%rax
+ffffffff8041a79a:	49 0f af c4          	imul   %r12,%rax
+ffffffff8041a79e:	48 8d b4 01 00 c0 05 	lea    0x5c000(%rcx,%rax,1),%rsi
+ffffffff8041a7a5:	00 
+ffffffff8041a7a6:	4b 8d 0c a4          	lea    (%r12,%r12,4),%rcx
+ffffffff8041a7aa:	48 8d 94 00 00 80 0b 	lea    0xb8000(%rax,%rax,1),%rdx
+ffffffff8041a7b1:	00 
+ffffffff8041a7b2:	48 c1 e1 05          	shl    $0x5,%rcx
+ffffffff8041a7b6:	48 f7 d8             	neg    %rax
+ffffffff8041a7b9:	48 01 f6             	add    %rsi,%rsi
+ffffffff8041a7bc:	48 8d 04 41          	lea    (%rcx,%rax,2),%rax
+ffffffff8041a7c0:	48 01 d8             	add    %rbx,%rax
+ffffffff8041a7c3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a7c8:	0f b7 8c 10 20 80 f4 	movzwl -0xb7fe0(%rax,%rdx,1),%ecx
+ffffffff8041a7cf:	ff 
+ffffffff8041a7d0:	48 83 c2 02          	add    $0x2,%rdx
+ffffffff8041a7d4:	66 89 4a fe          	mov    %cx,-0x2(%rdx)
       for (size_t i = 0; i < num_cols_; i++) {
-ffffffff8041a728:	48 39 d6             	cmp    %rdx,%rsi
-ffffffff8041a72b:	75 eb                	jne    ffffffff8041a718 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x218>
+ffffffff8041a7d8:	48 39 d6             	cmp    %rdx,%rsi
+ffffffff8041a7db:	75 eb                	jne    ffffffff8041a7c8 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x218>
   }
-ffffffff8041a72d:	48 83 c4 40          	add    $0x40,%rsp
-ffffffff8041a731:	5b                   	pop    %rbx
-ffffffff8041a732:	5d                   	pop    %rbp
-ffffffff8041a733:	41 5c                	pop    %r12
-ffffffff8041a735:	41 5d                	pop    %r13
-ffffffff8041a737:	41 5e                	pop    %r14
-ffffffff8041a739:	41 5f                	pop    %r15
-ffffffff8041a73b:	c3                   	retq   
-ffffffff8041a73c:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041a7dd:	48 83 c4 40          	add    $0x40,%rsp
+ffffffff8041a7e1:	5b                   	pop    %rbx
+ffffffff8041a7e2:	5d                   	pop    %rbp
+ffffffff8041a7e3:	41 5c                	pop    %r12
+ffffffff8041a7e5:	41 5d                	pop    %r13
+ffffffff8041a7e7:	41 5e                	pop    %r14
+ffffffff8041a7e9:	41 5f                	pop    %r15
+ffffffff8041a7eb:	c3                   	retq   
+ffffffff8041a7ec:	0f 1f 40 00          	nopl   0x0(%rax)
       current_row_++;
-ffffffff8041a740:	49 83 c4 01          	add    $0x1,%r12
+ffffffff8041a7f0:	49 83 c4 01          	add    $0x1,%r12
       if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
-ffffffff8041a744:	45 31 db             	xor    %r11d,%r11d
-ffffffff8041a747:	31 ff                	xor    %edi,%edi
-ffffffff8041a749:	48 83 7c 24 10 ff    	cmpq   $0xffffffffffffffff,0x10(%rsp)
+ffffffff8041a7f4:	45 31 db             	xor    %r11d,%r11d
+ffffffff8041a7f7:	31 ff                	xor    %edi,%edi
+ffffffff8041a7f9:	48 83 7c 24 10 ff    	cmpq   $0xffffffffffffffff,0x10(%rsp)
       current_col_ = 0;
-ffffffff8041a74f:	49 c7 45 18 00 00 00 	movq   $0x0,0x18(%r13)
-ffffffff8041a756:	00 
+ffffffff8041a7ff:	49 c7 45 18 00 00 00 	movq   $0x0,0x18(%r13)
+ffffffff8041a806:	00 
       current_row_++;
-ffffffff8041a757:	4d 89 65 10          	mov    %r12,0x10(%r13)
+ffffffff8041a807:	4d 89 65 10          	mov    %r12,0x10(%r13)
       if (endline_found && current_col_ != 0 && current_row_ < NUM_ROWS) {
-ffffffff8041a75b:	0f 85 ed fe ff ff    	jne    ffffffff8041a64e <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
-ffffffff8041a761:	49 39 d2             	cmp    %rdx,%r10
-ffffffff8041a764:	49 89 fb             	mov    %rdi,%r11
-ffffffff8041a767:	49 0f 46 d2          	cmovbe %r10,%rdx
+ffffffff8041a80b:	0f 85 ed fe ff ff    	jne    ffffffff8041a6fe <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
+ffffffff8041a811:	49 39 d2             	cmp    %rdx,%r10
+ffffffff8041a814:	49 89 fb             	mov    %rdi,%r11
+ffffffff8041a817:	49 0f 46 d2          	cmovbe %r10,%rdx
     str_ += n;
-ffffffff8041a76b:	48 01 d6             	add    %rdx,%rsi
+ffffffff8041a81b:	48 01 d6             	add    %rdx,%rsi
     size_ -= min(n, size_);
-ffffffff8041a76e:	48 39 da             	cmp    %rbx,%rdx
-ffffffff8041a771:	48 0f 47 d3          	cmova  %rbx,%rdx
-ffffffff8041a775:	48 29 d3             	sub    %rdx,%rbx
-ffffffff8041a778:	e9 e9 fe ff ff       	jmpq   ffffffff8041a666 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x166>
-ffffffff8041a77d:	0f 1f 00             	nopl   (%rax)
+ffffffff8041a81e:	48 39 da             	cmp    %rbx,%rdx
+ffffffff8041a821:	48 0f 47 d3          	cmova  %rbx,%rdx
+ffffffff8041a825:	48 29 d3             	sub    %rdx,%rbx
+ffffffff8041a828:	e9 e9 fe ff ff       	jmpq   ffffffff8041a716 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x166>
+ffffffff8041a82d:	0f 1f 00             	nopl   (%rax)
     for (size_t i = 1; i < num_rows_; i++) {
-ffffffff8041a780:	48 83 7c 24 18 01    	cmpq   $0x1,0x18(%rsp)
-ffffffff8041a786:	76 61                	jbe    ffffffff8041a7e9 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2e9>
-ffffffff8041a788:	4c 8b 4c 24 30       	mov    0x30(%rsp),%r9
-ffffffff8041a78d:	45 31 c0             	xor    %r8d,%r8d
-ffffffff8041a790:	bd 01 00 00 00       	mov    $0x1,%ebp
-ffffffff8041a795:	48 c7 c7 60 ff ff ff 	mov    $0xffffffffffffff60,%rdi
-ffffffff8041a79c:	0f 1f 40 00          	nopl   0x0(%rax)
-ffffffff8041a7a0:	4c 89 e8             	mov    %r13,%rax
-ffffffff8041a7a3:	48 29 f8             	sub    %rdi,%rax
+ffffffff8041a830:	48 83 7c 24 18 01    	cmpq   $0x1,0x18(%rsp)
+ffffffff8041a836:	76 61                	jbe    ffffffff8041a899 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2e9>
+ffffffff8041a838:	4c 8b 4c 24 30       	mov    0x30(%rsp),%r9
+ffffffff8041a83d:	45 31 c0             	xor    %r8d,%r8d
+ffffffff8041a840:	bd 01 00 00 00       	mov    $0x1,%ebp
+ffffffff8041a845:	48 c7 c7 60 ff ff ff 	mov    $0xffffffffffffff60,%rdi
+ffffffff8041a84c:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041a850:	4c 89 e8             	mov    %r13,%rax
+ffffffff8041a853:	48 29 f8             	sub    %rdi,%rax
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a7a6:	4d 85 f6             	test   %r14,%r14
-ffffffff8041a7a9:	74 20                	je     ffffffff8041a7cb <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2cb>
-ffffffff8041a7ab:	48 89 14 24          	mov    %rdx,(%rsp)
-ffffffff8041a7af:	90                   	nop
+ffffffff8041a856:	4d 85 f6             	test   %r14,%r14
+ffffffff8041a859:	74 20                	je     ffffffff8041a87b <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2cb>
+ffffffff8041a85b:	48 89 14 24          	mov    %rdx,(%rsp)
+ffffffff8041a85f:	90                   	nop
         text_buffer_[i - 1][j] = text_buffer_[i][j];
-ffffffff8041a7b0:	0f b7 50 20          	movzwl 0x20(%rax),%edx
-ffffffff8041a7b4:	48 8d 0c 38          	lea    (%rax,%rdi,1),%rcx
-ffffffff8041a7b8:	48 83 c0 02          	add    $0x2,%rax
-ffffffff8041a7bc:	66 42 89 54 01 20    	mov    %dx,0x20(%rcx,%r8,1)
+ffffffff8041a860:	0f b7 50 20          	movzwl 0x20(%rax),%edx
+ffffffff8041a864:	48 8d 0c 38          	lea    (%rax,%rdi,1),%rcx
+ffffffff8041a868:	48 83 c0 02          	add    $0x2,%rax
+ffffffff8041a86c:	66 42 89 54 01 20    	mov    %dx,0x20(%rcx,%r8,1)
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a7c2:	4c 39 c8             	cmp    %r9,%rax
-ffffffff8041a7c5:	75 e9                	jne    ffffffff8041a7b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2b0>
-ffffffff8041a7c7:	48 8b 14 24          	mov    (%rsp),%rdx
+ffffffff8041a872:	4c 39 c8             	cmp    %r9,%rax
+ffffffff8041a875:	75 e9                	jne    ffffffff8041a860 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2b0>
+ffffffff8041a877:	48 8b 14 24          	mov    (%rsp),%rdx
     for (size_t i = 1; i < num_rows_; i++) {
-ffffffff8041a7cb:	48 83 c5 01          	add    $0x1,%rbp
-ffffffff8041a7cf:	48 81 ef a0 00 00 00 	sub    $0xa0,%rdi
-ffffffff8041a7d6:	49 81 c0 a0 00 00 00 	add    $0xa0,%r8
-ffffffff8041a7dd:	49 81 c1 a0 00 00 00 	add    $0xa0,%r9
-ffffffff8041a7e4:	4c 39 e5             	cmp    %r12,%rbp
-ffffffff8041a7e7:	75 b7                	jne    ffffffff8041a7a0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2a0>
+ffffffff8041a87b:	48 83 c5 01          	add    $0x1,%rbp
+ffffffff8041a87f:	48 81 ef a0 00 00 00 	sub    $0xa0,%rdi
+ffffffff8041a886:	49 81 c0 a0 00 00 00 	add    $0xa0,%r8
+ffffffff8041a88d:	49 81 c1 a0 00 00 00 	add    $0xa0,%r9
+ffffffff8041a894:	4c 39 e5             	cmp    %r12,%rbp
+ffffffff8041a897:	75 b7                	jne    ffffffff8041a850 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x2a0>
     for (size_t i = 0; i < num_cols_; i++) {
-ffffffff8041a7e9:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
-ffffffff8041a7ee:	48 8b 4c 24 28       	mov    0x28(%rsp),%rcx
-ffffffff8041a7f3:	4d 85 f6             	test   %r14,%r14
-ffffffff8041a7f6:	74 19                	je     ffffffff8041a811 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x311>
-ffffffff8041a7f8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
-ffffffff8041a7ff:	00 
-      text_buffer_[num_rows_ - 1][i] = 0;
-ffffffff8041a800:	45 31 c0             	xor    %r8d,%r8d
-ffffffff8041a803:	48 83 c0 02          	add    $0x2,%rax
-ffffffff8041a807:	66 44 89 40 1e       	mov    %r8w,0x1e(%rax)
-    for (size_t i = 0; i < num_cols_; i++) {
-ffffffff8041a80c:	48 39 c1             	cmp    %rax,%rcx
-ffffffff8041a80f:	75 ef                	jne    ffffffff8041a800 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x300>
-      current_row_--;
-ffffffff8041a811:	49 83 ec 01          	sub    $0x1,%r12
-ffffffff8041a815:	4d 89 65 10          	mov    %r12,0x10(%r13)
-ffffffff8041a819:	e9 b4 fd ff ff       	jmpq   ffffffff8041a5d2 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xd2>
-ffffffff8041a81e:	66 90                	xchg   %ax,%ax
-    if (count == npos) {
-ffffffff8041a820:	49 83 fa ff          	cmp    $0xffffffffffffffff,%r10
-ffffffff8041a824:	75 71                	jne    ffffffff8041a897 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x397>
-ffffffff8041a826:	48 c7 44 24 10 ff ff 	movq   $0xffffffffffffffff,0x10(%rsp)
-ffffffff8041a82d:	ff ff 
-        endline_or_col_chars = len;
-ffffffff8041a82f:	48 c7 c2 ff ff ff ff 	mov    $0xffffffffffffffff,%rdx
-ffffffff8041a836:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
-ffffffff8041a83b:	e9 87 fd ff ff       	jmpq   ffffffff8041a5c7 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xc7>
-    for (i = current_col_; i < min(current_col_ + s.size(), num_cols_); i++) {
-ffffffff8041a840:	4c 89 df             	mov    %r11,%rdi
-ffffffff8041a843:	e9 d7 fd ff ff       	jmpq   ffffffff8041a61f <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x11f>
-        for (size_t i = current_col_; i < num_cols_; i++) {
-ffffffff8041a848:	49 39 fe             	cmp    %rdi,%r14
-ffffffff8041a84b:	76 2a                	jbe    ffffffff8041a877 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x377>
-ffffffff8041a84d:	4b 8d 0c a4          	lea    (%r12,%r12,4),%rcx
-ffffffff8041a851:	48 c1 e1 04          	shl    $0x4,%rcx
-ffffffff8041a855:	48 01 cf             	add    %rcx,%rdi
-ffffffff8041a858:	4c 01 f1             	add    %r14,%rcx
-ffffffff8041a85b:	49 8d 44 7d 00       	lea    0x0(%r13,%rdi,2),%rax
-ffffffff8041a860:	49 8d 4c 4d 00       	lea    0x0(%r13,%rcx,2),%rcx
-ffffffff8041a865:	0f 1f 00             	nopl   (%rax)
-          text_buffer_[current_row_][i] = 0;
-ffffffff8041a868:	31 ff                	xor    %edi,%edi
-ffffffff8041a86a:	48 83 c0 02          	add    $0x2,%rax
-ffffffff8041a86e:	66 89 78 1e          	mov    %di,0x1e(%rax)
-        for (size_t i = current_col_; i < num_cols_; i++) {
-ffffffff8041a872:	48 39 c8             	cmp    %rcx,%rax
-ffffffff8041a875:	75 f1                	jne    ffffffff8041a868 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x368>
-        current_row_++;
-ffffffff8041a877:	49 83 c4 01          	add    $0x1,%r12
-        current_col_ = 0;
-ffffffff8041a87b:	49 c7 45 18 00 00 00 	movq   $0x0,0x18(%r13)
-ffffffff8041a882:	00 
-ffffffff8041a883:	45 31 db             	xor    %r11d,%r11d
-        current_row_++;
-ffffffff8041a886:	4d 89 65 10          	mov    %r12,0x10(%r13)
-ffffffff8041a88a:	e9 bf fd ff ff       	jmpq   ffffffff8041a64e <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
-ffffffff8041a88f:	45 31 db             	xor    %r11d,%r11d
-ffffffff8041a892:	e9 b7 fd ff ff       	jmpq   ffffffff8041a64e <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
-ffffffff8041a897:	48 c7 44 24 10 ff ff 	movq   $0xffffffffffffffff,0x10(%rsp)
-ffffffff8041a89e:	ff ff 
-ffffffff8041a8a0:	4c 89 d2             	mov    %r10,%rdx
-ffffffff8041a8a3:	e9 10 fd ff ff       	jmpq   ffffffff8041a5b8 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xb8>
+ffffffff8041a899:	48 8b 44 24 20       	mov    0x20(%rsp),%rax
+ffffffff8041a89e:	48 8b 4c 24 28       	mov    0x28(%rsp),%rcx
+ffffffff8041a8a3:	4d 85 f6             	test   %r14,%r14
+ffffffff8041a8a6:	74 19                	je     ffffffff8041a8c1 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x311>
 ffffffff8041a8a8:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
 ffffffff8041a8af:	00 
+      text_buffer_[num_rows_ - 1][i] = 0;
+ffffffff8041a8b0:	45 31 c0             	xor    %r8d,%r8d
+ffffffff8041a8b3:	48 83 c0 02          	add    $0x2,%rax
+ffffffff8041a8b7:	66 44 89 40 1e       	mov    %r8w,0x1e(%rax)
+    for (size_t i = 0; i < num_cols_; i++) {
+ffffffff8041a8bc:	48 39 c1             	cmp    %rax,%rcx
+ffffffff8041a8bf:	75 ef                	jne    ffffffff8041a8b0 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x300>
+      current_row_--;
+ffffffff8041a8c1:	49 83 ec 01          	sub    $0x1,%r12
+ffffffff8041a8c5:	4d 89 65 10          	mov    %r12,0x10(%r13)
+ffffffff8041a8c9:	e9 b4 fd ff ff       	jmpq   ffffffff8041a682 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xd2>
+ffffffff8041a8ce:	66 90                	xchg   %ax,%ax
+    if (count == npos) {
+ffffffff8041a8d0:	49 83 fa ff          	cmp    $0xffffffffffffffff,%r10
+ffffffff8041a8d4:	75 71                	jne    ffffffff8041a947 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x397>
+ffffffff8041a8d6:	48 c7 44 24 10 ff ff 	movq   $0xffffffffffffffff,0x10(%rsp)
+ffffffff8041a8dd:	ff ff 
+        endline_or_col_chars = len;
+ffffffff8041a8df:	48 c7 c2 ff ff ff ff 	mov    $0xffffffffffffffff,%rdx
+ffffffff8041a8e6:	48 89 5c 24 08       	mov    %rbx,0x8(%rsp)
+ffffffff8041a8eb:	e9 87 fd ff ff       	jmpq   ffffffff8041a677 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xc7>
+    for (i = current_col_; i < min(current_col_ + s.size(), num_cols_); i++) {
+ffffffff8041a8f0:	4c 89 df             	mov    %r11,%rdi
+ffffffff8041a8f3:	e9 d7 fd ff ff       	jmpq   ffffffff8041a6cf <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x11f>
+        for (size_t i = current_col_; i < num_cols_; i++) {
+ffffffff8041a8f8:	49 39 fe             	cmp    %rdi,%r14
+ffffffff8041a8fb:	76 2a                	jbe    ffffffff8041a927 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x377>
+ffffffff8041a8fd:	4b 8d 0c a4          	lea    (%r12,%r12,4),%rcx
+ffffffff8041a901:	48 c1 e1 04          	shl    $0x4,%rcx
+ffffffff8041a905:	48 01 cf             	add    %rcx,%rdi
+ffffffff8041a908:	4c 01 f1             	add    %r14,%rcx
+ffffffff8041a90b:	49 8d 44 7d 00       	lea    0x0(%r13,%rdi,2),%rax
+ffffffff8041a910:	49 8d 4c 4d 00       	lea    0x0(%r13,%rcx,2),%rcx
+ffffffff8041a915:	0f 1f 00             	nopl   (%rax)
+          text_buffer_[current_row_][i] = 0;
+ffffffff8041a918:	31 ff                	xor    %edi,%edi
+ffffffff8041a91a:	48 83 c0 02          	add    $0x2,%rax
+ffffffff8041a91e:	66 89 78 1e          	mov    %di,0x1e(%rax)
+        for (size_t i = current_col_; i < num_cols_; i++) {
+ffffffff8041a922:	48 39 c8             	cmp    %rcx,%rax
+ffffffff8041a925:	75 f1                	jne    ffffffff8041a918 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x368>
+        current_row_++;
+ffffffff8041a927:	49 83 c4 01          	add    $0x1,%r12
+        current_col_ = 0;
+ffffffff8041a92b:	49 c7 45 18 00 00 00 	movq   $0x0,0x18(%r13)
+ffffffff8041a932:	00 
+ffffffff8041a933:	45 31 db             	xor    %r11d,%r11d
+        current_row_++;
+ffffffff8041a936:	4d 89 65 10          	mov    %r12,0x10(%r13)
+ffffffff8041a93a:	e9 bf fd ff ff       	jmpq   ffffffff8041a6fe <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
+ffffffff8041a93f:	45 31 db             	xor    %r11d,%r11d
+ffffffff8041a942:	e9 b7 fd ff ff       	jmpq   ffffffff8041a6fe <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0x14e>
+ffffffff8041a947:	48 c7 44 24 10 ff ff 	movq   $0xffffffffffffffff,0x10(%rsp)
+ffffffff8041a94e:	ff ff 
+ffffffff8041a950:	4c 89 d2             	mov    %r10,%rdx
+ffffffff8041a953:	e9 10 fd ff ff       	jmpq   ffffffff8041a668 <_ZN6Kernel9VGAOutputILm25ELm80EE11PrintStringENS_17basic_string_viewIcEENS_8VGAColorE+0xb8>
+ffffffff8041a958:	0f 1f 84 00 00 00 00 	nopl   0x0(%rax,%rax,1)
+ffffffff8041a95f:	00 
 
-ffffffff8041a8b0 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE>:
+ffffffff8041a960 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE>:
         current_col_(0) {
-ffffffff8041a8b0:	48 c7 05 a5 37 00 00 	movq   $0x19,0x37a5(%rip)        # ffffffff8041e060 <_ZN6Kernel10vga_outputE>
-ffffffff8041a8b7:	19 00 00 00 
-ffffffff8041a8bb:	48 c7 c2 20 e1 41 80 	mov    $0xffffffff8041e120,%rdx
-ffffffff8041a8c2:	48 c7 05 9b 37 00 00 	movq   $0x50,0x379b(%rip)        # ffffffff8041e068 <_ZN6Kernel10vga_outputE+0x8>
-ffffffff8041a8c9:	50 00 00 00 
-ffffffff8041a8cd:	48 c7 05 98 37 00 00 	movq   $0x0,0x3798(%rip)        # ffffffff8041e070 <_ZN6Kernel10vga_outputE+0x10>
-ffffffff8041a8d4:	00 00 00 00 
-ffffffff8041a8d8:	48 c7 05 95 37 00 00 	movq   $0x0,0x3795(%rip)        # ffffffff8041e078 <_ZN6Kernel10vga_outputE+0x18>
-ffffffff8041a8df:	00 00 00 00 
-ffffffff8041a8e3:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
-ffffffff8041a8e8:	48 8d 82 60 ff ff ff 	lea    -0xa0(%rdx),%rax
-ffffffff8041a8ef:	90                   	nop
+ffffffff8041a960:	48 c7 05 f5 36 00 00 	movq   $0x19,0x36f5(%rip)        # ffffffff8041e060 <_ZN6Kernel10vga_outputE>
+ffffffff8041a967:	19 00 00 00 
+ffffffff8041a96b:	48 c7 c2 20 e1 41 80 	mov    $0xffffffff8041e120,%rdx
+ffffffff8041a972:	48 c7 05 eb 36 00 00 	movq   $0x50,0x36eb(%rip)        # ffffffff8041e068 <_ZN6Kernel10vga_outputE+0x8>
+ffffffff8041a979:	50 00 00 00 
+ffffffff8041a97d:	48 c7 05 e8 36 00 00 	movq   $0x0,0x36e8(%rip)        # ffffffff8041e070 <_ZN6Kernel10vga_outputE+0x10>
+ffffffff8041a984:	00 00 00 00 
+ffffffff8041a988:	48 c7 05 e5 36 00 00 	movq   $0x0,0x36e5(%rip)        # ffffffff8041e078 <_ZN6Kernel10vga_outputE+0x18>
+ffffffff8041a98f:	00 00 00 00 
+ffffffff8041a993:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a998:	48 8d 82 60 ff ff ff 	lea    -0xa0(%rdx),%rax
+ffffffff8041a99f:	90                   	nop
         text_buffer_[i][j] = 0;
-ffffffff8041a8f0:	31 c9                	xor    %ecx,%ecx
-ffffffff8041a8f2:	48 83 c0 02          	add    $0x2,%rax
-ffffffff8041a8f6:	66 89 48 fe          	mov    %cx,-0x2(%rax)
+ffffffff8041a9a0:	31 c9                	xor    %ecx,%ecx
+ffffffff8041a9a2:	48 83 c0 02          	add    $0x2,%rax
+ffffffff8041a9a6:	66 89 48 fe          	mov    %cx,-0x2(%rax)
       for (size_t j = 0; j < num_cols_; j++) {
-ffffffff8041a8fa:	48 39 d0             	cmp    %rdx,%rax
-ffffffff8041a8fd:	75 f1                	jne    ffffffff8041a8f0 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE+0x40>
-ffffffff8041a8ff:	48 8d 90 a0 00 00 00 	lea    0xa0(%rax),%rdx
+ffffffff8041a9aa:	48 39 d0             	cmp    %rdx,%rax
+ffffffff8041a9ad:	75 f1                	jne    ffffffff8041a9a0 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE+0x40>
+ffffffff8041a9af:	48 8d 90 a0 00 00 00 	lea    0xa0(%rax),%rdx
     for (size_t i = 0; i < num_rows_; i++) {
-ffffffff8041a906:	48 3d 20 f0 41 80    	cmp    $0xffffffff8041f020,%rax
-ffffffff8041a90c:	75 da                	jne    ffffffff8041a8e8 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE+0x38>
+ffffffff8041a9b6:	48 3d 20 f0 41 80    	cmp    $0xffffffff8041f020,%rax
+ffffffff8041a9bc:	75 da                	jne    ffffffff8041a998 <_GLOBAL__sub_I__ZN6Kernel10vga_outputE+0x38>
   }
 }
-ffffffff8041a90e:	c3                   	retq   
-ffffffff8041a90f:	90                   	nop
+ffffffff8041a9be:	c3                   	retq   
+ffffffff8041a9bf:	90                   	nop
 
-ffffffff8041a910 <_GLOBAL__sub_I__Z11ToUpperCasec>:
+ffffffff8041a9c0 <_GLOBAL__sub_I__Z11ToUpperCasec>:
 };
 
 class PS2Keyboard {
  public:
   PS2Keyboard() {
     for (size_t i = 0; i < NUM_KEY_CODES; i++) {
-ffffffff8041a910:	31 c0                	xor    %eax,%eax
-ffffffff8041a912:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
+ffffffff8041a9c0:	31 c0                	xor    %eax,%eax
+ffffffff8041a9c2:	66 0f 1f 44 00 00    	nopw   0x0(%rax,%rax,1)
       key_press_list_[i].time_down = 0;
-ffffffff8041a918:	48 c7 04 c5 40 00 42 	movq   $0x0,-0x7fbdffc0(,%rax,8)
-ffffffff8041a91f:	80 00 00 00 00 
+ffffffff8041a9c8:	48 c7 04 c5 40 00 42 	movq   $0x0,-0x7fbdffc0(,%rax,8)
+ffffffff8041a9cf:	80 00 00 00 00 
     for (size_t i = 0; i < NUM_KEY_CODES; i++) {
-ffffffff8041a924:	48 83 c0 01          	add    $0x1,%rax
-ffffffff8041a928:	48 3d 28 01 00 00    	cmp    $0x128,%rax
-ffffffff8041a92e:	75 e8                	jne    ffffffff8041a918 <_GLOBAL__sub_I__Z11ToUpperCasec+0x8>
+ffffffff8041a9d4:	48 83 c0 01          	add    $0x1,%rax
+ffffffff8041a9d8:	48 3d 28 01 00 00    	cmp    $0x128,%rax
+ffffffff8041a9de:	75 e8                	jne    ffffffff8041a9c8 <_GLOBAL__sub_I__Z11ToUpperCasec+0x8>
 
 }  // namespace Kernel
-ffffffff8041a930:	c3                   	retq   
-ffffffff8041a931:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff8041a938:	00 00 00 
-ffffffff8041a93b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041a9e0:	c3                   	retq   
+ffffffff8041a9e1:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff8041a9e8:	00 00 00 
+ffffffff8041a9eb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-ffffffff8041a940 <_GLOBAL__sub_I__ZN6Kernel7PITimerC2Ev>:
-PITimer::PITimer() : timer_tick_lower_(0), timer_tick_upper_(0) {}
-ffffffff8041a940:	48 c7 05 35 60 00 00 	movq   $0x0,0x6035(%rip)        # ffffffff80420980 <_ZN6Kernel9pic_timerE>
-ffffffff8041a947:	00 00 00 00 
-ffffffff8041a94b:	48 c7 05 32 60 00 00 	movq   $0x0,0x6032(%rip)        # ffffffff80420988 <_ZN6Kernel9pic_timerE+0x8>
-ffffffff8041a952:	00 00 00 00 
+ffffffff8041a9f0 <_GLOBAL__sub_I__ZN6Kernel7PITimerC2Ev>:
+namespace Kernel {
+ffffffff8041a9f0:	48 c7 05 85 5f 00 00 	movq   $0x0,0x5f85(%rip)        # ffffffff80420980 <_ZN6Kernel9pic_timerE>
+ffffffff8041a9f7:	00 00 00 00 
+ffffffff8041a9fb:	48 c7 05 82 5f 00 00 	movq   $0x0,0x5f82(%rip)        # ffffffff80420988 <_ZN6Kernel9pic_timerE+0x8>
+ffffffff8041aa02:	00 00 00 00 
 
-PITimer pic_timer;
+  outb(PIT_CONTROL, 0x36);
+  outb(PIT_1, divisor & 0xFF);  // Lower 1 byte
+  outb(PIT_1, divisor >> 8);    // High 1 byte
+ffffffff8041aa06:	c3                   	retq   
+ffffffff8041aa07:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+ffffffff8041aa0e:	00 00 
 
-}  // namespace Kernel
-ffffffff8041a956:	c3                   	retq   
-ffffffff8041a957:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
-ffffffff8041a95e:	00 00 
-
-ffffffff8041a960 <_GLOBAL__sub_I__ZN6Kernel6memcpyEPvS0_m>:
+ffffffff8041aa10 <_GLOBAL__sub_I__ZN6Kernel6memcpyEPvS0_m>:
       : heap_start_(reinterpret_cast<uint8_t*>(KERNEL_VIRTUAL_START +
                                                KERNEL_HEAP_MEMORY_START_OFFSET +
                                                MEMORY_ALGIN_OFFSET)),
         heap_memory_limit_(ONE_GB - KERNEL_HEAP_MEMORY_START_OFFSET -
                            MEMORY_ALGIN_OFFSET),
         current_heap_size_(8 /* Added initial offset*/) {
-ffffffff8041a960:	48 c7 05 35 60 00 00 	movq   $0xffffffff81400004,0x6035(%rip)        # ffffffff804209a0 <_ZN6Kernel21kernel_memory_managerE>
-ffffffff8041a967:	04 00 40 81 
-ffffffff8041a96b:	48 b8 fc ff ff 3e 08 	movabs $0x83efffffc,%rax
-ffffffff8041a972:	00 00 00 
-ffffffff8041a975:	48 89 05 2c 60 00 00 	mov    %rax,0x602c(%rip)        # ffffffff804209a8 <_ZN6Kernel21kernel_memory_managerE+0x8>
+ffffffff8041aa10:	48 c7 05 85 5f 00 00 	movq   $0xffffffff81400004,0x5f85(%rip)        # ffffffff804209a0 <_ZN6Kernel21kernel_memory_managerE>
+ffffffff8041aa17:	04 00 40 81 
+ffffffff8041aa1b:	48 b8 fc ff ff 3e 08 	movabs $0x83efffffc,%rax
+ffffffff8041aa22:	00 00 00 
+ffffffff8041aa25:	48 89 05 7c 5f 00 00 	mov    %rax,0x5f7c(%rip)        # ffffffff804209a8 <_ZN6Kernel21kernel_memory_managerE+0x8>
     for (int i = 0; i < NUM_BUCKETS; i++) {
-ffffffff8041a97c:	48 c7 c0 b0 09 42 80 	mov    $0xffffffff804209b0,%rax
-ffffffff8041a983:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041aa2c:	48 c7 c0 b0 09 42 80 	mov    $0xffffffff804209b0,%rax
+ffffffff8041aa33:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
       free_list_[i] = 0;
-ffffffff8041a988:	c7 00 00 00 00 00    	movl   $0x0,(%rax)
-ffffffff8041a98e:	48 83 c0 04          	add    $0x4,%rax
+ffffffff8041aa38:	c7 00 00 00 00 00    	movl   $0x0,(%rax)
+ffffffff8041aa3e:	48 83 c0 04          	add    $0x4,%rax
     for (int i = 0; i < NUM_BUCKETS; i++) {
-ffffffff8041a992:	48 3d f0 09 42 80    	cmp    $0xffffffff804209f0,%rax
-ffffffff8041a998:	75 ee                	jne    ffffffff8041a988 <_GLOBAL__sub_I__ZN6Kernel6memcpyEPvS0_m+0x28>
+ffffffff8041aa42:	48 3d f0 09 42 80    	cmp    $0xffffffff804209f0,%rax
+ffffffff8041aa48:	75 ee                	jne    ffffffff8041aa38 <_GLOBAL__sub_I__ZN6Kernel6memcpyEPvS0_m+0x28>
 }
 
 }  // namespace Kernel
-ffffffff8041a99a:	c3                   	retq   
-ffffffff8041a99b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041aa4a:	c3                   	retq   
+ffffffff8041aa4b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-ffffffff8041a9a0 <_GLOBAL__sub_I__ZN6Kernel18kernel_thread_listE>:
+ffffffff8041aa50 <_GLOBAL__sub_I__ZN6Kernel18kernel_thread_listE>:
   KernelList() : head_(nullptr), tail_(nullptr) {}
-ffffffff8041a9a0:	48 c7 05 45 60 00 00 	movq   $0x0,0x6045(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
-ffffffff8041a9a7:	00 00 00 00 
-ffffffff8041a9ab:	48 c7 05 42 60 00 00 	movq   $0x0,0x6042(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
-ffffffff8041a9b2:	00 00 00 00 
-ffffffff8041a9b6:	c7 05 40 60 00 00 00 	movl   $0x0,0x6040(%rip)        # ffffffff80420a00 <_ZN6Kernel18kernel_thread_listE+0x10>
-ffffffff8041a9bd:	00 00 00 
+ffffffff8041aa50:	48 c7 05 95 5f 00 00 	movq   $0x0,0x5f95(%rip)        # ffffffff804209f0 <_ZN6Kernel18kernel_thread_listE>
+ffffffff8041aa57:	00 00 00 00 
+ffffffff8041aa5b:	48 c7 05 92 5f 00 00 	movq   $0x0,0x5f92(%rip)        # ffffffff804209f8 <_ZN6Kernel18kernel_thread_listE+0x8>
+ffffffff8041aa62:	00 00 00 00 
+ffffffff8041aa66:	c7 05 90 5f 00 00 00 	movl   $0x0,0x5f90(%rip)        # ffffffff80420a00 <_ZN6Kernel18kernel_thread_listE+0x10>
+ffffffff8041aa6d:	00 00 00 
+  KernelThread* current_thread;
 
-}  // namespace Kernel
-ffffffff8041a9c0:	c3                   	retq   
-ffffffff8041a9c1:	90                   	nop
+ffffffff8041aa70:	c3                   	retq   
+ffffffff8041aa71:	90                   	nop
 
-ffffffff8041a9c2 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv.cold>:
+ffffffff8041aa72 <_ZN6Kernel11kernel_test27KernelListTest_PopBack_Test8TestBodyEv.cold>:
     EXPECT_EQ(list.pop_back()->Get(), result[i]);
-ffffffff8041a9c2:	8b 04 25 10 00 00 00 	mov    0x10,%eax
-ffffffff8041a9c9:	0f 0b                	ud2    
-ffffffff8041a9cb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+ffffffff8041aa72:	8b 04 25 10 00 00 00 	mov    0x10,%eax
+ffffffff8041aa79:	0f 0b                	ud2    
+ffffffff8041aa7b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
 
-ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>:
+ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>:
     static KernelTestRunner test_runner;
-ffffffff8041a9d0:	80 3d e9 60 00 00 00 	cmpb   $0x0,0x60e9(%rip)        # ffffffff80420ac0 <_kernel_virtual_end>
-ffffffff8041a9d7:	75 1f                	jne    ffffffff8041a9f8 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv+0x28>
-ffffffff8041a9d9:	c6 05 e0 60 00 00 01 	movb   $0x1,0x60e0(%rip)        # ffffffff80420ac0 <_kernel_virtual_end>
+ffffffff8041aa80:	80 3d 39 60 00 00 00 	cmpb   $0x0,0x6039(%rip)        # ffffffff80420ac0 <_kernel_virtual_end>
+ffffffff8041aa87:	75 1f                	jne    ffffffff8041aaa8 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv+0x28>
+ffffffff8041aa89:	c6 05 30 60 00 00 01 	movb   $0x1,0x6030(%rip)        # ffffffff80420ac0 <_kernel_virtual_end>
     if (num_tests_ >= kMaxNumTest) {
-ffffffff8041a9e0:	31 c0                	xor    %eax,%eax
+ffffffff8041aa90:	31 c0                	xor    %eax,%eax
     tests_[num_tests_++] = test;
-ffffffff8041a9e2:	8d 50 01             	lea    0x1(%rax),%edx
-ffffffff8041a9e5:	48 89 3c c5 e0 0a 42 	mov    %rdi,-0x7fbdf520(,%rax,8)
-ffffffff8041a9ec:	80 
-ffffffff8041a9ed:	89 15 0d 64 00 00    	mov    %edx,0x640d(%rip)        # ffffffff80420e00 <_ZZN6Kernel11kernel_test16KernelTestRunner13GetTestRunnerEvE11test_runner+0x320>
+ffffffff8041aa92:	8d 50 01             	lea    0x1(%rax),%edx
+ffffffff8041aa95:	48 89 3c c5 e0 0a 42 	mov    %rdi,-0x7fbdf520(,%rax,8)
+ffffffff8041aa9c:	80 
+ffffffff8041aa9d:	89 15 5d 63 00 00    	mov    %edx,0x635d(%rip)        # ffffffff80420e00 <_ZZN6Kernel11kernel_test16KernelTestRunner13GetTestRunnerEvE11test_runner+0x320>
   }
-ffffffff8041a9f3:	c3                   	retq   
-ffffffff8041a9f4:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041aaa3:	c3                   	retq   
+ffffffff8041aaa4:	0f 1f 40 00          	nopl   0x0(%rax)
     if (num_tests_ >= kMaxNumTest) {
-ffffffff8041a9f8:	48 63 05 01 64 00 00 	movslq 0x6401(%rip),%rax        # ffffffff80420e00 <_ZZN6Kernel11kernel_test16KernelTestRunner13GetTestRunnerEvE11test_runner+0x320>
-ffffffff8041a9ff:	83 f8 63             	cmp    $0x63,%eax
-ffffffff8041aa02:	7e de                	jle    ffffffff8041a9e2 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv+0x12>
+ffffffff8041aaa8:	48 63 05 51 63 00 00 	movslq 0x6351(%rip),%rax        # ffffffff80420e00 <_ZZN6Kernel11kernel_test16KernelTestRunner13GetTestRunnerEvE11test_runner+0x320>
+ffffffff8041aaaf:	83 f8 63             	cmp    $0x63,%eax
+ffffffff8041aab2:	7e de                	jle    ffffffff8041aa92 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv+0x12>
       kprintf("Max Test Number Exceeded!");
-ffffffff8041aa04:	48 c7 c7 df ba 41 80 	mov    $0xffffffff8041badf,%rdi
-ffffffff8041aa0b:	31 c0                	xor    %eax,%eax
-ffffffff8041aa0d:	e9 be e8 ff ff       	jmpq   ffffffff804192d0 <printf_>
-ffffffff8041aa12:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
-ffffffff8041aa19:	00 00 00 
-ffffffff8041aa1c:	0f 1f 40 00          	nopl   0x0(%rax)
+ffffffff8041aab4:	48 c7 c7 df ba 41 80 	mov    $0xffffffff8041badf,%rdi
+ffffffff8041aabb:	31 c0                	xor    %eax,%eax
+ffffffff8041aabd:	e9 0e e8 ff ff       	jmpq   ffffffff804192d0 <printf_>
+ffffffff8041aac2:	66 2e 0f 1f 84 00 00 	nopw   %cs:0x0(%rax,%rax,1)
+ffffffff8041aac9:	00 00 00 
+ffffffff8041aacc:	0f 1f 40 00          	nopl   0x0(%rax)
 
-ffffffff8041aa20 <_GLOBAL__sub_I__ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>:
+ffffffff8041aad0 <_GLOBAL__sub_I__ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>:
 
 }  // namespace kernel_test
 }  // namespace Kernel
-ffffffff8041aa20:	48 83 ec 08          	sub    $0x8,%rsp
+ffffffff8041aad0:	48 83 ec 08          	sub    $0x8,%rsp
     RegisterTest();
-ffffffff8041aa24:	48 c7 c7 a0 0a 42 80 	mov    $0xffffffff80420aa0,%rdi
+ffffffff8041aad4:	48 c7 c7 a0 0a 42 80 	mov    $0xffffffff80420aa0,%rdi
       : test_suite_name_(test_suite_name), test_name_(test_name) {
-ffffffff8041aa2b:	48 c7 05 6a 60 00 00 	movq   $0xffffffff8041bb10,0x606a(%rip)        # ffffffff80420aa0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>
-ffffffff8041aa32:	10 bb 41 80 
-ffffffff8041aa36:	48 c7 05 67 60 00 00 	movq   $0xffffffff8041ba99,0x6067(%rip)        # ffffffff80420aa8 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x8>
-ffffffff8041aa3d:	99 ba 41 80 
-ffffffff8041aa41:	48 c7 05 64 60 00 00 	movq   $0xffffffff8041baa8,0x6064(%rip)        # ffffffff80420ab0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x10>
-ffffffff8041aa48:	a8 ba 41 80 
-ffffffff8041aa4c:	c7 05 62 60 00 00 00 	movl   $0x0,0x6062(%rip)        # ffffffff80420ab8 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x18>
-ffffffff8041aa53:	00 00 00 
+ffffffff8041aadb:	48 c7 05 ba 5f 00 00 	movq   $0xffffffff8041bb10,0x5fba(%rip)        # ffffffff80420aa0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>
+ffffffff8041aae2:	10 bb 41 80 
+ffffffff8041aae6:	48 c7 05 b7 5f 00 00 	movq   $0xffffffff8041ba99,0x5fb7(%rip)        # ffffffff80420aa8 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x8>
+ffffffff8041aaed:	99 ba 41 80 
+ffffffff8041aaf1:	48 c7 05 b4 5f 00 00 	movq   $0xffffffff8041baa8,0x5fb4(%rip)        # ffffffff80420ab0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x10>
+ffffffff8041aaf8:	a8 ba 41 80 
+ffffffff8041aafc:	c7 05 b2 5f 00 00 00 	movl   $0x0,0x5fb2(%rip)        # ffffffff80420ab8 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE+0x18>
+ffffffff8041ab03:	00 00 00 
     RegisterTest();
-ffffffff8041aa56:	e8 75 ff ff ff       	callq  ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
-ffffffff8041aa5b:	48 c7 c7 80 0a 42 80 	mov    $0xffffffff80420a80,%rdi
+ffffffff8041ab06:	e8 75 ff ff ff       	callq  ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
+ffffffff8041ab0b:	48 c7 c7 80 0a 42 80 	mov    $0xffffffff80420a80,%rdi
 TEST(KernelListTest, SimplePushFront) {
-ffffffff8041aa62:	48 c7 05 33 60 00 00 	movq   $0xffffffff8041bb28,0x6033(%rip)        # ffffffff80420aa0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>
-ffffffff8041aa69:	28 bb 41 80 
+ffffffff8041ab12:	48 c7 05 83 5f 00 00 	movq   $0xffffffff8041bb28,0x5f83(%rip)        # ffffffff80420aa0 <_ZN6Kernel11kernel_test39KernelListTest_SimplePushFront_Test_objE>
+ffffffff8041ab19:	28 bb 41 80 
       : test_suite_name_(test_suite_name), test_name_(test_name) {
-ffffffff8041aa6d:	48 c7 05 08 60 00 00 	movq   $0xffffffff8041bb10,0x6008(%rip)        # ffffffff80420a80 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE>
-ffffffff8041aa74:	10 bb 41 80 
-ffffffff8041aa78:	48 c7 05 05 60 00 00 	movq   $0xffffffff8041ba99,0x6005(%rip)        # ffffffff80420a88 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x8>
-ffffffff8041aa7f:	99 ba 41 80 
-ffffffff8041aa83:	48 c7 05 02 60 00 00 	movq   $0xffffffff8041bab8,0x6002(%rip)        # ffffffff80420a90 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x10>
-ffffffff8041aa8a:	b8 ba 41 80 
-ffffffff8041aa8e:	c7 05 00 60 00 00 00 	movl   $0x0,0x6000(%rip)        # ffffffff80420a98 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x18>
-ffffffff8041aa95:	00 00 00 
+ffffffff8041ab1d:	48 c7 05 58 5f 00 00 	movq   $0xffffffff8041bb10,0x5f58(%rip)        # ffffffff80420a80 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE>
+ffffffff8041ab24:	10 bb 41 80 
+ffffffff8041ab28:	48 c7 05 55 5f 00 00 	movq   $0xffffffff8041ba99,0x5f55(%rip)        # ffffffff80420a88 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x8>
+ffffffff8041ab2f:	99 ba 41 80 
+ffffffff8041ab33:	48 c7 05 52 5f 00 00 	movq   $0xffffffff8041bab8,0x5f52(%rip)        # ffffffff80420a90 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x10>
+ffffffff8041ab3a:	b8 ba 41 80 
+ffffffff8041ab3e:	c7 05 50 5f 00 00 00 	movl   $0x0,0x5f50(%rip)        # ffffffff80420a98 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE+0x18>
+ffffffff8041ab45:	00 00 00 
     RegisterTest();
-ffffffff8041aa98:	e8 33 ff ff ff       	callq  ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
-ffffffff8041aa9d:	48 c7 c7 60 0a 42 80 	mov    $0xffffffff80420a60,%rdi
+ffffffff8041ab48:	e8 33 ff ff ff       	callq  ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
+ffffffff8041ab4d:	48 c7 c7 60 0a 42 80 	mov    $0xffffffff80420a60,%rdi
 TEST(KernelListTest, SimplePushBack) {
-ffffffff8041aaa4:	48 c7 05 d1 5f 00 00 	movq   $0xffffffff8041bb40,0x5fd1(%rip)        # ffffffff80420a80 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE>
-ffffffff8041aaab:	40 bb 41 80 
+ffffffff8041ab54:	48 c7 05 21 5f 00 00 	movq   $0xffffffff8041bb40,0x5f21(%rip)        # ffffffff80420a80 <_ZN6Kernel11kernel_test38KernelListTest_SimplePushBack_Test_objE>
+ffffffff8041ab5b:	40 bb 41 80 
       : test_suite_name_(test_suite_name), test_name_(test_name) {
-ffffffff8041aaaf:	48 c7 05 a6 5f 00 00 	movq   $0xffffffff8041bb10,0x5fa6(%rip)        # ffffffff80420a60 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE>
-ffffffff8041aab6:	10 bb 41 80 
-ffffffff8041aaba:	48 c7 05 a3 5f 00 00 	movq   $0xffffffff8041ba99,0x5fa3(%rip)        # ffffffff80420a68 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x8>
-ffffffff8041aac1:	99 ba 41 80 
-ffffffff8041aac5:	48 c7 05 a0 5f 00 00 	movq   $0xffffffff8041bac7,0x5fa0(%rip)        # ffffffff80420a70 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x10>
-ffffffff8041aacc:	c7 ba 41 80 
-ffffffff8041aad0:	c7 05 9e 5f 00 00 00 	movl   $0x0,0x5f9e(%rip)        # ffffffff80420a78 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x18>
-ffffffff8041aad7:	00 00 00 
+ffffffff8041ab5f:	48 c7 05 f6 5e 00 00 	movq   $0xffffffff8041bb10,0x5ef6(%rip)        # ffffffff80420a60 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE>
+ffffffff8041ab66:	10 bb 41 80 
+ffffffff8041ab6a:	48 c7 05 f3 5e 00 00 	movq   $0xffffffff8041ba99,0x5ef3(%rip)        # ffffffff80420a68 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x8>
+ffffffff8041ab71:	99 ba 41 80 
+ffffffff8041ab75:	48 c7 05 f0 5e 00 00 	movq   $0xffffffff8041bac7,0x5ef0(%rip)        # ffffffff80420a70 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x10>
+ffffffff8041ab7c:	c7 ba 41 80 
+ffffffff8041ab80:	c7 05 ee 5e 00 00 00 	movl   $0x0,0x5eee(%rip)        # ffffffff80420a78 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE+0x18>
+ffffffff8041ab87:	00 00 00 
     RegisterTest();
-ffffffff8041aada:	e8 f1 fe ff ff       	callq  ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
-ffffffff8041aadf:	48 c7 c7 40 0a 42 80 	mov    $0xffffffff80420a40,%rdi
+ffffffff8041ab8a:	e8 f1 fe ff ff       	callq  ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
+ffffffff8041ab8f:	48 c7 c7 40 0a 42 80 	mov    $0xffffffff80420a40,%rdi
 TEST(KernelListTest, ZigZag) {
-ffffffff8041aae6:	48 c7 05 6f 5f 00 00 	movq   $0xffffffff8041bb58,0x5f6f(%rip)        # ffffffff80420a60 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE>
-ffffffff8041aaed:	58 bb 41 80 
+ffffffff8041ab96:	48 c7 05 bf 5e 00 00 	movq   $0xffffffff8041bb58,0x5ebf(%rip)        # ffffffff80420a60 <_ZN6Kernel11kernel_test30KernelListTest_ZigZag_Test_objE>
+ffffffff8041ab9d:	58 bb 41 80 
       : test_suite_name_(test_suite_name), test_name_(test_name) {
-ffffffff8041aaf1:	48 c7 05 44 5f 00 00 	movq   $0xffffffff8041bb10,0x5f44(%rip)        # ffffffff80420a40 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE>
-ffffffff8041aaf8:	10 bb 41 80 
-ffffffff8041aafc:	48 c7 05 41 5f 00 00 	movq   $0xffffffff8041ba99,0x5f41(%rip)        # ffffffff80420a48 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x8>
-ffffffff8041ab03:	99 ba 41 80 
-ffffffff8041ab07:	48 c7 05 3e 5f 00 00 	movq   $0xffffffff8041bace,0x5f3e(%rip)        # ffffffff80420a50 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x10>
-ffffffff8041ab0e:	ce ba 41 80 
-ffffffff8041ab12:	c7 05 3c 5f 00 00 00 	movl   $0x0,0x5f3c(%rip)        # ffffffff80420a58 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x18>
-ffffffff8041ab19:	00 00 00 
+ffffffff8041aba1:	48 c7 05 94 5e 00 00 	movq   $0xffffffff8041bb10,0x5e94(%rip)        # ffffffff80420a40 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE>
+ffffffff8041aba8:	10 bb 41 80 
+ffffffff8041abac:	48 c7 05 91 5e 00 00 	movq   $0xffffffff8041ba99,0x5e91(%rip)        # ffffffff80420a48 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x8>
+ffffffff8041abb3:	99 ba 41 80 
+ffffffff8041abb7:	48 c7 05 8e 5e 00 00 	movq   $0xffffffff8041bace,0x5e8e(%rip)        # ffffffff80420a50 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x10>
+ffffffff8041abbe:	ce ba 41 80 
+ffffffff8041abc2:	c7 05 8c 5e 00 00 00 	movl   $0x0,0x5e8c(%rip)        # ffffffff80420a58 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE+0x18>
+ffffffff8041abc9:	00 00 00 
     RegisterTest();
-ffffffff8041ab1c:	e8 af fe ff ff       	callq  ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
-ffffffff8041ab21:	48 c7 c7 20 0a 42 80 	mov    $0xffffffff80420a20,%rdi
+ffffffff8041abcc:	e8 af fe ff ff       	callq  ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
+ffffffff8041abd1:	48 c7 c7 20 0a 42 80 	mov    $0xffffffff80420a20,%rdi
 TEST(KernelListTest, PopFront) {
-ffffffff8041ab28:	48 c7 05 0d 5f 00 00 	movq   $0xffffffff8041bb70,0x5f0d(%rip)        # ffffffff80420a40 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE>
-ffffffff8041ab2f:	70 bb 41 80 
+ffffffff8041abd8:	48 c7 05 5d 5e 00 00 	movq   $0xffffffff8041bb70,0x5e5d(%rip)        # ffffffff80420a40 <_ZN6Kernel11kernel_test32KernelListTest_PopFront_Test_objE>
+ffffffff8041abdf:	70 bb 41 80 
       : test_suite_name_(test_suite_name), test_name_(test_name) {
-ffffffff8041ab33:	48 c7 05 e2 5e 00 00 	movq   $0xffffffff8041bb10,0x5ee2(%rip)        # ffffffff80420a20 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE>
-ffffffff8041ab3a:	10 bb 41 80 
-ffffffff8041ab3e:	48 c7 05 df 5e 00 00 	movq   $0xffffffff8041ba99,0x5edf(%rip)        # ffffffff80420a28 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x8>
-ffffffff8041ab45:	99 ba 41 80 
-ffffffff8041ab49:	48 c7 05 dc 5e 00 00 	movq   $0xffffffff8041bad7,0x5edc(%rip)        # ffffffff80420a30 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x10>
-ffffffff8041ab50:	d7 ba 41 80 
-ffffffff8041ab54:	c7 05 da 5e 00 00 00 	movl   $0x0,0x5eda(%rip)        # ffffffff80420a38 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x18>
-ffffffff8041ab5b:	00 00 00 
+ffffffff8041abe3:	48 c7 05 32 5e 00 00 	movq   $0xffffffff8041bb10,0x5e32(%rip)        # ffffffff80420a20 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE>
+ffffffff8041abea:	10 bb 41 80 
+ffffffff8041abee:	48 c7 05 2f 5e 00 00 	movq   $0xffffffff8041ba99,0x5e2f(%rip)        # ffffffff80420a28 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x8>
+ffffffff8041abf5:	99 ba 41 80 
+ffffffff8041abf9:	48 c7 05 2c 5e 00 00 	movq   $0xffffffff8041bad7,0x5e2c(%rip)        # ffffffff80420a30 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x10>
+ffffffff8041ac00:	d7 ba 41 80 
+ffffffff8041ac04:	c7 05 2a 5e 00 00 00 	movl   $0x0,0x5e2a(%rip)        # ffffffff80420a38 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE+0x18>
+ffffffff8041ac0b:	00 00 00 
     RegisterTest();
-ffffffff8041ab5e:	e8 6d fe ff ff       	callq  ffffffff8041a9d0 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
+ffffffff8041ac0e:	e8 6d fe ff ff       	callq  ffffffff8041aa80 <_ZN6Kernel11kernel_test10KernelTest12RegisterTestEv>
 TEST(KernelListTest, PopBack) {
-ffffffff8041ab63:	48 c7 05 b2 5e 00 00 	movq   $0xffffffff8041bb88,0x5eb2(%rip)        # ffffffff80420a20 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE>
-ffffffff8041ab6a:	88 bb 41 80 
+ffffffff8041ac13:	48 c7 05 02 5e 00 00 	movq   $0xffffffff8041bb88,0x5e02(%rip)        # ffffffff80420a20 <_ZN6Kernel11kernel_test31KernelListTest_PopBack_Test_objE>
+ffffffff8041ac1a:	88 bb 41 80 
 }  // namespace Kernel
-ffffffff8041ab6e:	48 83 c4 08          	add    $0x8,%rsp
-ffffffff8041ab72:	c3                   	retq   
-ffffffff8041ab73:	90                   	nop
+ffffffff8041ac1e:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff8041ac22:	c3                   	retq   
+ffffffff8041ac23:	90                   	nop
 
-ffffffff8041ab74 <_fini>:
-ffffffff8041ab74:	48 83 ec 08          	sub    $0x8,%rsp
-ffffffff8041ab78:	e8 03 25 ff ff       	callq  ffffffff8040d080 <__do_global_dtors_aux>
-ffffffff8041ab7d:	48 83 c4 08          	add    $0x8,%rsp
-ffffffff8041ab81:	c3                   	retq   
-ffffffff8041ab82:	66 90                	xchg   %ax,%ax
+ffffffff8041ac24 <_fini>:
+ffffffff8041ac24:	48 83 ec 08          	sub    $0x8,%rsp
+ffffffff8041ac28:	e8 53 24 ff ff       	callq  ffffffff8040d080 <__do_global_dtors_aux>
+ffffffff8041ac2d:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff8041ac31:	c3                   	retq   
+ffffffff8041ac32:	66 90                	xchg   %ax,%ax
 
-ffffffff8041ab84 <_init>:
-ffffffff8041ab84:	48 83 ec 08          	sub    $0x8,%rsp
-ffffffff8041ab88:	48 c7 c0 00 00 00 00 	mov    $0x0,%rax
-ffffffff8041ab8f:	48 85 c0             	test   %rax,%rax
-ffffffff8041ab92:	74 02                	je     ffffffff8041ab96 <_init+0x12>
-ffffffff8041ab94:	ff d0                	callq  *%rax
-ffffffff8041ab96:	e8 75 25 ff ff       	callq  ffffffff8040d110 <frame_dummy>
-ffffffff8041ab9b:	e8 10 f9 ff ff       	callq  ffffffff8041a4b0 <__do_global_ctors_aux>
-ffffffff8041aba0:	48 83 c4 08          	add    $0x8,%rsp
-ffffffff8041aba4:	c3                   	retq   
+ffffffff8041ac34 <_init>:
+ffffffff8041ac34:	48 83 ec 08          	sub    $0x8,%rsp
+ffffffff8041ac38:	48 c7 c0 00 00 00 00 	mov    $0x0,%rax
+ffffffff8041ac3f:	48 85 c0             	test   %rax,%rax
+ffffffff8041ac42:	74 02                	je     ffffffff8041ac46 <_init+0x12>
+ffffffff8041ac44:	ff d0                	callq  *%rax
+ffffffff8041ac46:	e8 c5 24 ff ff       	callq  ffffffff8040d110 <frame_dummy>
+ffffffff8041ac4b:	e8 10 f9 ff ff       	callq  ffffffff8041a560 <__do_global_ctors_aux>
+ffffffff8041ac50:	48 83 c4 08          	add    $0x8,%rsp
+ffffffff8041ac54:	c3                   	retq   
