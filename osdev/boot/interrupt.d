@@ -1,3 +1,4 @@
-interrupt.o: interrupt.cc interrupt.h stdint.h io.h types.h keyboard.h \
- timer.h cpp_macro.h vga_output.h algorithm.h printf.h stdarg.h \
- string_view.h string_util.h type_traits.h
+interrupt.o: interrupt.cc interrupt.h stdint.h cpp_macro.h io.h types.h \
+ keyboard.h scheduler.h kthread.h list.h iterator.h timer.h vga_output.h \
+ algorithm.h cpu.h printf.h stdarg.h string_view.h string_util.h sync.h \
+ type_traits.h

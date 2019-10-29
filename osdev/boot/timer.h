@@ -1,6 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "interrupt.h"
 #include "io.h"
 
 // PIT Data channels.
@@ -17,14 +18,13 @@ class PITimer {
  public:
   PITimer();
 
-  void TimerInterruptHandler();
+  void TimerInterruptHandler(CPUInterruptHandlerArgs* args,
+                             InterruptHandlerSavedRegs* regs);
 
   // Install PIT.
   void InstallPITimer() const;
 
-  uint64_t GetClock() const {
-    return timer_tick_lower_;
-  }
+  uint64_t GetClock() const { return timer_tick_lower_; }
 
  private:
   uint64_t timer_tick_lower_;

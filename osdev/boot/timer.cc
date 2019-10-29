@@ -1,19 +1,23 @@
 #include "timer.h"
-#include "stdint.h"
+#include "printf.h"
 #include "scheduler.h"
+#include "stdint.h"
 
 namespace Kernel {
 PITimer::PITimer() : timer_tick_lower_(0), timer_tick_upper_(0) {}
 
-void PITimer::TimerInterruptHandler() {
+void PITimer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
+                                    InterruptHandlerSavedRegs* regs) {
   if (timer_tick_lower_ == UINT64_MAX) {
     timer_tick_lower_ = 0;
     timer_tick_upper_++;
   }
   timer_tick_lower_++;
 
-  if (timer_tick_lower_ % 100 == 0) {
-    KernelThreadScheduler::GetKernelThreadScheduler().schedule();
+  // This one should be the last.
+  if (timer_tick_lower_ % 2 == 0) {
+    KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
+        args, regs);
   }
 }
 

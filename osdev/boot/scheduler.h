@@ -22,12 +22,16 @@ class KernelThreadScheduler {
   KernelThreadScheduler(const KernelThreadScheduler&) = delete;
   void operator=(const KernelThreadScheduler&) = delete;
 
-  void YieldInInterruptHandler(CPUInterruptHandlerArgs* args);
+  void YieldInInterruptHandler(CPUInterruptHandlerArgs* args,
+                               InterruptHandlerSavedRegs* regs);
+  void Yield();
 
  private:
-  KernelThreadScheduler();
+  KernelThreadScheduler() = default;
   KernelListElement<KernelThread*>* PopNextThreadToRun();
 
+  // Scheduling queue.
+  // NOTE that currently running thread (on CPU) is NOT on the queue.
   KernelList<KernelThread*> kernel_thread_list_;
 };
 

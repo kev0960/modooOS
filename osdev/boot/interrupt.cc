@@ -1,9 +1,10 @@
 #include "interrupt.h"
+#include "cpp_macro.h"
 #include "io.h"
 #include "keyboard.h"
+#include "scheduler.h"
 #include "timer.h"
 #include "types.h"
-#include "cpp_macro.h"
 #include "vga_output.h"
 
 #define INTERRUPT_GATE_32_BIT (0b01110)
@@ -57,6 +58,16 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " rflags : " << args->rflags << "\n";
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
+  vga_output << "Current Thread Id : " << KernelThread::CurrentThread()->Id()
+             << "\n";
+
+  if (int_num == 14 || int_num == 13 || int_num == 6) {
+    uint64_t fault_addr;
+    asm volatile("mov %%cr2, %0" : "=r"(fault_addr)::);
+    kprintf("fault at : %lx", fault_addr);
+    while (true)
+      ;
+  }
 }
 
 template <int INT_NUM>
@@ -68,8 +79,8 @@ __attribute__((interrupt)) void CPUInterruptHandler(
 template <int INT_NUM>
 __attribute__((interrupt)) void CPUInterruptHandlerWithErrorCode(
     CPUInterruptHandlerArgs* args, uint64_t error_code) {
-  PrintCPUInterruptFrame(args, INT_NUM);
   vga_output << "Error Code : " << error_code << "\n";
+  PrintCPUInterruptFrame(args, INT_NUM);
 }
 
 template <int INT_NUM>
@@ -118,7 +129,7 @@ void InstallIDTEntry(void (*handler)(CPUInterruptHandlerArgs*),
   outb(port, value);
 }
 
-[[maybe_unused]] void IRQClearMask(uint8_t irq_line) {
+    [[maybe_unused]] void IRQClearMask(uint8_t irq_line) {
   uint16_t port;
   uint8_t value;
 
@@ -132,16 +143,17 @@ void InstallIDTEntry(void (*handler)(CPUInterruptHandlerArgs*),
   outb(port, value);
 }
 
-inline void EndOfIRQ() {
-  outb(0x20, 0x20);
-}
+inline void EndOfIRQ() { outb(0x20, 0x20); }
 
 }  // namespace
 
 __attribute__((interrupt)) void PITimerHandler(CPUInterruptHandlerArgs* args) {
-  UNUSED(args);
+  // push every general registers.
 
-  pic_timer.TimerInterruptHandler();
+  asm volatile("mov %%rsp, %%rax" :::);
+  InterruptHandlerSavedRegs* saved_regs;
+  asm volatile("mov %%rax, %0" : "=r"(saved_regs)::);
+  pic_timer.TimerInterruptHandler(args, saved_regs);
   EndOfIRQ();
 }
 
@@ -236,6 +248,27 @@ void IDTManager::InitializeIDTForIRQ() {
 
   // outb(PIC_MASTER_DATA, 0xFD);
   // outb(PIC_SLAVE_DATA, 0xFF);
+}
+
+__attribute__((interrupt)) void YieldProcessorHandler(
+    CPUInterruptHandlerArgs* args) {
+  // push every general registers here (Automatically added by GCC).
+
+  // Now RSP points to pushed registers.
+  // (NOTE) It may be possible that saved_regs is defined in stack. In that
+  // case, mov rsp, rax may be reordered with sub 8, rsp.
+  asm volatile("mov %%rsp, %%rax" ::: "memory");
+
+  InterruptHandlerSavedRegs* saved_regs;
+  asm volatile("mov %%rax, %0" : "=r"(saved_regs)::);
+
+  KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
+      args, saved_regs);
+}
+
+void IDTManager::InitializeCustomInterrupt() {
+  // From 0x30 ~, we can use our own IRQs.
+  InstallIDTEntry(YieldProcessorHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x30);
 }
 
 }  // namespace Kernel

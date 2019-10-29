@@ -2,8 +2,10 @@
 #define VGA_OUTPUT_H
 
 #include "algorithm.h"
+#include "cpu.h"
 #include "printf.h"
 #include "string_view.h"
+#include "sync.h"
 #include "type_traits.h"
 
 namespace Kernel {
@@ -31,11 +33,12 @@ enum VGAColor {
 template <size_t NUM_ROWS = 25, size_t NUM_COLS = 80>
 class VGAOutput {
  public:
-  explicit VGAOutput()
+  explicit VGAOutput(int offset = 0)
       : num_rows_(NUM_ROWS),
         num_cols_(NUM_COLS),
         current_row_(0),
-        current_col_(0) {
+        current_col_(0),
+        offset_(offset) {
     for (size_t i = 0; i < num_rows_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
         text_buffer_[i][j] = 0;
@@ -73,9 +76,15 @@ class VGAOutput {
       }
     }
 
-    auto vga = reinterpret_cast<uint16_t*>(0xb8000);
+    auto vga = reinterpret_cast<uint16_t*>(0xb8000 + offset_);
     for (size_t i = 0; i < current_row_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
+        /*
+        if (reinterpret_cast<uint64_t>(&vga[i * num_cols_ + j]) == 0x40c000 ||
+            reinterpret_cast<uint64_t>(&text_buffer_[i][j]) == 0x40c000) {
+          DisableInterrupt();
+          while(true){}
+        }*/
         vga[i * num_cols_ + j] = text_buffer_[i][j];
       }
     }
@@ -114,7 +123,11 @@ class VGAOutput {
   size_t current_row_;
   size_t current_col_;
 
+  size_t offset_;
+
   uint16_t text_buffer_[NUM_ROWS][NUM_COLS];
+
+  SpinLock m_;
 
   // Scroll the text buffer up.
   void ScrollTextBufferUp() {

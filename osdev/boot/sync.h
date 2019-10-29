@@ -2,6 +2,8 @@
 #define SYNC_H
 
 #include "cpu.h"
+#include "kthread.h"
+#include "printf.h"
 #include "types.h"
 
 namespace Kernel {
@@ -60,28 +62,29 @@ class IrqLock : public Lock {
 class SpinLock : public Lock {
  public:
   void lock() override {
-    static bool flag_when_acquired = true;
-    while (!__atomic_compare_exchange_n(&acquired, &flag_when_acquired,
-                                        flag_when_acquired, false,
-                                        __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE)) {
+    while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
+      KernelThread::CurrentThread()->lock_wait_cnt++;
     }
+    lock_holder_ = KernelThread::CurrentThread();
   }
 
   void unlock() override {
-    static bool flag_when_released = false;
-    __atomic_store(&acquired, &flag_when_released, __ATOMIC_RELEASE);
+    lock_holder_ = nullptr;
+    __atomic_clear(&acquired, __ATOMIC_RELEASE);
   }
 
   bool try_lock() override {
-    static bool flag_when_acquired = true;
-    return __atomic_compare_exchange_n(&acquired, &flag_when_acquired,
-                                       flag_when_acquired, false,
+    bool expected = false;
+    return __atomic_compare_exchange_n(&acquired, &expected, true, false,
                                        __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
   }
+
+  KernelThread* lock_holder_;
 
  private:
   bool acquired = false;
 };
+
 }  // namespace Kernel
 
 #endif
