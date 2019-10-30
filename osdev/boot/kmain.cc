@@ -16,7 +16,7 @@ void DoSth() {
   int total = 0;
   while (total < 2000) {
     m_.lock();
-    Kernel::vga_output << "Done ----------" << total << "\n";
+    Kernel::vga_output << "Done1 ----------" << total << "\n";
     m_.unlock();
     asm volatile("int $0x30");
     total++;
@@ -27,7 +27,7 @@ void DoSthElse() {
   int total = 0;
   while (total < 1000) {
     m_.lock();
-    Kernel::vga_output << "Done ----------------- " << total << "\n";
+    Kernel::vga_output << "Done2 ----------------- " << total << "\n";
     m_.unlock();
     asm volatile("int $0x30");
     total++;
@@ -61,16 +61,21 @@ void KernelMain() {
   idt_manager.LoadIDT();
 
   Kernel::vga_output << "IDT setup is done! \n";
-  // Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   Kernel::KernelThread::InitThread();
+  Kernel::vga_output << "Init kThread is done! \n";
+
+  // Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
+
   Kernel::KernelThread thread(DoSth);
-  // Kernel::KernelThread thread(Sum);
   thread.Start();
 
   Kernel::KernelThread thread2(DoSthElse);
-  // Kernel::KernelThread thread2(Sum);
   thread2.Start();
+
+  thread.Join();
+  thread2.Join();
+
   /*
   asm volatile ("int $10");
   asm volatile ("int $11");
@@ -83,9 +88,8 @@ void KernelMain() {
     asm volatile("mov $0xBBBBBBBB, %r11");
     asm volatile("int $0x30");*/
     m_.lock();
-    Kernel::vga_output << "Done..." << total_sum++ << "\n";
-    Kernel::vga_output << "Done..." << total_sum++ << "\n";
-    Kernel::vga_output << "Done..." << total_sum++ << "\n";
+    Kernel::vga_output << "MAINNNNNNNNNNNNNNNNNNNN...\n";
+    crazy();
     m_.unlock();
     crazy();
   }

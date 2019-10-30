@@ -113,6 +113,14 @@ void KernelThread::Terminate() {
   kprintf("Reached here? %d \n", thread_id_);
 }
 
+// Do not optimze this function. When optimizing turned on, the compiler will
+// not consistently check the value of status_.
+void __attribute__((optimize("O0"))) KernelThread::Join() {
+  while (status_ != THREAD_TERMINATE) {
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+  }
+}
+
 void Semaphore::Up() {}
 
 void Semaphore::Down() {}

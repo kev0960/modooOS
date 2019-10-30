@@ -41,6 +41,9 @@ class KernelThread {
   // Terminates the thread by removing from the scheduling queue.
   void Terminate();
 
+  // Wait until this thread finishes.
+  void Join();
+
   // The pointer that stores the current thread info. We cannot pass the this
   // pointer since this does not take any memory space.
   KernelThread* const self;

@@ -5,14 +5,15 @@ namespace Kernel {
 namespace kernel_test {
 
 // WARNING -------------------
-// Those tests MUST be ran in order.
+// Those tests MUST be run in order.
 
 // Check CurrentThread() works as intended.
 TEST(KernelThreadTest, GetCurrentThread) {
-  KernelThread::InitThread();
-
   // Id of the init thread should be 0.
   EXPECT_EQ(KernelThread::CurrentThread()->Id(), 0ul)
+}
+
+TEST(KernelThreadTest, SimpleRun) {
 }
 
 }  // namespace kernel_test
