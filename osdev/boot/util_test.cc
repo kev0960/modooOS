@@ -84,5 +84,52 @@ TEST(KernelListTest, PopBack) {
   EXPECT_TRUE(list.empty());
 }
 
+TEST(KernelListTest, RemoveSelf) {
+  KernelList<int> list;
+  INSERT_FRONT(1)
+  INSERT_FRONT(2)
+  INSERT_FRONT(3)
+
+  elem1.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 2u);
+
+  EXPECT_EQ(*list.begin(), 3);
+  EXPECT_EQ(*++list.begin(), 2);
+
+  elem2.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 1u);
+  EXPECT_EQ(*list.begin(), 3);
+
+  elem3.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 0u);
+}
+
+TEST(KernelListTest, RemoveSelfMore) {
+  KernelList<int> list;
+  INSERT_FRONT(1)
+  INSERT_FRONT(2)
+  INSERT_FRONT(3)
+  INSERT_FRONT(4)
+
+  elem2.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 3u);
+
+  EXPECT_EQ(*list.begin(), 4);
+  EXPECT_EQ(*++list.begin(), 3);
+  EXPECT_EQ(*++++list.begin(), 1);
+
+  elem3.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 2u);
+  EXPECT_EQ(*list.begin(), 4);
+  EXPECT_EQ(*++list.begin(), 1);
+
+  elem4.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 1u);
+  EXPECT_EQ(*list.begin(), 1);
+
+  elem1.RemoveSelfFromList();
+  EXPECT_EQ(list.size(), 0u);
+}
+
 }  // namespace kernel_test
 }  // namespace Kernel

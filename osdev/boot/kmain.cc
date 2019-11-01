@@ -52,6 +52,7 @@ void __attribute__((optimize("O0"))) crazy() {
     total_sum++;
   }
 }
+
 void KernelMain() {
   // Initialize Interrupts.
   Kernel::IDTManager idt_manager{};
@@ -65,8 +66,9 @@ void KernelMain() {
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
 
-  // Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
+  Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
+  /*
   Kernel::KernelThread thread(DoSth);
   thread.Start();
 
@@ -74,7 +76,7 @@ void KernelMain() {
   thread2.Start();
 
   thread.Join();
-  thread2.Join();
+  thread2.Join();*/
 
   /*
   asm volatile ("int $10");
@@ -82,15 +84,5 @@ void KernelMain() {
   asm volatile ("int $12");*/
   // int total = 0;
   while (1) {
-    /*
-    asm volatile("mov $0xDDDDDDDD, %rax");
-    asm volatile("mov $0xEEEEEEEE, %rdx");
-    asm volatile("mov $0xBBBBBBBB, %r11");
-    asm volatile("int $0x30");*/
-    m_.lock();
-    Kernel::vga_output << "MAINNNNNNNNNNNNNNNNNNNN...\n";
-    crazy();
-    m_.unlock();
-    crazy();
   }
 }

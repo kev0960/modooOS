@@ -7,6 +7,7 @@
 namespace Kernel {
 
 namespace {
+
 template <typename T, typename U>
 void CopyCPUInteruptHandlerArgs(T* to, U* from) {
   to->rip = from->rip;
@@ -15,6 +16,7 @@ void CopyCPUInteruptHandlerArgs(T* to, U* from) {
 }
 
 }  // namespace
+
 KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
   if (!kernel_thread_list_.size()) {
     return nullptr;
@@ -42,12 +44,14 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 
   KernelThread* current_thread = KernelThread::CurrentThread();
 
-  // Move the current thread to run at the back of the queue.
-  kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
+  if (current_thread->IsRunnable()) {
+    // Move the current thread to run at the back of the queue.
+    kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
 
-  auto* current_thread_regs = current_thread->GetSavedRegs();
-  CopyCPUInteruptHandlerArgs(current_thread_regs, args);
-  current_thread_regs->regs = *regs;
+    auto* current_thread_regs = current_thread->GetSavedRegs();
+    CopyCPUInteruptHandlerArgs(current_thread_regs, args);
+    current_thread_regs->regs = *regs;
+  }
 
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();

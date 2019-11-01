@@ -36,17 +36,10 @@ class KernelListElement {
   KernelListElement(KernelList<T>* stack_list)
       : prev(nullptr), next(nullptr), stack_list_(stack_list) {}
 
-  void PushFront() {
-    RemoveSelfFromList();
-    stack_list_->push_front(this);
-  }
-  void PushBack() {
-    RemoveSelfFromList();
-    stack_list_->push_back(this);
-  }
+  void PushFront() { stack_list_->push_front(this); }
+  void PushBack() { stack_list_->push_back(this); }
 
-  // Remove self from the list.
-  void RemoveSelfFromList() {
+  void Detach() {
     if (prev) {
       prev->next = next;
     }
@@ -55,6 +48,12 @@ class KernelListElement {
     }
 
     prev = next = nullptr;
+  }
+
+  // Remove self from the list.
+  void RemoveSelfFromList() {
+    stack_list_->remove(this);
+    Detach();
   }
 
   T& Get() { return t; }
@@ -184,7 +183,7 @@ class KernelList {
       auto* new_head = head_->next;
 
       // Detach head from the list.
-      head_to_return->RemoveSelfFromList();
+      head_to_return->Detach();
 
       // If current head is the ONLY element.
       if (!new_head) {
@@ -207,7 +206,7 @@ class KernelList {
       auto* new_tail = tail_->prev;
 
       // Detach head from the list.
-      tail_to_return->RemoveSelfFromList();
+      tail_to_return->Detach();
 
       // If current tail is the ONLY element.
       if (!new_tail) {
@@ -218,6 +217,17 @@ class KernelList {
 
       return tail_to_return;
     }
+  }
+
+  // Do not call this directly.
+  void remove(KernelListElement<T>* elem) {
+    if (head_ == elem) {
+      head_ = elem->next;
+    }
+    if (tail_ == elem) {
+      tail_ = elem->prev;
+    }
+    size_--;
   }
 
   KernelListIterator<T> begin() const { return KernelListIterator<T>(head_); }
@@ -231,4 +241,5 @@ class KernelList {
 };
 
 }  // namespace Kernel
+
 #endif

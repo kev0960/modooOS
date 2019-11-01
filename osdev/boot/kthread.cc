@@ -100,13 +100,18 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 }
 
 void KernelThread::Start() {
+  IrqLock m_;
+
+  m_.lock();
   // Put the thread into the scheduling queue.
   kernel_list_elem_.PushBack();
+
+  m_.unlock();
 }
 
 void KernelThread::Terminate() {
-  // Remove from the scheduling queue.
-  kernel_list_elem_.RemoveSelfFromList();
+  // No need to remove thread from the queue since running thread is not in the
+  // queue.
 
   status_ = THREAD_TERMINATE;
   KernelThreadScheduler::GetKernelThreadScheduler().Yield();
