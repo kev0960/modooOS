@@ -4,6 +4,7 @@
 #include "printf.h"
 #include "sync.h"
 #include "vga_output.h"
+#include "ata.h"
 
 Kernel::VGAOutput<> Kernel::vga_output{};
 
@@ -67,6 +68,9 @@ void KernelMain() {
   Kernel::vga_output << "Init kThread is done! \n";
 
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
+
+  auto& ata_driver = Kernel::ATADriver::GetATADriver();
+  (void)(ata_driver);
 
   /*
   Kernel::KernelThread thread(DoSth);

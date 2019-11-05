@@ -1,0 +1,77 @@
+#ifndef ATA_H
+#define ATA_H
+
+#include "filesystem.h"
+#include "types.h"
+
+namespace Kernel {
+
+struct ATADevice {
+  // ATA bus I/O port numbers.
+
+  // Below is based on offset from I/O base.
+  uint16_t data;
+  union {
+    uint16_t error;
+    uint16_t feature;
+  };
+  uint16_t sector_count;
+
+  union {
+    uint16_t sector_num;
+    uint16_t lba_low;
+  };
+  union {
+    uint16_t cylinder_low;
+    uint16_t lba_mid;
+  };
+  union {
+    uint16_t cylinder_high;
+    uint16_t lba_high;
+  };
+  union {
+    uint16_t drive;
+    uint16_t head;
+  };
+  union {
+    uint16_t status;
+    uint16_t command;
+  };
+
+  // Below is based on offset from Control base.
+  union {
+    uint16_t alternate_status;
+    uint16_t device_control;
+  };
+  uint16_t device_address;
+
+  bool slave;
+  bool primary;
+  bool enabled = false;
+};
+
+class ATADriver {
+ public:
+  class ATAFileSystem : public FileSystem {};
+
+  ATADriver(const ATADriver&) = delete;
+  ATADriver operator=(const ATADriver&) = delete;
+
+  static ATADriver& GetATADriver() {
+    static ATADriver ata_driver;
+    return ata_driver;
+  }
+
+ private:
+  ATADriver() { InitATA(); }
+  void InitATA();
+
+  ATADevice primary_master_;
+  ATADevice primary_slave_;
+  ATADevice secondary_master_;
+  ATADevice secondary_slave_;
+};
+
+};  // namespace Kernel
+
+#endif

@@ -165,6 +165,13 @@ __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
   EndOfIRQ();
 }
 
+__attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
+  UNUSED(args);
+
+  kprintf("ATA Irq %lx \n", args->rip);
+  EndOfIRQ();
+}
+
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<1>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
@@ -213,6 +220,8 @@ void IDTManager::InitializeIDTForIRQ() {
 
   InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
+  InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2E);
+  InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
 
   // PIC Remap.
 
@@ -245,6 +254,8 @@ void IDTManager::InitializeIDTForIRQ() {
 
   IRQClearMask(0);
   IRQClearMask(1);
+  IRQClearMask(14);
+  IRQClearMask(15);
 
   // outb(PIC_MASTER_DATA, 0xFD);
   // outb(PIC_SLAVE_DATA, 0xFF);
