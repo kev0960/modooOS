@@ -144,6 +144,7 @@ void InstallIDTEntry(void (*handler)(CPUInterruptHandlerArgs*),
 }
 
 inline void EndOfIRQ() { outb(0x20, 0x20); }
+inline void EndOfIRQForSlave() { outb(0xA0, 0x20); }
 
 }  // namespace
 
@@ -169,9 +170,17 @@ __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
   kprintf("ATA Irq %lx \n", args->rip);
+  EndOfIRQForSlave();
   EndOfIRQ();
 }
 
+__attribute__((interrupt)) void ATAHandler2(CPUInterruptHandlerArgs* args) {
+  UNUSED(args);
+
+  kprintf("ATA2 Irq %lx \n", args->rip);
+  EndOfIRQForSlave();
+  EndOfIRQ();
+}
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<1>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
@@ -221,7 +230,7 @@ void IDTManager::InitializeIDTForIRQ() {
   InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
   InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2E);
-  InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
+  InstallIDTEntry(ATAHandler2, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
 
   // PIC Remap.
 

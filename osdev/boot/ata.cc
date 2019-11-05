@@ -167,18 +167,27 @@ void ATADriver::InitATA() {
 
   kprintf("Check Primary Master ... \n");
   Identify(&primary_master_);
+  /*
   kprintf("Check Primary Slave ... \n");
   Identify(&primary_slave_);
   kprintf("Check Secondary Master ... \n");
   Identify(&secondary_master_);
   kprintf("Check Secondary Slave ... \n");
-  Identify(&secondary_slave_);
+  Identify(&secondary_slave_);*/
 
   uint8_t buf[256 * 2];
-  Read(&primary_master_, 0x400, buf);
+  for (int j = 0; j < 100; j++) {
+    Read(&primary_master_, j, buf);
 
-  for (int i = 0; i < 512; i ++) {
-    kprintf("%d ", buf[i]);
+    for (int i = 0; i < 512; i++) {
+      kprintf("%x ", buf[i]);
+    }
+  }
+
+  kprintf("\n read \n");
+  Read(&primary_master_, 0x4, buf);
+  for (int i = 0; i < 512; i++) {
+    kprintf("%x ", buf[i]);
   }
 }
 
