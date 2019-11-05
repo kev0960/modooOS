@@ -157,6 +157,44 @@ void Read(ATADevice* device, uint32_t lba, uint8_t* buf) {
   Delay400ns(device);
 }
 
+void Write(ATADevice* device, uint32_t lba, uint8_t* buf, size_t buffer_size) {
+  if (buffer_size > 512) {
+    kprintf("Buffer too large :( \n");
+    return;
+  }
+
+  outb(device->drive, (0xE0 | (device->slave << 4)) | ((lba >> 24) & 0x0F));
+
+  outb(device->feature, 0x00);
+
+  // Lets just read 1 sector.
+  outb(device->sector_count, 1);
+
+  outb(device->lba_low, lba);
+  outb(device->lba_mid, lba >> 8);
+  outb(device->lba_high, lba >> 16);
+
+  outb(device->command, /* Write Sectors */ 0x30);
+
+  bool poll_status = Poll(device);
+  if (!poll_status) {
+    kprintf("Write fail :( \n");
+    return;
+  }
+
+  for (size_t i = 0; i < buffer_size / 2; i++) {
+    outw(device->data, reinterpret_cast<uint16_t*>(buf)[i]);
+  }
+
+  outw(device->command, /* flush */ 0xE7);
+
+  // Wait until BSY clears
+  while (inb(device->status) & kStatusRegBSY) {
+  };
+
+  Delay400ns(device);
+}
+
 }  // namespace
 
 void ATADriver::InitATA() {
@@ -175,6 +213,7 @@ void ATADriver::InitATA() {
   kprintf("Check Secondary Slave ... \n");
   Identify(&secondary_slave_);*/
 
+  /*
   uint8_t buf[256 * 2];
   for (int j = 0; j < 100; j++) {
     Read(&primary_master_, j, buf);
@@ -182,13 +221,16 @@ void ATADriver::InitATA() {
     for (int i = 0; i < 512; i++) {
       kprintf("%x ", buf[i]);
     }
-  }
+  }*/
 
-  kprintf("\n read \n");
-  Read(&primary_master_, 0x4, buf);
-  for (int i = 0; i < 512; i++) {
-    kprintf("%x ", buf[i]);
-  }
+  uint8_t buf[256 * 2] = "alskdfsjfkasjf;aslkjdfalsjf;alsjflasfjlasf";
+  Write(&primary_master_, 0, buf, 512);
+
+  uint8_t buf2[256 * 2];
+
+  Read(&primary_master_, 0, buf2);
+
+  kprintf("read again : %s \n", buf2);
 }
 
 }  // namespace Kernel
