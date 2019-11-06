@@ -1,4 +1,5 @@
 #include "ata.h"
+#include "algorithm.h"
 #include "io.h"
 #include "printf.h"
 #include "sync.h"
@@ -130,7 +131,8 @@ bool Poll(ATADevice* device) {
   }
 }
 
-void Read(ATADevice* device, uint32_t lba, uint8_t* buf) {
+void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
+                   size_t read_size) {
   outb(device->drive, (0xE0 | (device->slave << 4)) | ((lba >> 24) & 0x0F));
 
   outb(device->feature, 0x00);
@@ -150,14 +152,15 @@ void Read(ATADevice* device, uint32_t lba, uint8_t* buf) {
     return;
   }
 
-  for (int i = 0; i < 256; i++) {
+  for (size_t i = 0; i < read_size / 2; i++) {
     reinterpret_cast<uint16_t*>(buf)[i] = inw(device->data);
   }
 
   Delay400ns(device);
 }
 
-void Write(ATADevice* device, uint32_t lba, uint8_t* buf, size_t buffer_size) {
+void WriteOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
+                    size_t buffer_size) {
   if (buffer_size > 512) {
     kprintf("Buffer too large :( \n");
     return;
@@ -223,14 +226,44 @@ void ATADriver::InitATA() {
     }
   }*/
 
-  uint8_t buf[256 * 2] = "alskdfsjfkasjf;aslkjdfalsjf;alsjflasfjlasf";
-  Write(&primary_master_, 0, buf, 512);
-
+  uint8_t buf[256 * 2] = "this iswtf ;aslkjdfalsjf;alsjflasfjlasf";
+  Write(buf, 512, 0);
   uint8_t buf2[256 * 2];
-
-  Read(&primary_master_, 0, buf2);
+  Read(buf2, 512, 0);
 
   kprintf("read again : %s \n", buf2);
+}
+
+void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {
+  if (buffer_size % 2 != 0) {
+    kprintf("Read size must be an even number! \n");
+    return;
+  }
+
+  for (size_t current_read = 0; current_read < buffer_size;
+       current_read += 512) {
+    size_t num_to_read = min(512ul, buffer_size - current_read);
+    ReadOneSector(&primary_master_, lba, buf + current_read, num_to_read);
+
+    // 1 LBA = 512 bytes
+    lba += 1;
+  }
+}
+
+void ATADriver::Write(uint8_t* buf, size_t buffer_size, size_t lba) {
+  if (buffer_size % 2 != 0) {
+    kprintf("Write size must be an even number! \n");
+    return;
+  }
+
+  for (size_t current_write = 0; current_write < buffer_size;
+       current_write += 512) {
+    size_t num_to_write = min(512ul, buffer_size - current_write);
+    WriteOneSector(&primary_master_, lba, buf + current_write, num_to_write);
+
+    // 1 LBA = 512 bytes
+    lba += 1;
+  }
 }
 
 }  // namespace Kernel

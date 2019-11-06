@@ -1,10 +1,11 @@
+#include "ata.h"
+#include "ext2.h"
 #include "interrupt.h"
 #include "kernel_test.h"
 #include "kthread.h"
 #include "printf.h"
 #include "sync.h"
 #include "vga_output.h"
-#include "ata.h"
 
 Kernel::VGAOutput<> Kernel::vga_output{};
 
@@ -72,6 +73,8 @@ void KernelMain() {
   auto& ata_driver = Kernel::ATADriver::GetATADriver();
   (void)(ata_driver);
 
+  auto& ext2 = Kernel::Ext2FileSystem::GetExt2FileSystem();
+  (void)(ext2);
   /*
   Kernel::KernelThread thread(DoSth);
   thread.Start();

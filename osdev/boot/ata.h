@@ -62,6 +62,9 @@ class ATADriver {
     return ata_driver;
   }
 
+  void Read(uint8_t* buf, size_t buffer_size, size_t lba);
+  void Write(uint8_t* buf, size_t buffer_size, size_t lba);
+
  private:
   ATADriver() { InitATA(); }
   void InitATA();

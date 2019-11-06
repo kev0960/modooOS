@@ -12,6 +12,9 @@ qemu-system-x86_64 -cdrom iso_image -boot order=d -drive file=disk_image,format=
 
 3) mkfs.ext2 hdd.img
 
-4) sudo mount -t ext2 -o loop hdd.img fs
+4) sudo mount -t ext2 -o loop hdd.img /mnt
 
-5) umount fs // Later on
+Copy current fs to mnt. This will make it to write hdd.img
+5) cp -a fs/. /mnt/.
+
+6) Use debugfs to check the directory is written in hdd.img
