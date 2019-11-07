@@ -65,6 +65,16 @@ class ATADriver {
   void Read(uint8_t* buf, size_t buffer_size, size_t lba);
   void Write(uint8_t* buf, size_t buffer_size, size_t lba);
 
+  template <typename T>
+  void Read(T* t, size_t lba) {
+    Read(reinterpret_cast<uint8_t*>(t), sizeof(T), lba);
+  }
+
+  template <typename T>
+  void Write(const T& t, size_t lba) {
+    Write(reinterpret_cast<uint8_t*>(&t), sizeof(T), lba);
+  }
+
  private:
   ATADriver() { InitATA(); }
   void InitATA();

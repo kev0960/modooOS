@@ -133,6 +133,7 @@ bool Poll(ATADevice* device) {
 
 void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
                    size_t read_size) {
+  kprintf("Read at : %x %d \n", lba * 512, lba);
   outb(device->drive, (0xE0 | (device->slave << 4)) | ((lba >> 24) & 0x0F));
 
   outb(device->feature, 0x00);
