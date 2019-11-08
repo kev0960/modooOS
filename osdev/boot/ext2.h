@@ -457,8 +457,12 @@ class Ext2FileSystem {
 
  private:
   Ext2FileSystem();
+  Ext2Inode ReadInode(size_t inode_addr);
 
   Ext2SuperBlock super_block_;
+
+  Ext2BlockGroupDescriptor* block_descs_;
+  size_t num_block_desc_;
 };
 }  // namespace Kernel
 

@@ -13,6 +13,15 @@ template <typename T>
 constexpr const T& min(const T& a, const T& b) {
   return a <= b ? a : b;
 }
+
+// Round up m / n
+template <typename T, typename U>
+T integer_ratio_round_up(T m, U n) {
+  if (m == 0) return 1;
+
+  return (m - 1) / n + 1;
+}
+
 }  // namespace Kernel
 
 #endif

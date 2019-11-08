@@ -169,7 +169,6 @@ __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
 __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
-  kprintf("ATA Irq %lx \n", args->rip);
   EndOfIRQForSlave();
   EndOfIRQ();
 }
@@ -177,7 +176,6 @@ __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
 __attribute__((interrupt)) void ATAHandler2(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
-  kprintf("ATA2 Irq %lx \n", args->rip);
   EndOfIRQForSlave();
   EndOfIRQ();
 }
