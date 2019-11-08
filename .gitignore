@@ -2,3 +2,8 @@
 *.swo
 .*.sw?
 *.img
+temp
+*.o
+!crti.o
+!crtn.o
+*.d
