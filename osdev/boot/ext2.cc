@@ -8,10 +8,36 @@
 
 namespace Kernel {
 constexpr size_t kBlockSize = 1024;
+constexpr size_t kMaxBlockEntryInBlock = kBlockSize / sizeof(uint32_t);
 
 using Block = std::array<uint8_t, kBlockSize>;
 
 namespace {
+
+void ParseInodeMode(uint16_t mode) {
+  kprintf("Mode :: ");
+  const char* file_formats[] = {
+      "fifo", "character device", "dir", "block device", "file", "sym", "sock"};
+  uint16_t file_format_modes[] = {0x1000, 0x2000, 0x4000, 0x6000,
+                                  0x8000, 0xA000, 0xC000};
+
+  for (int i = 0; i < 7; i++) {
+    if ((mode & file_format_modes[i]) == file_format_modes[i]) {
+      kprintf("%s ", file_formats[i]);
+    }
+  }
+
+  const char* access[] = {"r", "w", "x", "r", "w", "x", "r", "w", "x"};
+  uint16_t access_modes[] = {0x100, 0x80, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1};
+  for (int i = 0; i < 9; i++) {
+    if ((mode & access_modes[i]) == access_modes[i]) {
+      kprintf("%s", access[i]);
+    } else {
+      kprintf("-");
+    }
+  }
+  kprintf("\n");
+}
 
 template <typename T>
 void GetFromBlockId(T* t, size_t block_id) {
@@ -28,8 +54,9 @@ void GetArrayFromBlockId(T* t, size_t num, size_t block_id) {
 
 [[maybe_unused]] void PrintInodeInfo(const Ext2Inode& inode) {
   kprintf("Inode Block Info ----------- \n");
-  kprintf("Mode (%08b) Size (%x) Created at (%x) Num blocks (%x) \n",
-          inode.mode, inode.size, inode.ctime, inode.blocks);
+  kprintf("Size (%x) Created at (%x) Num blocks (%x) ", inode.size, inode.ctime,
+          inode.blocks);
+  ParseInodeMode(inode.mode);
   for (size_t i = 0; i < min((uint16_t)15, inode.blocks); i++) {
     if (inode.block[i]) {
       kprintf("[%x] ", inode.block[i]);
@@ -38,7 +65,8 @@ void GetArrayFromBlockId(T* t, size_t num, size_t block_id) {
   kprintf("\n");
 }
 
-[[maybe_unused]] void ReadFileFromStart(const Ext2Inode& inode, uint8_t* buf, int num_read) {
+    [[maybe_unused]] void ReadFileFromStart(const Ext2Inode& inode,
+                                            uint8_t* buf, int num_read) {
   Block block;
   size_t current = 0;
 
@@ -92,6 +120,56 @@ T ReadAndAdvance(uint8_t*& buf) {
   }
 }
 
+class BlockIterator {
+ public:
+  BlockIterator() : current_depth_(0) { block_index_.fill(0); }
+
+  BlockIterator& operator++() {
+    RecursiveIndexIncrease(current_depth_);
+    return *this;
+  }
+
+  std::array<uint32_t, 4> GetBlockIndex() const { return block_index_; }
+
+ private:
+  void RecursiveIndexIncrease(int current_depth) {
+    if (current_depth == 0) {
+      if (block_index_[0] >= 11) {
+        current_depth_++;
+      }
+      block_index_[0]++;
+
+      return;
+    }
+
+    if (block_index_[current_depth] == kMaxBlockEntryInBlock - 1) {
+      block_index_[current_depth] = 0;
+      RecursiveIndexIncrease(current_depth - 1);
+    } else {
+      block_index_[current_depth]++;
+    }
+  }
+
+  // 0 : direct block.
+  // 1 : single indirect block.
+  // 2 : doubly indirect block.
+  // 3 : triply indirect block.
+  int current_depth_;
+
+  // Index of each block at each level. E.g if this block is double indirect
+  // block, then it can be {13, 4, 5}
+  //
+  // File Inode: block[13] = 10.
+  // At block 10, we are at block[4] = 30.
+  // At block 30, we are at block[5] = 50.
+  std::array<uint32_t, 4> block_index_;
+};
+
+void ReadFileBlockByIterator(const Ext2Inode& file_inode,
+                             const BlockIterator& itr) {
+  auto block_index = itr.GetBlockIndex();
+}
+
 }  // namespace
 
 Ext2FileSystem::Ext2FileSystem() {
@@ -137,11 +215,11 @@ Ext2FileSystem::Ext2FileSystem() {
     PrintInodeInfo(inode_table[i]);
   }
 
-  /*
-  uint8_t data[2048];
-  ReadFileFromStart(inode_table[1], data, 2048);
-  ParseDirectory(data, 2048);
+  uint8_t data[1024];
+  ReadFileFromStart(inode_table[1], data, 1024);
+  ParseDirectory(data, 1024);
 
+  /*
   kprintf("Inode size: %d \n", super_block_.inode_size);
   kprintf("Total block groups : %d \n",
           integer_ratio_round_up(super_block_.blocks_count,
@@ -154,7 +232,15 @@ Ext2FileSystem::Ext2FileSystem() {
   kprintf("inode table : %d \n", block_descs_[0].inode_table);
   kprintf("num inodes per block : %d \n", kBlockSize / super_block_.inode_size);
   */
-  PrintInodeInfo(ReadInode(0xc));
+  // PrintInodeInfo(ReadInode(0x2));
+
+  uint8_t data2[2048];
+  auto node = ReadInode(0xc);
+  PrintInodeInfo(node);
+  ReadFileFromStart(node, data2, node.size);
+  for (size_t i = 0; i < node.size; i++) {
+    kprintf("%c", data2[i]);
+  }
 }
 
 Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
@@ -169,6 +255,7 @@ Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
   // Single "Block" contains (block_size / inode_size = 8) inodes.
   size_t block_containing_inode = inode_table_block_id + index / 8;
 
+  kprintf("Size of %x / Block size : %x \n", sizeof(Ext2Inode), kBlockSize);
   kprintf(
       "Block group index : (%x) index : (%x) inode table block id : (%x), "
       "block_contain_inode : (%d) \n",
@@ -176,10 +263,15 @@ Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
 
   std::array<Ext2Inode, 8> block_with_inodes;
   GetFromBlockId(&block_with_inodes, block_containing_inode);
+  /*
   for (int i = 0; i < 8; i++) {
     PrintInodeInfo(block_with_inodes[i]);
   }
-
+*/
   return block_with_inodes[index % 8];
 }
+
+void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
+                              size_t num_read, size_t offset) {}
+
 }  // namespace Kernel

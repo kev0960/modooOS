@@ -270,12 +270,13 @@ void ATADriver::InitATA() {
     }
   }*/
 
+  /*
   uint8_t buf[256 * 2] = "this iswtf ;aslkjdfalsjf;alsjflasfjlasf";
   Write(buf, 512, 0);
   uint8_t buf2[256 * 2];
   Read(buf2, 512, 0);
 
-  kprintf("read again : %s \n", buf2);
+  kprintf("read again : %s \n", buf2);*/
 }
 
 void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {

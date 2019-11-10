@@ -284,7 +284,7 @@ struct Ext2BlockGroupDescriptor {
 
   // 12 bytes of space reserved for future revisions.
   uint8_t reserved[12];
-} __attribute__((packed));
+};
 
 struct Ext2Inode {
   // a 16 bit value used to indicate the format of the file and access
@@ -443,7 +443,7 @@ struct Ext2Inode {
       uint32_t m_i_reserved2[2];
     } masix2;
   } osd2;
-} __attribute__((packed));
+};
 
 class Ext2FileSystem {
  public:
@@ -458,6 +458,8 @@ class Ext2FileSystem {
  private:
   Ext2FileSystem();
   Ext2Inode ReadInode(size_t inode_addr);
+  void ReadFile(const Ext2Inode& file_inode, uint8_t* buf, size_t num_read,
+                size_t offset = 0);
 
   Ext2SuperBlock super_block_;
 
