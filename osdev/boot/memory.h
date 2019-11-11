@@ -1,9 +1,12 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include "cpp_macro.h"
 #include "kmalloc.h"
 #include "types.h"
 #include "utility.h"
+
+void* operator new(Kernel::size_t, void* p);
 
 namespace Kernel {
 namespace std {
@@ -14,26 +17,36 @@ class allocator {
   using pointer = T*;
 
   // Allocate n bytes.
-  constexpr T* allocate(size_t n) { return kmalloc(n); }
-  constexpr void deallocate(T* p, size_t n) { kfree(p); }
+  constexpr T* allocate(size_t n) { return reinterpret_cast<T*>(kmalloc(n)); }
+  constexpr void deallocate(T* p, size_t n) {
+    UNUSED(n);
+    kfree(p);
+  }
 };
 
 template <typename Alloc>
 class allocator_traits {
+ public:
   using pointer = typename Alloc::pointer;
 
-  [[nodiscard]] static pointer allocate(Alloc& a, size_t n) { a.allocate(n); }
+  [[nodiscard]] static pointer allocate(Alloc& a, size_t n) {
+    return a.allocate(n);
+  }
   static void deallocate(Alloc& a, pointer p, size_t n) { a.deallocate(p, n); }
   template <typename T, class... Args>
   static void construct(Alloc& a, T* p, Args&&... args) {
+    UNUSED(a);
+
     // placement new.
-    new (p) T(std::forward<Args>(args)...);
+    ::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
   }
   template <typename T>
   static void destroy(Alloc& a, T* p) {
+    UNUSED(a);
     p->~T();
   }
 };
+
 
 }  // namespace std
 }  // namespace Kernel

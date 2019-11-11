@@ -70,11 +70,13 @@ void KernelMain() {
 
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
+  /*
   auto& ata_driver = Kernel::ATADriver::GetATADriver();
   (void)(ata_driver);
 
   auto& ext2 = Kernel::Ext2FileSystem::GetExt2FileSystem();
   (void)(ext2);
+  */
   /*
   Kernel::KernelThread thread(DoSth);
   thread.Start();

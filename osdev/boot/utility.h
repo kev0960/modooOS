@@ -20,6 +20,11 @@ constexpr T&& forward(typename remove_reference<T>::type&& t) noexcept {
   return static_cast<T&&>(t);
 }
 
+template <typename T>
+typename remove_reference<T>::type&& move(T&& arg) {
+  return static_cast<typename remove_reference<T>::type&&>(arg);
+}
+
 }  // namespace std
 }  // namespace Kernel
 #endif

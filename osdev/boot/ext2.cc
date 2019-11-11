@@ -285,7 +285,7 @@ Ext2FileSystem::Ext2FileSystem() {
   ReadFileFromStart(inode_table[1], data, 1024);
   */
 
-  PrintInodeInfo(root_inode_);
+  // PrintInodeInfo(root_inode_);
   /*
   uint8_t data2[2048 * 10];
   */
@@ -313,11 +313,6 @@ Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
 
   std::array<Ext2Inode, 8> block_with_inodes;
   GetFromBlockId(&block_with_inodes, block_containing_inode);
-  /*
-  for (int i = 0; i < 8; i++) {
-    PrintInodeInfo(block_with_inodes[i]);
-  }
-*/
   return block_with_inodes[index % 8];
 }
 

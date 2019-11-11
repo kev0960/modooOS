@@ -1,5 +1,6 @@
 #include "kernel_test.h"
 #include "list.h"
+#include "vector.h"
 
 #define INSERT_FRONT(NUM)                  \
   KernelListElement<int> elem##NUM(&list); \
@@ -129,6 +130,55 @@ TEST(KernelListTest, RemoveSelfMore) {
 
   elem1.RemoveSelfFromList();
   EXPECT_EQ(list.size(), 0u);
+}
+
+TEST(KernelVectorTest, Basic) {
+  std::vector<int> vec;
+  vec.push_back(0);
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+  vec.push_back(4);
+
+  for (int i = 0; i < 5; i++) {
+    EXPECT_EQ(vec[i], i);
+  }
+}
+
+static int copy_const_call = 0;
+
+struct A {
+  A() { kprintf("Default! \n"); }
+  A(const A&) {
+    kprintf("Copy construct! \n");
+    copy_const_call++;
+  }
+  A(A&&) { kprintf("Move construct! \n"); }
+  ~A() { kprintf("Destruct! \n"); }
+};
+
+TEST(KernelVectorTest, CheckMoveCalled) {
+  std::vector<A> vec;
+  vec.push_back(A{});
+  vec.push_back(A{});
+  vec.push_back(A{});
+  vec.push_back(A{});
+
+  EXPECT_EQ(copy_const_call, 0);
+}
+
+struct B {
+  B() { kprintf("Default! \n"); }
+  B(const B&) { kprintf("Copy construct! \n"); }
+  ~B() { kprintf("Destruct! \n"); }
+};
+
+TEST(KernelVectorTest, CheckCopyCalled) {
+  std::vector<B> vec;
+  vec.push_back(B{});
+  vec.push_back(B{});
+  vec.push_back(B{});
+  vec.push_back(B{});
 }
 
 }  // namespace kernel_test
