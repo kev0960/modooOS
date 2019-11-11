@@ -389,7 +389,7 @@ struct Ext2Inode {
 
   // an array of 15 32-bit blocknumbers pointing to the blocks
   // containing data.  The first 12 entries in the array
-  // (i_block[0]-iblock[11) contain the block numbers of data blocks
+  // (i_block[0]-iblock[11]) contain the block numbers of data blocks
   // (i.e., are "direct" entries). The 13th entry (i_block[12])
   // contains the block number of the first indirect block, which
   // itself contains (blocksize / 4) block numbers of data blocks.
@@ -462,6 +462,10 @@ class Ext2FileSystem {
                 size_t offset = 0);
 
   Ext2SuperBlock super_block_;
+  Ext2Inode root_inode_;
+
+  // Since root directory is accessed a lot, we save the root dir.
+  uint8_t* root_dir_;
 
   Ext2BlockGroupDescriptor* block_descs_;
   size_t num_block_desc_;

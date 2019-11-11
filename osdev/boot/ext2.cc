@@ -65,24 +65,6 @@ void GetArrayFromBlockId(T* t, size_t num, size_t block_id) {
   kprintf("\n");
 }
 
-    [[maybe_unused]] void ReadFileFromStart(const Ext2Inode& inode,
-                                            uint8_t* buf, int num_read) {
-  Block block;
-  size_t current = 0;
-
-  // First iterate through direct blocks.
-  for (int i = 0; i < 12; i++) {
-    kprintf("Reading block at : %x \n", inode.block[i]);
-    GetFromBlockId(&block, inode.block[i]);
-    memcpy(static_cast<void*>(buf + current), &block, min(num_read, 1024));
-    num_read -= kBlockSize;
-
-    if (num_read <= 0) {
-      break;
-    }
-  }
-}
-
 template <typename T>
 T ReadAndAdvance(uint8_t*& buf) {
   T t = *(T*)(buf);
@@ -122,16 +104,111 @@ T ReadAndAdvance(uint8_t*& buf) {
 
 class BlockIterator {
  public:
-  BlockIterator() : current_depth_(0) { block_index_.fill(0); }
+  BlockIterator(const Ext2Inode& inode) : inode_(inode), current_depth_(0) {
+    block_index_.fill(0);
+  }
 
   BlockIterator& operator++() {
     RecursiveIndexIncrease(current_depth_);
+    current_pos += kBlockSize;
+
     return *this;
   }
 
+  Block operator*() {
+    // First check the cache. If it is stale, then it will read from the disk.
+    FillCache();
+
+    // Now returns the cache.
+    Block block;
+    block.CopyFrom(cached_blocks_[current_depth_].data);
+    kprintf("%d %d %d %d \n", block_index_[0], block_index_[1], block_index_[2],
+            block_index_[3]);
+    return block;
+  }
+
+  size_t Pos() const { return current_pos; }
+
   std::array<uint32_t, 4> GetBlockIndex() const { return block_index_; }
 
+  void SetOffset(size_t offset) {
+    current_pos = (offset / kBlockSize) * kBlockSize;
+
+    constexpr size_t direct_block_limit = kBlockSize * 12;
+    constexpr size_t single_block_limit =
+        direct_block_limit + kBlockSize * kMaxBlockEntryInBlock;
+    constexpr size_t double_block_limit =
+        single_block_limit +
+        kBlockSize * kMaxBlockEntryInBlock * kMaxBlockEntryInBlock;
+    constexpr size_t triple_block_limit =
+        double_block_limit + kBlockSize * kMaxBlockEntryInBlock *
+                                 kMaxBlockEntryInBlock * kMaxBlockEntryInBlock;
+    constexpr size_t single_block_entry_offset =
+        kBlockSize * kMaxBlockEntryInBlock;
+    constexpr size_t double_block_entry_offset =
+        kBlockSize * kMaxBlockEntryInBlock * kMaxBlockEntryInBlock;
+
+    if (offset < direct_block_limit) {
+      current_depth_ = 0;
+      block_index_[0] = offset / kBlockSize;
+    } else if (offset < single_block_limit) {
+      current_depth_ = 1;
+      block_index_[0] = 12;
+      block_index_[1] = (offset - direct_block_limit) / kBlockSize;
+    } else if (offset < double_block_limit) {
+      current_depth_ = 2;
+      block_index_[0] = 13;
+      block_index_[1] =
+          (offset - single_block_limit) / single_block_entry_offset;
+      block_index_[2] = (offset - single_block_limit -
+                         block_index_[1] * single_block_entry_offset) /
+                        kBlockSize;
+    } else if (offset < triple_block_limit) {
+      current_depth_ = 3;
+      block_index_[0] = 14;
+      block_index_[1] =
+          (offset - single_block_limit) / double_block_entry_offset;
+
+      size_t second_base = offset - single_block_limit -
+                           block_index_[1] * double_block_entry_offset;
+      block_index_[2] = second_base / single_block_entry_offset;
+
+      size_t third_base =
+          second_base - block_index_[2] * single_block_entry_offset;
+      block_index_[3] = third_base / kBlockSize;
+    } else {
+      kprintf("Offset too large! %x \n", offset);
+    }
+  }
+
  private:
+  void FillCache() {
+    size_t cache_fill_start = 0;
+    for (cache_fill_start = 0; cache_fill_start <= current_depth_;
+         cache_fill_start++) {
+      if (cached_blocks_[cache_fill_start].block_addr !=
+          block_index_[cache_fill_start]) {
+        break;
+      }
+    }
+
+    // We should start filling from cache_fill_start.
+    for (size_t current_fill = cache_fill_start; current_fill <= current_depth_;
+         current_fill++) {
+      // If this is a first depth, we can just read block address from inode.
+      if (current_fill == 0) {
+        cached_blocks_[0].block_addr = inode_.block[block_index_[0]];
+        GetFromBlockId(&cached_blocks_[0].data, cached_blocks_[0].block_addr);
+      } else {
+        // We should read the block adderss from the previous block.
+        cached_blocks_[current_fill].block_addr =
+            cached_blocks_[current_fill - 1].data[block_index_[current_fill]];
+        GetFromBlockId(&cached_blocks_[current_fill].data,
+                       cached_blocks_[current_fill].block_addr);
+      }
+    }
+  }
+
   void RecursiveIndexIncrease(int current_depth) {
     if (current_depth == 0) {
       if (block_index_[0] >= 11) {
@@ -150,11 +227,14 @@ class BlockIterator {
     }
   }
 
+  const Ext2Inode& inode_;
+  size_t current_pos = 0;
+
   // 0 : direct block.
   // 1 : single indirect block.
   // 2 : doubly indirect block.
   // 3 : triply indirect block.
-  int current_depth_;
+  size_t current_depth_;
 
   // Index of each block at each level. E.g if this block is double indirect
   // block, then it can be {13, 4, 5}
@@ -163,84 +243,54 @@ class BlockIterator {
   // At block 10, we are at block[4] = 30.
   // At block 30, we are at block[5] = 50.
   std::array<uint32_t, 4> block_index_;
-};
 
-void ReadFileBlockByIterator(const Ext2Inode& file_inode,
-                             const BlockIterator& itr) {
-  auto block_index = itr.GetBlockIndex();
-}
+  // Block that only contains the block addresse. Used by doubly and trebly
+  // address blocks.
+  using AddressBlock = std::array<uint32_t, kMaxBlockEntryInBlock>;
+
+  struct CachedBlock {
+    uint32_t block_addr = -1;
+    AddressBlock data;
+  };
+
+  std::array<CachedBlock, 4> cached_blocks_;
+};
 
 }  // namespace
 
 Ext2FileSystem::Ext2FileSystem() {
   GetFromBlockId(&super_block_, 1);
 
-  /*
-  kprintf("inodes count : %d \n", super_block_.inodes_count);
-  kprintf("block count : %d \n", super_block_.blocks_count);
-  kprintf("block size : %d \n", 1 << (10 + super_block_.log_block_size));
-  kprintf("inodes per group : %d \n", super_block_.inodes_per_group);
-  kprintf("blocks per group  : %d \n", super_block_.blocks_per_group);
-  kprintf("magic : %x \n", super_block_.magic);
-  if ((1 << (10 + super_block_.log_block_size)) != kBlockSize) {
-    kprintf("Block size is not 1024 bytes :( \n");
-  }*/
   num_block_desc_ = integer_ratio_round_up(super_block_.blocks_count,
                                            super_block_.blocks_per_group);
   block_descs_ = (Ext2BlockGroupDescriptor*)kmalloc(
       sizeof(Ext2BlockGroupDescriptor) * num_block_desc_);
   GetArrayFromBlockId(block_descs_, num_block_desc_, 2);
 
-  /*
-  for (size_t i = 0; i < 1; i++) {
-    //    kprintf("block bitmap : %d \n", descriptor[i].block_bitmap);
-    //    kprintf("inode bitmap : %d \n", descriptor[i].inode_bitmap);
-    kprintf("inode table : %d \n", descriptor[i].inode_table);
-    kprintf("num dirs : %d \n", descriptor[i].used_dirs_count);
-    kprintf("free blocks cnt : %d \n", descriptor.free_blocks_count);
-    kprintf("free inode cnt : %d \n", descriptor.free_inodes_count);
-    kprintf("num dirs : %d \n", descriptor.used_dirs_count);
-  }
+  std::array<Ext2Inode, 2> inode_table;
+  GetFromBlockId(&inode_table, block_descs_[0].inode_table);
 
-  auto inodes_per_block = kBlockSize / sizeof(Ext2Inode);
-  kprintf("Inodes per block : %d \n", kBlockSize / sizeof(Ext2Inode));
-  kprintf("Num Inode table blocks : %d\n",
-          super_block_.inodes_per_group / inodes_per_block);
-          */
-  // Block block;
-  Ext2Inode* inode_table = (Ext2Inode*)kmalloc(sizeof(Ext2Inode) * 8);
-  GetArrayFromBlockId(inode_table, 8, block_descs_[0].inode_table);
-
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 2; i++) {
     PrintInodeInfo(inode_table[i]);
   }
 
-  uint8_t data[1024];
-  ReadFileFromStart(inode_table[1], data, 1024);
-  ParseDirectory(data, 1024);
+  root_inode_ = inode_table[1];
+  root_dir_ = reinterpret_cast<uint8_t*>(kmalloc(root_inode_.size));
+
+  ReadFile(root_inode_, root_dir_, root_inode_.size);
+  ParseDirectory(root_dir_, root_inode_.size);
 
   /*
-  kprintf("Inode size: %d \n", super_block_.inode_size);
-  kprintf("Total block groups : %d \n",
-          integer_ratio_round_up(super_block_.blocks_count,
-                                 super_block_.blocks_per_group));
-  kprintf("blocks per group : %d \n", super_block_.blocks_per_group);
-  kprintf("total block : %d \n", super_block_.blocks_count);
-  kprintf("inodes per group : %d \n", super_block_.inodes_per_group);
-
-  PrintInodeInfo(ReadInode(0xc));
-  kprintf("inode table : %d \n", block_descs_[0].inode_table);
-  kprintf("num inodes per block : %d \n", kBlockSize / super_block_.inode_size);
+  uint8_t data[1024];
+  ReadFileFromStart(inode_table[1], data, 1024);
   */
-  // PrintInodeInfo(ReadInode(0x2));
 
-  uint8_t data2[2048];
-  auto node = ReadInode(0xc);
+  PrintInodeInfo(root_inode_);
+  /*
+  uint8_t data2[2048 * 10];
+  */
+  auto node = ReadInode(0xe);
   PrintInodeInfo(node);
-  ReadFileFromStart(node, data2, node.size);
-  for (size_t i = 0; i < node.size; i++) {
-    kprintf("%c", data2[i]);
-  }
 }
 
 Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
@@ -272,6 +322,25 @@ Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
 }
 
 void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
-                              size_t num_read, size_t offset) {}
+                              size_t num_read, size_t offset) {
+  BlockIterator iter(file_inode);
+  iter.SetOffset(offset);
+
+  size_t read = 0;
+  for (size_t cur = offset; cur < offset + num_read; cur += kBlockSize) {
+    kprintf("cur : %d num read : %d read ; %d \n", cur, num_read, read);
+    Block block = *iter;
+    size_t current_block_offset = 0;
+    if (iter.Pos() < offset) {
+      current_block_offset = (offset - iter.Pos());
+    }
+    for (; read < num_read && current_block_offset < kBlockSize;
+         read++, current_block_offset++) {
+      buf[read] = block[current_block_offset];
+    }
+
+    ++iter;
+  }
+}
 
 }  // namespace Kernel
