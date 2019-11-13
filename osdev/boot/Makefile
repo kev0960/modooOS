@@ -7,7 +7,7 @@ ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
 OBJS := boot.o
 OBJS += kmain.o string_util.o string.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o
-OBJS += kernel_test.o util_test.o
+OBJS += kernel_test.o
 
 CRTI_OBJ = crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)

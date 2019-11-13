@@ -44,6 +44,9 @@ class KernelThread {
   // Wait until this thread finishes.
   void Join();
 
+  void MakeSleep() { status_ = THREAD_SLEEP; }
+  void MakeRun() { status_ = THREAD_RUN; }
+
   // The pointer that stores the current thread info. We cannot pass the this
   // pointer since this does not take any memory space.
   KernelThread* const self;

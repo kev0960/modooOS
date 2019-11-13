@@ -148,13 +148,10 @@ TEST(KernelVectorTest, Basic) {
 static int copy_const_call = 0;
 
 struct A {
-  A() { kprintf("Default! \n"); }
-  A(const A&) {
-    kprintf("Copy construct! \n");
-    copy_const_call++;
-  }
-  A(A&&) { kprintf("Move construct! \n"); }
-  ~A() { kprintf("Destruct! \n"); }
+  A() {}
+  A(const A&) { copy_const_call++; }
+  A(A&&) {}
+  ~A() {}
 };
 
 TEST(KernelVectorTest, CheckMoveCalled) {
@@ -168,17 +165,49 @@ TEST(KernelVectorTest, CheckMoveCalled) {
 }
 
 struct B {
-  B() { kprintf("Default! \n"); }
-  B(const B&) { kprintf("Copy construct! \n"); }
-  ~B() { kprintf("Destruct! \n"); }
+  B(size_t data) : data(data) {}
+  B(const B& b) : data(b.data) {}
+  ~B() {}
+
+  size_t data;
 };
 
 TEST(KernelVectorTest, CheckCopyCalled) {
   std::vector<B> vec;
-  vec.push_back(B{});
-  vec.push_back(B{});
-  vec.push_back(B{});
-  vec.push_back(B{});
+  vec.push_back(B{1});
+  vec.push_back(B{2});
+  vec.push_back(B{3});
+  vec.push_back(B{4});
+
+  for (size_t i = 0; i < vec.size(); i++) {
+    EXPECT_EQ(vec[i].data, i + 1);
+  }
+}
+
+TEST(KernelVectorTest, CopyVector) {
+  std::vector<B> vec;
+  vec.reserve(4);
+
+  vec.push_back(B{1});
+  vec.push_back(B{2});
+  vec.push_back(B{3});
+  vec.push_back(B{4});
+
+  std::vector<B> vec2;
+  vec2.reserve(10);
+  vec.push_back(B{5});
+  vec.push_back(B{6});
+  vec.push_back(B{7});
+
+  for (size_t i = 0; i < vec2.size(); i++) {
+    EXPECT_EQ(vec2[i].data, i + 5);
+  }
+
+  vec2 = vec;
+
+  for (size_t i = 0; i < vec2.size(); i++) {
+    EXPECT_EQ(vec2[i].data, i + 1);
+  }
 }
 
 }  // namespace kernel_test

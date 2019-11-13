@@ -126,8 +126,46 @@ void __attribute__((optimize("O0"))) KernelThread::Join() {
   }
 }
 
-void Semaphore::Up() {}
+void Semaphore::Up() {
+  IrqLock lock;
+  std::lock_guard<IrqLock> lk(lock);
 
-void Semaphore::Down() {}
+  cnt_ += 1;
+  if (!waiters_.empty()) {
+    // Get the first thread in the waiting queue.
+    KernelListElement<KernelThread*>* elem = waiters_.pop_front();
+
+    // Mark it as a runnable thread.
+    elem->Get()->MakeRun();
+
+    // Put back it into the scheuduling queue.
+    elem->ChangeList(&KernelThreadScheduler::GetKernelThreadList());
+    elem->PushBack();
+  }
+}
+
+void Semaphore::Down() {
+  IrqLock lock;
+  lock.lock();
+
+  if (cnt_ > 0) {
+    cnt_--;
+    lock.unlock();
+    return;
+  }
+
+  // If not able to acquire semaphore, put itself into the waiter queue.
+  // First mark it as non runnable.
+  auto* current = KernelThread::CurrentThread();
+  current->MakeSleep();
+
+  // Then move it to the waiters_ list.
+  current->GetKenrelListElem()->ChangeList(&waiters_);
+  current->GetKenrelListElem()->PushBack();
+
+  lock.unlock();
+
+  KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+}
 
 }  // namespace Kernel

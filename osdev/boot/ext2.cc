@@ -275,22 +275,14 @@ Ext2FileSystem::Ext2FileSystem() {
   }
 
   root_inode_ = inode_table[1];
-  root_dir_ = reinterpret_cast<uint8_t*>(kmalloc(root_inode_.size));
+  root_dir_ = ParseDirectory(root_inode_);
 
-  ReadFile(root_inode_, root_dir_, root_inode_.size);
-  ParseDirectory(root_dir_, root_inode_.size);
-
-  /*
-  uint8_t data[1024];
-  ReadFileFromStart(inode_table[1], data, 1024);
-  */
-
-  // PrintInodeInfo(root_inode_);
-  /*
-  uint8_t data2[2048 * 10];
-  */
-  auto node = ReadInode(0xe);
-  PrintInodeInfo(node);
+  for (const auto& dir : root_dir_) {
+    auto inode = ReadInode(dir.inode);
+    PrintInodeInfo(inode);
+    kprintf("Inode : %d Size: %d Name : %s \n", dir.inode, inode.size,
+            dir.name.c_str());
+  }
 }
 
 Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
@@ -305,12 +297,6 @@ Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
   // Single "Block" contains (block_size / inode_size = 8) inodes.
   size_t block_containing_inode = inode_table_block_id + index / 8;
 
-  kprintf("Size of %x / Block size : %x \n", sizeof(Ext2Inode), kBlockSize);
-  kprintf(
-      "Block group index : (%x) index : (%x) inode table block id : (%x), "
-      "block_contain_inode : (%d) \n",
-      block_group_index, index, inode_table_block_id, block_containing_inode);
-
   std::array<Ext2Inode, 8> block_with_inodes;
   GetFromBlockId(&block_with_inodes, block_containing_inode);
   return block_with_inodes[index % 8];
@@ -323,7 +309,6 @@ void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
 
   size_t read = 0;
   for (size_t cur = offset; cur < offset + num_read; cur += kBlockSize) {
-    kprintf("cur : %d num read : %d read ; %d \n", cur, num_read, read);
     Block block = *iter;
     size_t current_block_offset = 0;
     if (iter.Pos() < offset) {
@@ -336,6 +321,52 @@ void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
 
     ++iter;
   }
+}
+
+std::vector<Ext2Directory> Ext2FileSystem::ParseDirectory(
+    const Ext2Inode& dir) {
+  // Read the entire directory.
+  uint8_t* dir_data = reinterpret_cast<uint8_t*>(kmalloc(dir.size));
+  ReadFile(dir, dir_data, dir.size);
+
+  std::vector<Ext2Directory> dir_info;
+
+  size_t current = 0;
+  uint8_t* current_read = dir_data;
+
+  while (current < dir.size) {
+    uint8_t* dir_start = current_read;
+
+    // Read inode number.
+    uint32_t inode = ReadAndAdvance<uint32_t>(current_read);
+
+    // Read total entry size.
+    uint16_t entry_size = ReadAndAdvance<uint16_t>(current_read);
+
+    if (entry_size == 0) {
+      break;
+    }
+
+    // Read name length.
+    uint8_t name_len = ReadAndAdvance<uint8_t>(current_read);
+
+    // Read type indicator.
+    uint8_t file_type = ReadAndAdvance<uint8_t>(current_read);
+
+    KernelString file_name(reinterpret_cast<char*>(current_read), name_len);
+
+    Ext2Directory dir_entry;
+    dir_entry.inode = inode;
+    dir_entry.file_type = file_type;
+    dir_entry.name = file_name;
+
+    dir_info.push_back(dir_entry);
+
+    current_read = dir_start + entry_size;
+    current += entry_size;
+  }
+
+  return dir_info;
 }
 
 }  // namespace Kernel

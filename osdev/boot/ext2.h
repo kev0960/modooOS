@@ -1,7 +1,9 @@
 #ifndef EXT2_H
 #define EXT2_H
 
+#include "string.h"
 #include "types.h"
+#include "vector.h"
 
 namespace Kernel {
 // Note that the names and comments of these Ext2 structs are brought from
@@ -445,6 +447,12 @@ struct Ext2Inode {
   } osd2;
 };
 
+struct Ext2Directory {
+  uint32_t inode;
+  uint8_t file_type;
+  KernelString name;
+};
+
 class Ext2FileSystem {
  public:
   Ext2FileSystem(const Ext2FileSystem&) = delete;
@@ -460,12 +468,12 @@ class Ext2FileSystem {
   Ext2Inode ReadInode(size_t inode_addr);
   void ReadFile(const Ext2Inode& file_inode, uint8_t* buf, size_t num_read,
                 size_t offset = 0);
+  std::vector<Ext2Directory> ParseDirectory(const Ext2Inode& dir);
 
   Ext2SuperBlock super_block_;
   Ext2Inode root_inode_;
 
-  // Since root directory is accessed a lot, we save the root dir.
-  uint8_t* root_dir_;
+  std::vector<Ext2Directory> root_dir_;
 
   Ext2BlockGroupDescriptor* block_descs_;
   size_t num_block_desc_;

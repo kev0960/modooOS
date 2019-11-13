@@ -56,6 +56,14 @@ class KernelListElement {
     Detach();
   }
 
+  void ChangeList(KernelList<T>* stack_list) {
+    // Make sure that it is detached.
+    if (prev != nullptr || next != nullptr) {
+      return;
+    }
+    stack_list_ = stack_list;
+  }
+
   T& Get() { return t; }
 
   void Set(const T& data) { t = data; }

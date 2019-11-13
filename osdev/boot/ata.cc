@@ -133,9 +133,6 @@ bool Poll(ATADevice* device) {
 
 void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
                    size_t read_size) {
-  kprintf("Read at : %x %d \n", lba * 512, lba);
-  // kprintf("before send %b \n", inb(device->status));
-
   // Reset device if error.
   auto stat = inb(device->status);
   if ((stat & kStatusRegBSY) || (stat & kStatusRegDRQ)) {
@@ -164,7 +161,6 @@ void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
 
   for (size_t i = 0; i < read_size / 2; i++) {
     reinterpret_cast<uint16_t*>(buf)[i] = inw(device->data);
-    // kprintf("%x ", buf[i]); 
   }
 
   Delay400ns(device);
@@ -172,7 +168,6 @@ void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
 
 [[maybe_unused]] void ReadOneSector48Bit(ATADevice* device, uint64_t lba,
                                          uint8_t* buf, size_t read_size) {
-  kprintf("Read at : %x \n", lba * 512);
   outb(device->drive, 0x40 | (device->slave << 4));
 
   // Lets just read 1 sector.
