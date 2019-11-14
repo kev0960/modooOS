@@ -51,7 +51,8 @@ class KernelThread {
   // pointer since this does not take any memory space.
   KernelThread* const self;
 
-  uint64_t lock_wait_cnt = 0;
+  size_t lock_wait_cnt;
+  uint64_t saved_rbp;
 
  private:
   size_t thread_id_;
@@ -69,7 +70,7 @@ class Semaphore {
   void Down();
 
  private:
-  int cnt_ = 0;
+  int cnt_;
   KernelList<KernelThread*> waiters_;
 };
 

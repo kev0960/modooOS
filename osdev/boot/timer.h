@@ -35,4 +35,7 @@ extern PITimer pic_timer;
 
 }  // namespace Kernel
 
+// This function will be called in assembly based timer interrupt handler.
+extern "C" void PITimerCaller(Kernel::CPUInterruptHandlerArgs* args,
+                              Kernel::InterruptHandlerSavedRegs* regs);
 #endif

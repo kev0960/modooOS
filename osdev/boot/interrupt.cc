@@ -115,6 +115,19 @@ void InstallIDTEntry(void (*handler)(CPUInterruptHandlerArgs*),
   entry.zero = 0;
 }
 
+void InstallIDTEntry(void (*handler)(), IDTType type_attr, size_t int_num) {
+  auto ih_addr = reinterpret_cast<uint64_t>(handler);
+  auto& entry = idt_entries[int_num];
+
+  entry.offset_1 = ih_addr & 0xFFFF;
+  entry.selector = 0x8;  // Code segment.
+  entry.ist = 0;
+  entry.type_attr = type_attr;
+  entry.offset_2 = (ih_addr >> 16) & 0xFFFF;
+  entry.offset_3 = (ih_addr >> 32) & 0xFFFFFFFF;
+  entry.zero = 0;
+}
+
 [[maybe_unused]] void IRQSetMask(uint8_t irq_line) {
   uint16_t port;
   uint8_t value;
@@ -148,13 +161,16 @@ inline void EndOfIRQForSlave() { outb(0xA0, 0x20); }
 
 }  // namespace
 
+uint64_t rbp;
 __attribute__((interrupt)) void PITimerHandler(CPUInterruptHandlerArgs* args) {
   // push every general registers.
 
   asm volatile("mov %%rsp, %%rax" :::);
   InterruptHandlerSavedRegs* saved_regs;
   asm volatile("mov %%rax, %0" : "=r"(saved_regs)::);
+
   pic_timer.TimerInterruptHandler(args, saved_regs);
+
   EndOfIRQ();
 }
 
@@ -225,7 +241,7 @@ void IDTManager::LoadIDT() {
 void IDTManager::InitializeIDTForIRQ() {
   pic_timer.InstallPITimer();
 
-  InstallIDTEntry(PITimerHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
+  InstallIDTEntry(TimerInterruptHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
   InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2E);
   InstallIDTEntry(ATAHandler2, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
@@ -270,6 +286,7 @@ void IDTManager::InitializeIDTForIRQ() {
 
 __attribute__((interrupt)) void YieldProcessorHandler(
     CPUInterruptHandlerArgs* args) {
+  kprintf("Yield in preasdfkl??");
   // push every general registers here (Automatically added by GCC).
 
   // Now RSP points to pushed registers.
@@ -286,7 +303,8 @@ __attribute__((interrupt)) void YieldProcessorHandler(
 
 void IDTManager::InitializeCustomInterrupt() {
   // From 0x30 ~, we can use our own IRQs.
-  InstallIDTEntry(YieldProcessorHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x30);
+  InstallIDTEntry(CustomContextSwitchInterruptHandler,
+                  {INTERRUPT_GATE_32_BIT, 0, 1}, 0x30);
 }
 
 }  // namespace Kernel

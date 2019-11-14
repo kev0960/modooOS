@@ -35,6 +35,9 @@ class KernelThreadScheduler {
   KernelList<KernelThread*> kernel_thread_list_;
 };
 
+extern "C" void YieldInInterruptHandlerCaller(
+    Kernel::CPUInterruptHandlerArgs* args,
+    Kernel::InterruptHandlerSavedRegs* regs);
 }  // namespace Kernel
 #endif
 

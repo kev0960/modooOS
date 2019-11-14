@@ -11,15 +11,21 @@ constexpr int kKernelThreadStackSize = 8192;  // 8 KB
 constexpr int kFSBaseMSR = 0xC0000100;
 
 void InitSavedRegs(InterruptHandlerSavedRegs* saved_regs) {
+  saved_regs->rbp = 0;
   saved_regs->rax = 0;
-  saved_regs->rdx = 0;
+  saved_regs->rbx = 0;
   saved_regs->rcx = 0;
+  saved_regs->rdx = 0;
   saved_regs->rsi = 0;
   saved_regs->rdi = 0;
   saved_regs->r8 = 0;
   saved_regs->r9 = 0;
   saved_regs->r10 = 0;
   saved_regs->r11 = 0;
+  saved_regs->r12 = 0;
+  saved_regs->r13 = 0;
+  saved_regs->r14 = 0;
+  saved_regs->r15 = 0;
 }
 
 };  // namespace
@@ -126,15 +132,33 @@ void __attribute__((optimize("O0"))) KernelThread::Join() {
   }
 }
 
+// static int total = 0;
 void Semaphore::Up() {
   IrqLock lock;
   std::lock_guard<IrqLock> lk(lock);
 
   cnt_ += 1;
+  kprintf("up %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
+  if (cnt_ > 1) {
+    while (1)
+      ;
+  }
+  /*
+  if (total++ < 150) {
+    kprintf("up %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
+  }*/
   if (!waiters_.empty()) {
     // Get the first thread in the waiting queue.
     KernelListElement<KernelThread*>* elem = waiters_.pop_front();
+    /*
+    if (total++ < 150) {
+      kprintf("push (%d)->(%d) ", KernelThread::CurrentThread()->Id(),
+              elem->Get()->Id());
+    }
+    */
 
+    kprintf("push (%d)->(%d) ", KernelThread::CurrentThread()->Id(),
+            elem->Get()->Id());
     // Mark it as a runnable thread.
     elem->Get()->MakeRun();
 
@@ -144,28 +168,39 @@ void Semaphore::Up() {
   }
 }
 
-void Semaphore::Down() {
+void __attribute__((optimize("O0"))) Semaphore::Down() {
   IrqLock lock;
-  lock.lock();
 
-  if (cnt_ > 0) {
-    cnt_--;
+  while (true) {
+    lock.lock();
+
+    kprintf("down %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
+    if (cnt_ > 0) {
+      cnt_--;
+      kprintf("exit %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
+      lock.unlock();
+      return;
+    }
+
+    // If not able to acquire semaphore, put itself into the waiter queue.
+    // First mark it as non runnable.
+    auto* current = KernelThread::CurrentThread();
+    current->MakeSleep();
+    /*
+    if (total++ < 150) {
+      kprintf("sleep %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
+    }
+    */
+
+    // Then move it to the waiters_ list.
+    current->GetKenrelListElem()->ChangeList(&waiters_);
+    current->GetKenrelListElem()->PushBack();
+
+    kprintf("yield %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
     lock.unlock();
-    return;
+
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
-
-  // If not able to acquire semaphore, put itself into the waiter queue.
-  // First mark it as non runnable.
-  auto* current = KernelThread::CurrentThread();
-  current->MakeSleep();
-
-  // Then move it to the waiters_ list.
-  current->GetKenrelListElem()->ChangeList(&waiters_);
-  current->GetKenrelListElem()->PushBack();
-
-  lock.unlock();
-
-  KernelThreadScheduler::GetKernelThreadScheduler().Yield();
 }
 
 }  // namespace Kernel

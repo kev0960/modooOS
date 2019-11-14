@@ -11,7 +11,7 @@ namespace kernel_test {
 void KernelTestRunner::RunTest() {
   for (int i = 0; i < num_tests_; i++) {
     kprintf("[ RUN      ]  %s.%s\n", tests_[i]->GetTestSuiteName(),
-           tests_[i]->GetTestName());
+            tests_[i]->GetTestName());
     tests_[i]->TestBody();
     if (!tests_[i]->GetBadCount()) {
       kprintf("[       OK ] ");

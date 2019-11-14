@@ -35,6 +35,7 @@ KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
   return nullptr;
 }
 
+// static int cnt = 0;
 void KernelThreadScheduler::YieldInInterruptHandler(
     CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
   auto* next_thread_element = PopNextThreadToRun();
@@ -59,6 +60,12 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   CopyCPUInteruptHandlerArgs(args, next_thread_regs);
   *regs = next_thread_regs->regs;
 
+  /*
+  if (cnt ++ < 80) {
+    kprintf("(%d)->(%d) ", current_thread->Id(), next_thread->Id());
+  }
+  */
+  kprintf("(%d)->(%d) ", current_thread->Id(), next_thread->Id());
   KernelThread::SetCurrentThread(next_thread);
   // Since we changed the interrupt handler's stack to the next thread's
   // stack, the handler will return where the next thread has switched.
@@ -67,3 +74,10 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 void KernelThreadScheduler::Yield() { asm volatile("int $0x30\n"); }
 
 }  // namespace Kernel
+
+extern "C" void YieldInInterruptHandlerCaller(
+    Kernel::CPUInterruptHandlerArgs* args,
+    Kernel::InterruptHandlerSavedRegs* regs) {
+  Kernel::KernelThreadScheduler::GetKernelThreadScheduler()
+      .YieldInInterruptHandler(args, regs);
+}
