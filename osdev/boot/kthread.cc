@@ -132,33 +132,16 @@ void __attribute__((optimize("O0"))) KernelThread::Join() {
   }
 }
 
-// static int total = 0;
 void Semaphore::Up() {
   IrqLock lock;
-  std::lock_guard<IrqLock> lk(lock);
+  lock.lock();
 
   cnt_ += 1;
-  kprintf("up %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
-  if (cnt_ > 1) {
-    while (1)
-      ;
-  }
-  /*
-  if (total++ < 150) {
-    kprintf("up %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
-  }*/
+
   if (!waiters_.empty()) {
     // Get the first thread in the waiting queue.
     KernelListElement<KernelThread*>* elem = waiters_.pop_front();
-    /*
-    if (total++ < 150) {
-      kprintf("push (%d)->(%d) ", KernelThread::CurrentThread()->Id(),
-              elem->Get()->Id());
-    }
-    */
 
-    kprintf("push (%d)->(%d) ", KernelThread::CurrentThread()->Id(),
-            elem->Get()->Id());
     // Mark it as a runnable thread.
     elem->Get()->MakeRun();
 
@@ -166,18 +149,17 @@ void Semaphore::Up() {
     elem->ChangeList(&KernelThreadScheduler::GetKernelThreadList());
     elem->PushBack();
   }
+  lock.unlock();
 }
 
-void __attribute__((optimize("O0"))) Semaphore::Down() {
+void Semaphore::Down() {
   IrqLock lock;
 
   while (true) {
     lock.lock();
 
-    kprintf("down %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
     if (cnt_ > 0) {
       cnt_--;
-      kprintf("exit %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
       lock.unlock();
       return;
     }
@@ -186,17 +168,11 @@ void __attribute__((optimize("O0"))) Semaphore::Down() {
     // First mark it as non runnable.
     auto* current = KernelThread::CurrentThread();
     current->MakeSleep();
-    /*
-    if (total++ < 150) {
-      kprintf("sleep %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
-    }
-    */
 
     // Then move it to the waiters_ list.
     current->GetKenrelListElem()->ChangeList(&waiters_);
     current->GetKenrelListElem()->PushBack();
 
-    kprintf("yield %d (%d) ", cnt_, KernelThread::CurrentThread()->Id());
     lock.unlock();
 
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();

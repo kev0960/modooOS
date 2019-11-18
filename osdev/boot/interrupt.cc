@@ -161,19 +161,6 @@ inline void EndOfIRQForSlave() { outb(0xA0, 0x20); }
 
 }  // namespace
 
-uint64_t rbp;
-__attribute__((interrupt)) void PITimerHandler(CPUInterruptHandlerArgs* args) {
-  // push every general registers.
-
-  asm volatile("mov %%rsp, %%rax" :::);
-  InterruptHandlerSavedRegs* saved_regs;
-  asm volatile("mov %%rax, %0" : "=r"(saved_regs)::);
-
-  pic_timer.TimerInterruptHandler(args, saved_regs);
-
-  EndOfIRQ();
-}
-
 __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
@@ -282,23 +269,6 @@ void IDTManager::InitializeIDTForIRQ() {
 
   // outb(PIC_MASTER_DATA, 0xFD);
   // outb(PIC_SLAVE_DATA, 0xFF);
-}
-
-__attribute__((interrupt)) void YieldProcessorHandler(
-    CPUInterruptHandlerArgs* args) {
-  kprintf("Yield in preasdfkl??");
-  // push every general registers here (Automatically added by GCC).
-
-  // Now RSP points to pushed registers.
-  // (NOTE) It may be possible that saved_regs is defined in stack. In that
-  // case, mov rsp, rax may be reordered with sub 8, rsp.
-  asm volatile("mov %%rsp, %%rax" ::: "memory");
-
-  InterruptHandlerSavedRegs* saved_regs;
-  asm volatile("mov %%rax, %0" : "=r"(saved_regs)::);
-
-  KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
-      args, saved_regs);
 }
 
 void IDTManager::InitializeCustomInterrupt() {

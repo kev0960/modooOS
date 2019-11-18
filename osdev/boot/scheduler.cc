@@ -48,11 +48,11 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
-
-    auto* current_thread_regs = current_thread->GetSavedRegs();
-    CopyCPUInteruptHandlerArgs(current_thread_regs, args);
-    current_thread_regs->regs = *regs;
   }
+
+  auto* current_thread_regs = current_thread->GetSavedRegs();
+  CopyCPUInteruptHandlerArgs(current_thread_regs, args);
+  current_thread_regs->regs = *regs;
 
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
@@ -60,18 +60,14 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   CopyCPUInteruptHandlerArgs(args, next_thread_regs);
   *regs = next_thread_regs->regs;
 
-  /*
-  if (cnt ++ < 80) {
-    kprintf("(%d)->(%d) ", current_thread->Id(), next_thread->Id());
-  }
-  */
-  kprintf("(%d)->(%d) ", current_thread->Id(), next_thread->Id());
   KernelThread::SetCurrentThread(next_thread);
   // Since we changed the interrupt handler's stack to the next thread's
   // stack, the handler will return where the next thread has switched.
 }
 
-void KernelThreadScheduler::Yield() { asm volatile("int $0x30\n"); }
+void KernelThreadScheduler::Yield() {
+  asm volatile("int $0x30\n");
+}
 
 }  // namespace Kernel
 
