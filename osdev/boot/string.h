@@ -69,7 +69,7 @@ class KernelBasicString {
   size_t capacity() const { return str_.capacity(); }
 
   CharT& operator[](size_t index) { return str_[index]; }
-  const CharT& at(size_t index) const { return str_[index]; }
+  const CharT& at(size_t index) const { return str_.at(index); }
 
   CharT& back() { return str_[size() - 1]; }
 
@@ -89,6 +89,30 @@ class KernelBasicString {
         return i;
       }
     }
+  }
+
+  bool operator==(const KernelBasicString& s) const {
+    if (size() != s.size()) {
+      return false;
+    }
+    for (size_t i = 0; i < size(); i++) {
+      if (at(i) != s.at(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator==(basic_string_view<CharT> s) const {
+    if (size() != s.size()) {
+      return false;
+    }
+    for (size_t i = 0; i < size(); i++) {
+      if (at(i) != s[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
  private:

@@ -2,6 +2,7 @@
 #include "algorithm.h"
 #include "array.h"
 #include "ata.h"
+#include "kernel_util.h"
 #include "kmalloc.h"
 #include "printf.h"
 #include "string.h"
@@ -279,10 +280,34 @@ Ext2FileSystem::Ext2FileSystem() {
 
   for (const auto& dir : root_dir_) {
     auto inode = ReadInode(dir.inode);
-    PrintInodeInfo(inode);
     kprintf("Inode : %d Size: %d Name : %s \n", dir.inode, inode.size,
             dir.name.c_str());
   }
+
+  auto some_dir = ParseDirectory(ReadInode(root_dir_[4].inode));
+  for (const auto& dir : some_dir) {
+    auto inode = ReadInode(dir.inode);
+    kprintf("Inode : %d Size: %d Name : %s \n", dir.inode, inode.size,
+            dir.name.c_str());
+  }
+  uint8_t buf[101];
+  size_t read = ReadFile("/c.txt", buf, 100, 100);
+  buf[read] = 0;
+  kprintf("Read(%d)\n%s", read, buf);
+}
+
+size_t Ext2FileSystem::ReadFile(string_view path, uint8_t* buf, size_t num_read,
+                                size_t offset) {
+  Ext2Inode file = GetInodeFromPath(path);
+  if (offset >= file.size) {
+    return 0;
+  }
+
+  // Prevent reading more than the file size.
+  size_t num_actually_read = min(num_read, file.size - offset);
+  ReadFile(file, buf, num_actually_read, offset);
+
+  return num_actually_read;
 }
 
 Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
@@ -367,6 +392,52 @@ std::vector<Ext2Directory> Ext2FileSystem::ParseDirectory(
   }
 
   return dir_info;
+}
+
+Ext2Inode Ext2FileSystem::GetInodeFromPath(string_view path) {
+  if (path.empty()) {
+    PANIC();
+  }
+
+  // TODO Support relative paths.
+  ASSERT(path[0] == '/');
+
+  size_t current = 1;
+  std::vector<Ext2Directory> current_dir = root_dir_;
+
+  while (true) {
+    size_t end = path.find_first_of('/', current);
+    if (end != npos) {
+      string_view name = path.substr(current, end - current);
+
+      bool found = false;
+      for (const auto& file : current_dir) {
+        if (file.name == name) {
+          // Case for /.../.../name/
+          if (end == path.size() - 1) {
+            return ReadInode(file.inode);
+          } else {
+            // Case for /.../name/...
+            current_dir = ParseDirectory(ReadInode(file.inode));
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) {
+        // TODO Handle error case gracefully.
+      }
+      current = end + 1;
+    } else {
+      // Case for /.../.../name
+      string_view name = path.substr(current);
+      for (const auto& file : current_dir) {
+        if (file.name == name) {
+          return ReadInode(file.inode);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace Kernel

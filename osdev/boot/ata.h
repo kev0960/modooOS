@@ -2,6 +2,7 @@
 #define ATA_H
 
 #include "filesystem.h"
+#include "kthread.h"
 #include "types.h"
 
 namespace Kernel {
@@ -76,13 +77,15 @@ class ATADriver {
   }
 
  private:
-  ATADriver() { InitATA(); }
+  ATADriver() : disk_access_(1) { InitATA(); }
   void InitATA();
 
   ATADevice primary_master_;
   ATADevice primary_slave_;
   ATADevice secondary_master_;
   ATADevice secondary_slave_;
+
+  Semaphore disk_access_;
 };
 
 };  // namespace Kernel

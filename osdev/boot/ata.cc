@@ -98,15 +98,11 @@ void Identify(ATADevice* device) {
       return;
     }
   }
-  // Read 256 16 bit values from data port.
-  uint16_t arr[256];
-  for (int i = 0; i < 256; i++) {
-    arr[i] = inw(device->data);
-  }
 
-  kprintf("%d %d\n", arr[60], arr[61]);
-  kprintf("%d \n", arr[83] & 1 << 10);
-  kprintf("%d %d %d %d\n", arr[100], arr[101], arr[102], arr[103]);
+  // Read 256 16 bit values from data port.
+  for (int i = 0; i < 256; i++) {
+    inw(device->data);
+  }
 }
 
 void Delay400ns(ATADevice* device) {
@@ -283,7 +279,11 @@ void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {
   for (size_t current_read = 0; current_read < buffer_size;
        current_read += 512) {
     size_t num_to_read = min(512ul, buffer_size - current_read);
+
+    // Disk access must be exclusive.
+    disk_access_.Down();
     ReadOneSector(&primary_master_, lba, buf + current_read, num_to_read);
+    disk_access_.Up();
 
     // 1 LBA = 512 bytes
     lba += 1;
@@ -299,7 +299,11 @@ void ATADriver::Write(uint8_t* buf, size_t buffer_size, size_t lba) {
   for (size_t current_write = 0; current_write < buffer_size;
        current_write += 512) {
     size_t num_to_write = min(512ul, buffer_size - current_write);
+
+    // Disk access must be exclusive.
+    disk_access_.Down();
     WriteOneSector(&primary_master_, lba, buf + current_write, num_to_write);
+    disk_access_.Up();
 
     // 1 LBA = 512 bytes
     lba += 1;

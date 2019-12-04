@@ -165,8 +165,8 @@ class vector {
     size_--;
   }
 
-  iterator begin() { return iterator(data_); }
-  iterator end() { return iterator(data_ + size_); }
+  iterator begin() const { return iterator(data_); }
+  iterator end() const { return iterator(data_ + size_); }
 
   ~vector() { Destroy(); }
 
@@ -214,6 +214,7 @@ class vector {
   void CopyFrom(const vector& v) {
     size_ = v.size_;
     alloc_size_ = v.alloc_size_;
+    data_ = nullptr;
 
     if (alloc_size_ == 0) {
       return;

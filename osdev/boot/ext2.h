@@ -463,12 +463,17 @@ class Ext2FileSystem {
     return ext2;
   }
 
+  // Read file from the path.
+  size_t ReadFile(string_view path, uint8_t* buf, size_t num_read,
+                  size_t offset);
+
  private:
   Ext2FileSystem();
   Ext2Inode ReadInode(size_t inode_addr);
   void ReadFile(const Ext2Inode& file_inode, uint8_t* buf, size_t num_read,
                 size_t offset = 0);
   std::vector<Ext2Directory> ParseDirectory(const Ext2Inode& dir);
+  Ext2Inode GetInodeFromPath(string_view path);
 
   Ext2SuperBlock super_block_;
   Ext2Inode root_inode_;

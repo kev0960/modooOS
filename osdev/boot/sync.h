@@ -9,15 +9,15 @@
 namespace Kernel {
 namespace std {
 
-template <typename Mutex>
+template <typename M>
 class lock_guard {
  public:
-  lock_guard(Mutex& m) : m_(m) { m_.lock(); }
+  lock_guard(M& m) : m_(m) { m_.lock(); }
 
   ~lock_guard() { m_.unlock(); }
 
  private:
-  Mutex& m_;
+  M& m_;
 };
 
 }  // namespace std
@@ -83,6 +83,17 @@ class SpinLock : public Lock {
 
  private:
   bool acquired = false;
+};
+
+class Mutex : public Lock {
+ public:
+  Mutex() : sema_(1) {}
+
+  void lock() override { sema_.Down(); }
+  void unlock() override { sema_.Up(); }
+
+ private:
+  Semaphore sema_;
 };
 
 }  // namespace Kernel

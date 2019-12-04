@@ -32,6 +32,16 @@ class basic_string_view {
 
   constexpr bool empty() const { return size_ == 0; }
 
+  constexpr size_t find_first_of(CharT c, size_t pos) const noexcept {
+    size_t i = pos;
+    for (; i < size_; i++) {
+      if (str_[i] == c) {
+        return i;
+      }
+    }
+    return npos;
+  }
+
   constexpr size_t find_first_of(CharT c, size_t pos, size_t count) const
       noexcept {
     size_t i = pos;

@@ -66,8 +66,10 @@ class Semaphore {
  public:
   Semaphore(int cnt) : cnt_(cnt) {}
 
-  void Up();
-  void Down();
+  // If we are using semaphore inside of the interrupt handler, then we should
+  // set without_lock as true.
+  void Up(bool without_lock = false);
+  void Down(bool without_lock = false);
 
  private:
   int cnt_;

@@ -1,4 +1,5 @@
 #include "kthread.h"
+#include "kernel_util.h"
 #include "kmalloc.h"
 #include "printf.h"
 #include "scheduler.h"
@@ -122,6 +123,7 @@ void KernelThread::Terminate() {
   status_ = THREAD_TERMINATE;
   KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   kprintf("Reached here? %d \n", thread_id_);
+  PANIC();
 }
 
 // Do not optimze this function. When optimizing turned on, the compiler will
@@ -132,9 +134,11 @@ void __attribute__((optimize("O0"))) KernelThread::Join() {
   }
 }
 
-void Semaphore::Up() {
+void Semaphore::Up(bool without_lock) {
   IrqLock lock;
-  lock.lock();
+  if (!without_lock) {
+    lock.lock();
+  }
 
   cnt_ += 1;
 
@@ -149,18 +153,25 @@ void Semaphore::Up() {
     elem->ChangeList(&KernelThreadScheduler::GetKernelThreadList());
     elem->PushBack();
   }
-  lock.unlock();
+
+  if (!without_lock) {
+    lock.unlock();
+  }
 }
 
-void Semaphore::Down() {
+void Semaphore::Down(bool without_lock) {
   IrqLock lock;
 
   while (true) {
-    lock.lock();
+    if (!without_lock) {
+      lock.lock();
+    }
 
     if (cnt_ > 0) {
       cnt_--;
-      lock.unlock();
+      if (!without_lock) {
+        lock.unlock();
+      }
       return;
     }
 
@@ -173,7 +184,9 @@ void Semaphore::Down() {
     current->GetKenrelListElem()->ChangeList(&waiters_);
     current->GetKenrelListElem()->PushBack();
 
-    lock.unlock();
+    if (!without_lock) {
+      lock.unlock();
+    }
 
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
