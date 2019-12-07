@@ -127,21 +127,19 @@ void KernelThread::Terminate() {
 }
 
 // Do not optimze this function. When optimizing turned on, the compiler will
-// not consistently check the value of status_.
 void __attribute__((optimize("O0"))) KernelThread::Join() {
   while (status_ != THREAD_TERMINATE) {
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
 }
 
-void Semaphore::Up(bool without_lock) {
+void Semaphore::Up(bool inside_interrupt_handler) {
   IrqLock lock;
-  if (!without_lock) {
+  if (!inside_interrupt_handler) {
     lock.lock();
   }
 
   cnt_ += 1;
-
   if (!waiters_.empty()) {
     // Get the first thread in the waiting queue.
     KernelListElement<KernelThread*>* elem = waiters_.pop_front();
@@ -154,41 +152,45 @@ void Semaphore::Up(bool without_lock) {
     elem->PushBack();
   }
 
-  if (!without_lock) {
+  if (!inside_interrupt_handler) {
     lock.unlock();
   }
 }
 
-void Semaphore::Down(bool without_lock) {
+void Semaphore::Down(bool inside_interrupt_handler) {
   IrqLock lock;
 
   while (true) {
-    if (!without_lock) {
+    if (!inside_interrupt_handler) {
       lock.lock();
     }
 
     if (cnt_ > 0) {
       cnt_--;
-      if (!without_lock) {
+      if (!inside_interrupt_handler) {
         lock.unlock();
       }
       return;
     }
 
-    // If not able to acquire semaphore, put itself into the waiter queue.
-    // First mark it as non runnable.
-    auto* current = KernelThread::CurrentThread();
-    current->MakeSleep();
+    // If there is something to switch into, then we make current thread
+    // sleep. Otherwise, do nothing.
+    if (KernelThreadScheduler::GetKernelThreadList().size() > 0) {
+      // If not able to acquire semaphore, put itself into the waiter queue.
+      // First mark it as non runnable.
+      auto* current = KernelThread::CurrentThread();
+      current->MakeSleep();
 
-    // Then move it to the waiters_ list.
-    current->GetKenrelListElem()->ChangeList(&waiters_);
-    current->GetKenrelListElem()->PushBack();
-
-    if (!without_lock) {
-      lock.unlock();
+      // Then move it to the waiters_ list.
+      current->GetKenrelListElem()->ChangeList(&waiters_);
+      current->GetKenrelListElem()->PushBack();
     }
 
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+
+    if (!inside_interrupt_handler) {
+      lock.unlock();
+    }
   }
 }
 

@@ -12,6 +12,10 @@ Kernel::VGAOutput<> Kernel::vga_output{};
 extern "C" void KernelMain(void);
 extern "C" void __cxa_atexit(void) {}
 
+void Idle() {
+  asm volatile("hlt");
+}
+
 void KernelMain() {
   // Initialize Interrupts.
   Kernel::IDTManager idt_manager{};
@@ -24,6 +28,10 @@ void KernelMain() {
 
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
+
+  // Start Idle thread.
+  Kernel::KernelThread idle(Idle);
+  idle.Start();
 
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 

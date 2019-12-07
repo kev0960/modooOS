@@ -3,6 +3,8 @@
 
 #include "iterator.h"
 #include "types.h"
+#include "printf.h"
+#include "kernel_util.h"
 
 namespace Kernel {
 namespace std {
@@ -182,6 +184,9 @@ class KernelList {
   KernelListElement<T>* back() const { return tail_; }
 
   KernelListElement<T>* pop_front() {
+    if (empty() && size_ != 0) {
+      PANIC();
+    }
     if (empty()) {
       return nullptr;
     } else {
@@ -205,6 +210,9 @@ class KernelList {
   }
 
   KernelListElement<T>* pop_back() {
+    if (empty() && size_ != 0) {
+      PANIC();
+    }
     if (empty()) {
       return nullptr;
     } else {

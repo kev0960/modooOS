@@ -1,4 +1,5 @@
 #include "interrupt.h"
+#include "ata.h"
 #include "cpp_macro.h"
 #include "io.h"
 #include "keyboard.h"
@@ -60,6 +61,7 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " ss : " << args->ss << "\n";
   vga_output << "Current Thread Id : " << KernelThread::CurrentThread()->Id()
              << "\n";
+  while(1);
 
   if (int_num == 14 || int_num == 13 || int_num == 6) {
     uint64_t fault_addr;
@@ -174,14 +176,20 @@ __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
 
   EndOfIRQForSlave();
   EndOfIRQ();
+
+  kATADiskCommandSema.Up(true);
 }
 
+/*
 __attribute__((interrupt)) void ATAHandler2(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
   EndOfIRQForSlave();
   EndOfIRQ();
-}
+
+  kATADiskCommandSema.Up(true);
+}*/
+
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<1>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
@@ -231,7 +239,7 @@ void IDTManager::InitializeIDTForIRQ() {
   InstallIDTEntry(TimerInterruptHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
   InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2E);
-  InstallIDTEntry(ATAHandler2, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
+  InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
 
   // PIC Remap.
 

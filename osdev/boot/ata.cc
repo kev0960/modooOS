@@ -46,7 +46,7 @@ void InitATADevice(ATADevice* device, bool primary, bool slave) {
   device->primary = primary;
 }
 
-void Identify(ATADevice* device) {
+[[maybe_unused]] void Identify(ATADevice* device) {
   uint16_t select_target_drive_port = device->slave ? 0xB0 : 0xA0;
 
   // Select the target drive.
@@ -114,7 +114,7 @@ void Delay400ns(ATADevice* device) {
 bool Poll(ATADevice* device) {
   // Wait until BSY clears.
   while (inb(device->status) & kStatusRegBSY) {
-  };
+  }
 
   while (true) {
     auto status = inb(device->status);
@@ -148,6 +148,8 @@ void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
   outb(device->lba_high, lba >> 16);
 
   outb(device->command, /* Read Sectors */ 0x20);
+
+  kATADiskCommandSema.Down();
 
   bool poll_status = Poll(device);
   if (!poll_status) {
@@ -242,7 +244,7 @@ void ATADriver::InitATA() {
   InitATADevice(&secondary_slave_, /* primary = */ false, /* slave = */ true);
 
   kprintf("Check Primary Master ... \n");
-  Identify(&primary_master_);
+  // Identify(&primary_master_);
   /*
   kprintf("Check Primary Slave ... \n");
   Identify(&primary_slave_);
@@ -309,5 +311,7 @@ void ATADriver::Write(uint8_t* buf, size_t buffer_size, size_t lba) {
     lba += 1;
   }
 }
+
+Semaphore kATADiskCommandSema(0);
 
 }  // namespace Kernel

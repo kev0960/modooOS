@@ -68,8 +68,8 @@ class Semaphore {
 
   // If we are using semaphore inside of the interrupt handler, then we should
   // set without_lock as true.
-  void Up(bool without_lock = false);
-  void Down(bool without_lock = false);
+  void Up(bool inside_interrupt_handler = false);
+  void Down(bool inside_interrupt_handler = false);
 
  private:
   int cnt_;

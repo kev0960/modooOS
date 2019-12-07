@@ -291,7 +291,7 @@ Ext2FileSystem::Ext2FileSystem() {
             dir.name.c_str());
   }
   uint8_t buf[101];
-  size_t read = ReadFile("/c.txt", buf, 100, 100);
+  size_t read = ReadFile("/a.txt", buf, 100, 100);
   buf[read] = 0;
   kprintf("Read(%d)\n%s", read, buf);
 }

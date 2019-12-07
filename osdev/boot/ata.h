@@ -85,8 +85,12 @@ class ATADriver {
   ATADevice secondary_master_;
   ATADevice secondary_slave_;
 
+  // Semaphore to control Disk access.
   Semaphore disk_access_;
 };
+
+// Semaphore to send command to Disk.
+extern Semaphore kATADiskCommandSema;
 
 };  // namespace Kernel
 

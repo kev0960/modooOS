@@ -44,7 +44,6 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
-
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
@@ -65,9 +64,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // stack, the handler will return where the next thread has switched.
 }
 
-void KernelThreadScheduler::Yield() {
-  asm volatile("int $0x30\n");
-}
+void KernelThreadScheduler::Yield() { asm volatile("int $0x30\n"); }
 
 }  // namespace Kernel
 

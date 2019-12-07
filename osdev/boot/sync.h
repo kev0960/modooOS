@@ -55,7 +55,7 @@ class IrqLock : public Lock {
   bool try_lock() override { return false; }
 
  private:
-  uint64_t saved_rflags_;
+  uint64_t saved_rflags_ = 0;
 };
 
 // Simple spin lock. It spins until it can acquire.
