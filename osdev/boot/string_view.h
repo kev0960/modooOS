@@ -53,6 +53,22 @@ class basic_string_view {
     return npos;
   }
 
+  constexpr bool operator==(basic_string_view str) const {
+    if (size_ != str.size_) {
+      return false;
+    }
+    for (size_t i = 0; i < size_; i++) {
+      if (str_[i] != str[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  constexpr bool operator!=(basic_string_view str) const {
+    return !(operator==(str));
+  }
+
  private:
   const CharT* str_;
   size_t size_;

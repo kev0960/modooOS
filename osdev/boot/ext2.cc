@@ -123,8 +123,6 @@ class BlockIterator {
     // Now returns the cache.
     Block block;
     block.CopyFrom(cached_blocks_[current_depth_].data);
-    kprintf("%d %d %d %d \n", block_index_[0], block_index_[1], block_index_[2],
-            block_index_[3]);
     return block;
   }
 
@@ -271,34 +269,19 @@ Ext2FileSystem::Ext2FileSystem() {
   std::array<Ext2Inode, 2> inode_table;
   GetFromBlockId(&inode_table, block_descs_[0].inode_table);
 
-  for (int i = 0; i < 2; i++) {
-    PrintInodeInfo(inode_table[i]);
-  }
-
   root_inode_ = inode_table[1];
   root_dir_ = ParseDirectory(root_inode_);
-
-  for (const auto& dir : root_dir_) {
-    auto inode = ReadInode(dir.inode);
-    kprintf("Inode : %d Size: %d Name : %s \n", dir.inode, inode.size,
-            dir.name.c_str());
-  }
-
-  auto some_dir = ParseDirectory(ReadInode(root_dir_[4].inode));
-  for (const auto& dir : some_dir) {
-    auto inode = ReadInode(dir.inode);
-    kprintf("Inode : %d Size: %d Name : %s \n", dir.inode, inode.size,
-            dir.name.c_str());
-  }
-  uint8_t buf[101];
-  size_t read = ReadFile("/a.txt", buf, 100, 100);
-  buf[read] = 0;
-  kprintf("Read(%d)\n%s", read, buf);
 }
 
 size_t Ext2FileSystem::ReadFile(string_view path, uint8_t* buf, size_t num_read,
                                 size_t offset) {
-  Ext2Inode file = GetInodeFromPath(path);
+  int inode_num = GetInodeNumberFromPath(path);
+  if (inode_num == -1) {
+    kprintf("File is not found!\n");
+    return 0;
+  }
+
+  Ext2Inode file = ReadInode(inode_num);
   if (offset >= file.size) {
     return 0;
   }
@@ -348,6 +331,22 @@ void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
   }
 }
 
+FileInfo Ext2FileSystem::Stat(string_view path) {
+  int inode_num = GetInodeNumberFromPath(path);
+  if (inode_num == -1) {
+    kprintf("File is not found \n");
+    return FileInfo{};
+  }
+
+  Ext2Inode file = ReadInode(inode_num);
+
+  FileInfo info;
+  info.file_size = file.size;
+  info.inode = inode_num;
+
+  return info;
+}
+
 std::vector<Ext2Directory> Ext2FileSystem::ParseDirectory(
     const Ext2Inode& dir) {
   // Read the entire directory.
@@ -394,7 +393,7 @@ std::vector<Ext2Directory> Ext2FileSystem::ParseDirectory(
   return dir_info;
 }
 
-Ext2Inode Ext2FileSystem::GetInodeFromPath(string_view path) {
+int Ext2FileSystem::GetInodeNumberFromPath(string_view path) {
   if (path.empty()) {
     PANIC();
   }
@@ -415,7 +414,7 @@ Ext2Inode Ext2FileSystem::GetInodeFromPath(string_view path) {
         if (file.name == name) {
           // Case for /.../.../name/
           if (end == path.size() - 1) {
-            return ReadInode(file.inode);
+            return file.inode;
           } else {
             // Case for /.../name/...
             current_dir = ParseDirectory(ReadInode(file.inode));
@@ -425,7 +424,7 @@ Ext2Inode Ext2FileSystem::GetInodeFromPath(string_view path) {
         }
       }
       if (!found) {
-        // TODO Handle error case gracefully.
+        return -1;
       }
       current = end + 1;
     } else {
@@ -433,11 +432,12 @@ Ext2Inode Ext2FileSystem::GetInodeFromPath(string_view path) {
       string_view name = path.substr(current);
       for (const auto& file : current_dir) {
         if (file.name == name) {
-          return ReadInode(file.inode);
+          return file.inode;
         }
       }
     }
   }
+  return -1;
 }
 
 }  // namespace Kernel

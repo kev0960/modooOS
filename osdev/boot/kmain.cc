@@ -29,10 +29,6 @@ void KernelMain() {
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
 
-  // Start Idle thread.
-  Kernel::KernelThread idle(Idle);
-  idle.Start();
-
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   auto& ata_driver = Kernel::ATADriver::GetATADriver();

@@ -453,6 +453,11 @@ struct Ext2Directory {
   KernelString name;
 };
 
+struct FileInfo {
+  size_t inode; // Inode number.
+  size_t file_size; // File size in bytes.
+};
+
 class Ext2FileSystem {
  public:
   Ext2FileSystem(const Ext2FileSystem&) = delete;
@@ -465,7 +470,10 @@ class Ext2FileSystem {
 
   // Read file from the path.
   size_t ReadFile(string_view path, uint8_t* buf, size_t num_read,
-                  size_t offset);
+                  size_t offset = 0);
+
+  // Get file info.
+  FileInfo Stat(string_view path);
 
  private:
   Ext2FileSystem();
@@ -473,7 +481,7 @@ class Ext2FileSystem {
   void ReadFile(const Ext2Inode& file_inode, uint8_t* buf, size_t num_read,
                 size_t offset = 0);
   std::vector<Ext2Directory> ParseDirectory(const Ext2Inode& dir);
-  Ext2Inode GetInodeFromPath(string_view path);
+  int GetInodeNumberFromPath(string_view path);
 
   Ext2SuperBlock super_block_;
   Ext2Inode root_inode_;

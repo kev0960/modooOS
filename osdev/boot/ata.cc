@@ -114,6 +114,7 @@ void Delay400ns(ATADevice* device) {
 bool Poll(ATADevice* device) {
   // Wait until BSY clears.
   while (inb(device->status) & kStatusRegBSY) {
+    kprintf("wait busy");
   }
 
   while (true) {
@@ -124,6 +125,7 @@ bool Poll(ATADevice* device) {
     if (status & kStatusRegDRQ) {
       return true;
     }
+    kprintf("wait 2busy");
   }
 }
 
@@ -150,12 +152,6 @@ void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
   outb(device->command, /* Read Sectors */ 0x20);
 
   kATADiskCommandSema.Down();
-
-  bool poll_status = Poll(device);
-  if (!poll_status) {
-    kprintf("Read fail :( \n");
-    return;
-  }
 
   for (size_t i = 0; i < read_size / 2; i++) {
     reinterpret_cast<uint16_t*>(buf)[i] = inw(device->data);

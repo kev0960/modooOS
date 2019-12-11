@@ -8,6 +8,7 @@
 
 namespace Kernel {
 unsigned int strlen(const char* s);
+int strcmp(const char* s, const char* t);
 
 template <typename Int>
 void ntoa(char* str, size_t size, Int num, size_t base = 10) {

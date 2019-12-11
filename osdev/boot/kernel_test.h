@@ -107,11 +107,14 @@ class KernelTest {
   (#test_suite_name, #test_name);                                          \
   void TEST_CLASS_NAME_(test_suite_name, test_name)::TestBody()
 
-#define EXPECT_EQ(T, U) ExpectEq(__FILE__, __LINE__, T, U);
-#define EXPECT_TRUE(T) ExpectTrue(__FILE__, __LINE__, T);
-#define EXPECT_FALSE(T) ExpectFalse(__FILE__, __LINE__, T);
+#define EXPECT_EQ(T, U) current_running->ExpectEq(__FILE__, __LINE__, T, U);
+#define EXPECT_TRUE(T) current_running->ExpectTrue(__FILE__, __LINE__, T);
+#define EXPECT_FALSE(T) current_running->ExpectFalse(__FILE__, __LINE__, T);
 
 extern "C" void __cxa_pure_virtual();
+
+// Need to make Expect* functions be accessible inside of other functions.
+extern KernelTest* current_running;
 
 }  // namespace kernel_test
 }  // namespace Kernel
