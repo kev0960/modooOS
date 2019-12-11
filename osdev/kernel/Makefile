@@ -19,11 +19,11 @@ CRTN_OBJ = ./obj/crtn.o
 
 OBJS_IN_OBJ_DIR = $(addprefix $(OBJDIR)/, $(OBJS))
 OBJ_LIST = $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS_IN_OBJ_DIR) $(CRTEND_OBJ) $(CRTN_OBJ)
-#DFILES = $(patsubst %.o,%.d,$(OBJS))
+DFILES = $(addprefix $(OBJDIR)/, $(patsubst %.o,%.d,$(OBJS)))
+
+$(info $(DFILES))
 
 all: kernel
-
-$(info $(OBJ_LIST))
 
 kernel: $(OBJS) kernel.ld Makefile
 	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o kernel.bin $(OBJ_LIST)
