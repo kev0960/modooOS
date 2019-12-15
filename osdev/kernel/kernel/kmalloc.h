@@ -2,7 +2,7 @@
 #define KMALLOC_H
 
 #include "../boot/kernel_paging.h"
-#include "types.h"
+#include "../std/types.h"
 
 #define KERNEL_HEAP_MEMORY_START_OFFSET 0x1000000  // 16 MB
 
@@ -31,6 +31,8 @@ class KernelMemoryManager {
   uint8_t* GetMemoryFromBucket(int bucket_index, uint32_t bytes);
   void FreeOccupiedChunk(uint8_t* addr);
   bool CheckMemoryDeleteSize(uint8_t* addr, uint32_t bytes) const;
+
+  void* AlignedAlloc(size_t alignment, size_t bytes);
 
   struct PrevAndNext {
     uint32_t prev_offset;
@@ -95,6 +97,8 @@ extern KernelMemoryManager kernel_memory_manager;
 void* kmalloc(size_t bytes);
 void* kcalloc(size_t bytes);
 void kfree(void* ptr);
+
+void* kaligned_alloc(size_t alignment, size_t bytes);
 
 }  // namespace Kernel
 

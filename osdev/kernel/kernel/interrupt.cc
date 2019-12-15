@@ -59,10 +59,9 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " rflags : " << args->rflags << "\n";
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
+  while(true) {}
   vga_output << "Current Thread Id : " << KernelThread::CurrentThread()->Id()
              << "\n";
-  while(1);
-
   if (int_num == 14 || int_num == 13 || int_num == 6) {
     uint64_t fault_addr;
     asm volatile("mov %%cr2, %0" : "=r"(fault_addr)::);

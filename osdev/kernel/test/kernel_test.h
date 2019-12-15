@@ -1,8 +1,8 @@
 #ifndef KERNEL_TEST_H
 #define KERNEL_TEST_H
 
-#include "printf.h"
-#include "types.h"
+#include "../std/printf.h"
+#include "../std/types.h"
 
 namespace Kernel {
 namespace kernel_test {

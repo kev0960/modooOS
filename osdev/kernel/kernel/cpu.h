@@ -1,7 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include "types.h"
+#include "../std/types.h"
 
 namespace Kernel {
 
@@ -38,6 +38,16 @@ inline void SetMSR(uint32_t msr, uint32_t lo, uint32_t hi) {
 
 inline void EnableInterrupt() { asm volatile("sti"); }
 inline void DisableInterrupt() { asm volatile("cli" ::: "memory"); }
+
+inline uint64_t ReadCR0() {
+  uint64_t cr0;
+  asm volatile(
+      "mov %%cr0, %%rax\n"
+      "mov %%rax, %0"
+      : "=m"(cr0)::"%rax");
+  return cr0;
+}
+
 }  // namespace Kernel
 
 #endif

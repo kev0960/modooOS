@@ -1,12 +1,10 @@
 #include "kmalloc.h"
-#include "printf.h"
-#include "string.h"
+#include "../std/printf.h"
+#include "../std/string.h"
+#include "kernel_util.h"
 
 namespace Kernel {
 namespace {
-
-const uint32_t kKmallocMagic = 0xDDDDDDD7u;
-const uint32_t kKmallocMagicOccupied = 0xDDDDDDDFu;
 
 int RoundUpNearestPowerOfTwoLog(uint32_t bytes) {
   // For example,
@@ -40,6 +38,8 @@ int RoundDownNearestPowerOfTwoLog(uint32_t bytes) {
 int RoundUpNearestPowerOfTwo(uint32_t bytes) {
   return 1 << RoundUpNearestPowerOfTwoLog(bytes);
 }
+
+bool IsPowerOfTwo(uint32_t x) { return (x & (x - 1)) == 0; }
 
 int GetBucketIndexOfFreeChunk(uint32_t bytes) {
   int power = RoundDownNearestPowerOfTwoLog(bytes);
@@ -76,12 +76,6 @@ void SetOccupied(uint8_t* byte) { (*byte) |= 0b00000001; }
 void SetFree(uint8_t* byte) { (*byte) &= 0b11111110; }
 bool IsOccupied(uint8_t* byte) { return (*byte) & 0b000000001; }
 
-// Check the magic value.
-[[maybe_unused]] bool CheckMagic(uint8_t* suffix) {
-  uint32_t* s = reinterpret_cast<uint32_t*>(suffix);
-  return (*s) == kKmallocMagic || (*s) == kKmallocMagicOccupied;
-}
-
 void SetChunkSize(uint8_t* addr, uint32_t size) {
   // Write the size of the chunk. Note that maximum size of the chunk will be
   // 2^30. We have enough space to write down the size.
@@ -91,14 +85,6 @@ void SetChunkSize(uint8_t* addr, uint32_t size) {
 
   // Now set the actual size.
   (*reinterpret_cast<uint32_t*>(addr)) |= (size << 1);
-}
-
-void SetMagic(uint8_t* addr) {
-  if (IsOccupied(addr)) {
-    (*reinterpret_cast<uint32_t*>(addr)) = kKmallocMagicOccupied;
-  } else {
-    (*reinterpret_cast<uint32_t*>(addr)) = kKmallocMagic;
-  }
 }
 
 uint32_t GetChunkSize(uint8_t* addr) {
@@ -126,6 +112,10 @@ uint32_t GetNextChunkOffset(uint8_t* addr) {
 // 4 byte prefix.
 uint8_t* GetMemoryBlockAddressFromChunkStart(uint8_t* addr) {
   return (addr + 4);
+}
+
+uint8_t* GetChunkStartFromMemoryBlockAddress(uint8_t* addr) {
+  return (addr - 4);
 }
 
 uint8_t* GetSuffixBlockAddressFromChunkStart(uint8_t* addr,
@@ -266,7 +256,7 @@ uint8_t* KernelMemoryManager::CreateNewUsedChunkAt(uint8_t* addr,
 
   uint8_t* suffix_addr = GetSuffixBlockAddressFromChunkStart(addr, memory_size);
   SetOccupied(suffix_addr);
-  SetMagic(suffix_addr);
+  SetChunkSize(suffix_addr, memory_size);
 
   return GetMemoryBlockAddressFromChunkStart(addr);
 }
@@ -388,8 +378,8 @@ bool KernelMemoryManager::SanityCheck() {
 
     if (IsOccupied(chunk)) {
       uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(chunk, chunk_size);
-      if (!CheckMagic(suffix)) {
-        kprintf("Magic Corrupted at : %d of %x \n", current_offset, chunk);
+      if (GetChunkSize(suffix) != chunk_size) {
+        kprintf("Chunk Corrupted at : %d of %x \n", current_offset, chunk);
         return false;
       }
     }
@@ -415,8 +405,8 @@ void KernelMemoryManager::DumpMemory() {
 
     if (is_occupied) {
       uint8_t* suffix = GetSuffixBlockAddressFromChunkStart(chunk, chunk_size);
-      if (!CheckMagic(suffix)) {
-        kprintf("MAGIC FAILED!");
+      if (GetChunkSize(suffix) != chunk_size) {
+        kprintf("CHUNK SUFFIX CORRUPTED! %x", *(uint32_t*)(suffix));
       }
     } else {
       auto prev_and_next = GetPrevAndNextFromFreeChunk(chunk);
@@ -428,6 +418,77 @@ void KernelMemoryManager::DumpMemory() {
 
     current_offset += (8 + chunk_size);
   }
+}
+
+void* KernelMemoryManager::AlignedAlloc(size_t alignment, size_t bytes) {
+  // First check that bytes is the power of 2.
+  if (!IsPowerOfTwo(alignment)) {
+    kprintf("The aligned address is not power of 2");
+    return nullptr;
+  }
+
+  // Allocate bytes + alignment - 1.
+  size_t memory_block =
+      reinterpret_cast<size_t>(kmalloc(bytes + alignment - 1));
+  uint8_t* chunk = GetChunkStartFromMemoryBlockAddress(
+      reinterpret_cast<uint8_t*>(memory_block));
+  size_t alloc_size = GetChunkSize(chunk);
+
+  // Now find the address that is the multiple of alignment.
+  size_t aligned_addr = (memory_block / alignment) * alignment;
+  if (aligned_addr < memory_block) {
+    aligned_addr += alignment;
+  }
+
+  // Now we have free any address before aligned_addr.
+  size_t left_free_size = aligned_addr - memory_block;
+
+  // Merge the left free space to pre-exising left chunk.
+  if (left_free_size > 0) {
+    uint8_t* suffix_of_left_chunk = chunk - 4;
+    if (suffix_of_left_chunk >= heap_start_ + 8 /* initial offset */) {
+      uint8_t* left = GetStartOfChunkFromSuffix(suffix_of_left_chunk);
+      size_t left_memory_size = GetChunkSize(left) + left_free_size;
+
+      // Increase the size of the left space.
+      SetChunkSize(left, left_memory_size);
+
+      // Also set new suffix.
+      uint8_t* suffix =
+          GetSuffixBlockAddressFromChunkStart(left, left_memory_size);
+      if (IsOccupied(left)) {
+        SetOccupied(suffix);
+      } else {
+        SetFree(suffix);
+      }
+      SetChunkSize(suffix, left_memory_size);
+    } else {
+      if (left_free_size >= 16) {
+        // We can create a new free node here. In this case, we should think of
+        // the size of the new prefix and suffix.
+        int bucket_index_of_remaining =
+            GetBucketIndexOfFreeChunk(left_free_size - 8);
+        CreateNewFreeChunkAt(chunk, left_free_size - 8,
+                             bucket_index_of_remaining);
+      } else {
+        kprintf("We have unusuable %d bytes of memory :( \n", left_free_size);
+      }
+    }
+
+    // Now we have to create new prefix for the aligned memory.
+    uint8_t* aligned_chunk = GetChunkStartFromMemoryBlockAddress(
+        reinterpret_cast<uint8_t*>(aligned_addr));
+    SetOccupied(aligned_chunk);
+    size_t new_alloc_size = alloc_size - left_free_size;
+    SetChunkSize(aligned_chunk, new_alloc_size);
+
+    uint8_t* suffix =
+        GetSuffixBlockAddressFromChunkStart(aligned_chunk, new_alloc_size);
+    SetOccupied(suffix);
+    SetChunkSize(suffix, new_alloc_size);
+  }
+
+  return reinterpret_cast<void*>(aligned_addr);
 }
 
 void* kmalloc(size_t bytes) {
@@ -457,6 +518,10 @@ void kfree(void* ptr) {
   uint8_t* addr = reinterpret_cast<uint8_t*>(ptr);
   addr -= 4;
   kernel_memory_manager.FreeOccupiedChunk(addr);
+}
+
+void* kaligned_alloc(size_t alignment, size_t bytes) {
+  return kernel_memory_manager.AlignedAlloc(alignment, bytes);
 }
 
 }  // namespace Kernel

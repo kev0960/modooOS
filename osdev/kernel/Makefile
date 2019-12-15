@@ -10,7 +10,7 @@ OBJDIR = ./obj
 
 OBJS := boot.o interrupt_handler.o
 OBJS += kmain.o string_util.o string.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o kernel_util.o
-OBJS += kernel_test.o filesystem_test.o
+OBJS += kernel_test.o kmalloc_test.o
 
 CRTI_OBJ = ./obj/crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
