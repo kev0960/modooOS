@@ -3,7 +3,7 @@
 
 #include "filesystem.h"
 #include "kthread.h"
-#include "types.h"
+#include "../std/types.h"
 
 namespace Kernel {
 

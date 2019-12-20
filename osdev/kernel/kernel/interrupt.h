@@ -1,7 +1,7 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 
-#include "stdint.h"
+#include "../std/stdint.h"
 
 namespace Kernel {
 

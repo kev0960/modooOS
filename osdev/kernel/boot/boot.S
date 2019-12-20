@@ -118,7 +118,7 @@ _start64:
   movw %ax, %gs
   movw %ax, %ss
 
-  movq $0x1, %rax
+  addq $0xffffffff80000000, %rsp
 
   call _init
   call KernelMain

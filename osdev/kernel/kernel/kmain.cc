@@ -27,9 +27,10 @@ void KernelMain() {
 
   Kernel::vga_output << "IDT setup is done! \n";
 
-  Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
+
+  Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   auto& ata_driver = Kernel::ATADriver::GetATADriver();
   (void)(ata_driver);

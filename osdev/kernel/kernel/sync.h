@@ -4,7 +4,7 @@
 #include "cpu.h"
 #include "kthread.h"
 #include "printf.h"
-#include "types.h"
+#include "../std/types.h"
 
 namespace Kernel {
 namespace std {

@@ -22,6 +22,15 @@ T integer_ratio_round_up(T m, U n) {
   return (m - 1) / n + 1;
 }
 
+namespace std {
+template <typename ForwardIt, typename T>
+void fill(ForwardIt first, ForwardIt last, const T& value) {
+  for (; first != last; ++first) {
+    *first = value;
+  }
+}
+
+}  // namespace std
 }  // namespace Kernel
 
 #endif

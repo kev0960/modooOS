@@ -1,14 +1,16 @@
 #ifndef VGA_OUTPUT_H
 #define VGA_OUTPUT_H
 
-#include "algorithm.h"
+#include "../std/algorithm.h"
+#include "../std/string_view.h"
+#include "../std/type_traits.h"
 #include "cpu.h"
 #include "printf.h"
-#include "string_view.h"
 #include "sync.h"
-#include "type_traits.h"
 
 namespace Kernel {
+
+constexpr uint64_t kVGAMemoryStart = 0xffffffff80000000 + 0xb8000;
 
 // Referred from https://os.phil-opp.com/vga-text-mode/
 enum VGAColor {
@@ -76,7 +78,7 @@ class VGAOutput {
       }
     }
 
-    auto vga = reinterpret_cast<uint16_t*>(0xb8000 + offset_);
+    auto vga = reinterpret_cast<uint16_t*>(kVGAMemoryStart + offset_);
     for (size_t i = 0; i < current_row_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
         /*
