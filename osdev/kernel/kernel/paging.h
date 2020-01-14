@@ -31,10 +31,13 @@ class BuddyBlockAllocator {
  private:
   static constexpr int kBuddyBlockAllocatorOrder = 13;
   static constexpr size_t kFrameSize = 4 * 1024;  // 4KB
-  static constexpr size_t kFrameSizeOrder = 12;  // 4KB
+  static constexpr size_t kFrameSizeOrder = 12;   // 4KB
 
   // Split blocks to allocate "order" size pages from chunk in free_list_index.
   void Split(size_t free_list_index, size_t order);
+
+  // Merge splitted chunk.
+  void MergeChunk(size_t order, size_t offset);
 
   template <typename T>
   size_t GetOffset(T* addr) {
@@ -43,9 +46,13 @@ class BuddyBlockAllocator {
   }
 
   size_t FlipBlockSplitted(size_t offset, size_t order);
+  bool IsBlockSplitted(size_t offset, size_t order) const;
 
   void AddToFreeList(size_t free_list_index, size_t offset);
   FrameDescriptor* RemoveFirstFromFreeList(size_t free_list_index);
+  void RemovePageFromFreeList(size_t free_list_index, FrameDescriptor* desc);
+  FrameDescriptor* FindPageFromFreeList(size_t free_list_index,
+                                        void* page_addr);
 
   // The physical address that this allocator starts.
   uint8_t* const start_phys_addr_;
