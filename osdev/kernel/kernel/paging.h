@@ -21,28 +21,37 @@ struct FrameDescriptor {
 
 class BuddyBlockAllocator {
  public:
-  BuddyBlockAllocator(uint8_t* const start_phys_addr);
+  BuddyBlockAllocator(uint8_t* const start_phys_addr,
+                      int buddy_block_allocator_order = 13,
+                      size_t frame_size = 4 * 1024 /* 4 KB */
+  );
 
   // This gives 2^order frames (total 2^order * 4kb).
   void* GetFrame(size_t order);
 
   void FreeFrame(void* addr);
 
- private:
-  static constexpr int kBuddyBlockAllocatorOrder = 13;
-  static constexpr size_t kFrameSize = 4 * 1024;  // 4KB
-  static constexpr size_t kFrameSizeOrder = 12;   // 4KB
+  // USE FOR DEBUGGING
+  void PrintSplitStatus();
 
+ private:
   // Split blocks to allocate "order" size pages from chunk in free_list_index.
+  // That means it will keep split the block until it reaches order.
+  // Note: size of the chunk = 2^{order}
   void Split(size_t free_list_index, size_t order);
 
   // Merge splitted chunk.
-  void MergeChunk(size_t order, size_t offset);
+  void MergeChunk(size_t offset, size_t order);
 
   template <typename T>
   size_t GetOffset(T* addr) {
     return reinterpret_cast<size_t>(addr) -
            reinterpret_cast<size_t>(start_phys_addr_);
+  }
+
+  void* GetAddrFromOffset(size_t offset) {
+    return reinterpret_cast<void*>(offset -
+                                   reinterpret_cast<size_t>(start_phys_addr_));
   }
 
   size_t FlipBlockSplitted(size_t offset, size_t order);
@@ -57,12 +66,14 @@ class BuddyBlockAllocator {
   // The physical address that this allocator starts.
   uint8_t* const start_phys_addr_;
 
-  // Each bit indicates whether certain block should be merged or not.
-  std::vector<int> free_leaf_info_;
+  const int kBuddyBlockAllocatorOrder;
+  const size_t kFrameSize;
+  const size_t kFrameSizeOrder;
 
+  // Each bit indicates whether certain block should be merged or not.
   std::vector<int> is_block_splitted_;
 
-  std::array<FrameDescriptor*, kBuddyBlockAllocatorOrder + 1> free_lists_;
+  std::vector<FrameDescriptor*> free_lists_;
 };
 
 class UserPageAllocator {};

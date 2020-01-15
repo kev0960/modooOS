@@ -31,11 +31,17 @@ constexpr int FlipBitByIndex(std::vector<T>* v, size_t index) {
 
 }  // namespace
 
-BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr)
-    : start_phys_addr_(start_phys_addr) {
+BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr,
+                                         int buddy_block_allocator_order,
+                                         size_t frame_size)
+    : start_phys_addr_(start_phys_addr),
+      kBuddyBlockAllocatorOrder(buddy_block_allocator_order),
+      kFrameSize(frame_size),
+      kFrameSizeOrder(LargestPowerOf2DivisorOrder(frame_size)) {
   // Initialize free list.
-  for (size_t i = 0; i < kBuddyBlockAllocatorOrder; i++) {
-    free_lists_[i] = nullptr;
+  free_lists_.reserve(kFrameSizeOrder + 1);
+  for (int i = 0; i < kBuddyBlockAllocatorOrder; i++) {
+    free_lists_.push_back(nullptr);
   }
 
   // Create the giant block that spans entire memory.
@@ -46,15 +52,12 @@ BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr)
 
   is_block_splitted_.reserve(PowerOf2(kBuddyBlockAllocatorOrder) - 1);
   std::fill(is_block_splitted_.begin(), is_block_splitted_.end(), 0);
-
-  free_leaf_info_.reserve(PowerOf2(kBuddyBlockAllocatorOrder));
-  std::fill(free_leaf_info_.begin(), free_leaf_info_.end(), 0);
 }
 
 void* BuddyBlockAllocator::GetFrame(size_t order) {
   // Iterate starting from freelist[order], find the empty page.
-  size_t free_list_index = -1;
-  for (size_t i = order; i <= kBuddyBlockAllocatorOrder; i++) {
+  int free_list_index = -1;
+  for (int i = order; i <= kBuddyBlockAllocatorOrder; i++) {
     if (free_lists_[i] != nullptr) {
       free_list_index = i;
       break;
@@ -70,7 +73,7 @@ void* BuddyBlockAllocator::GetFrame(size_t order) {
   auto* frame_desc = RemoveFirstFromFreeList(free_list_index);
 
   // We have to split the memory if larger chunk is only available.
-  if (free_list_index > order) {
+  if (free_list_index > (int)order) {
     Split(free_list_index, order);
   }
 
@@ -87,7 +90,7 @@ void BuddyBlockAllocator::FreeFrame(void* addr) {
   for (size_t order = 1; order <= largest_order; order++) {
     if (IsBlockSplitted(offset, order)) {
       // If the current block is splitted, then we have to free it.
-      MergeChunk(order, offset);
+      MergeChunk(offset, order);
     }
   }
 }
@@ -97,7 +100,7 @@ void BuddyBlockAllocator::Split(size_t free_list_index, size_t order) {
   size_t offset = GetOffset(frame_desc->page);
 
   // Get the bit index from is_block_splitted.
-  for (size_t i = free_list_index; i > order; i++) {
+  for (size_t i = free_list_index; i > order; i--) {
     FlipBlockSplitted(offset, i);
 
     // From the splitted chunk, put "right" part to the free list.
@@ -105,8 +108,28 @@ void BuddyBlockAllocator::Split(size_t free_list_index, size_t order) {
   }
 }
 
-void BuddyBlockAllocator::MergeChunk(size_t order, size_t offset) {
-  //
+// "Merging" here means that the making two chunks of free block within current
+// block into one whole block.
+void BuddyBlockAllocator::MergeChunk(size_t offset, size_t order) {
+  // We have to find the other part of the block from the free list.
+  size_t chunk_size = kFrameSize * PowerOf2(order);
+  size_t index_within_layer = offset / chunk_size;
+  size_t chunk_start_offset = chunk_size * index_within_layer;
+
+  // Newly freed block is on the left side.
+  if (chunk_start_offset <= offset &&
+      offset < chunk_start_offset + chunk_size / 2) {
+    // Remove right block from the free list.
+    auto* right_page = FindPageFromFreeList(
+        order - 1, GetAddrFromOffset(chunk_start_offset + chunk_size / 2));
+    RemovePageFromFreeList(order - 1, right_page);
+  } else {
+    auto* left_page =
+        FindPageFromFreeList(order - 1, GetAddrFromOffset(chunk_start_offset));
+    RemovePageFromFreeList(order - 1, left_page);
+  }
+
+  FlipBlockSplitted(offset, order);
 }
 
 size_t BuddyBlockAllocator::FlipBlockSplitted(size_t offset, size_t order) {
@@ -192,4 +215,9 @@ FrameDescriptor* BuddyBlockAllocator::FindPageFromFreeList(
   } while (start != curr && curr != nullptr);
   return nullptr;
 }
+
+void BuddyBlockAllocator::PrintSplitStatus() {
+  // TODO
+}
+
 }  // namespace Kernel
