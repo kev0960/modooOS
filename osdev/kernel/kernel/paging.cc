@@ -1,4 +1,6 @@
 #include "paging.h"
+#include "../std/algorithm.h"
+#include "../std/printf.h"
 
 namespace Kernel {
 namespace {
@@ -15,15 +17,15 @@ constexpr size_t PowerOf2(size_t x) { return 1 << x; }
 template <typename T>
 constexpr int GetBitByIndex(const std::vector<T>& v, size_t index) {
   // int --> 32 bits.
-  size_t index_in_vec = index / sizeof(T);
-  return v.at(index_in_vec) & (0x1 << (index % sizeof(T)));
+  size_t index_in_vec = index / (8 * sizeof(T));
+  return v.at(index_in_vec) & (0x1 << (index % (8 * sizeof(T))));
 }
 
 template <typename T>
 constexpr int FlipBitByIndex(std::vector<T>* v, size_t index) {
   // int --> 32 bits.
-  size_t index_in_vec = index / sizeof(T);
-  (*v)[index_in_vec] = v->at(index_in_vec) ^ (0x1 << (index % sizeof(T)));
+  size_t index_in_vec = index / (8 * sizeof(T));
+  (*v)[index_in_vec] = v->at(index_in_vec) ^ (0x1 << (index % (8 * sizeof(T))));
 
   // Returns the modified bit.
   return GetBitByIndex(*v, index);
@@ -37,24 +39,18 @@ BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr,
     : start_phys_addr_(start_phys_addr),
       kBuddyBlockAllocatorOrder(buddy_block_allocator_order),
       kFrameSize(frame_size),
-      kFrameSizeOrder(LargestPowerOf2DivisorOrder(frame_size)) {
-  // Initialize free list.
-  free_lists_.reserve(kFrameSizeOrder + 1);
-  for (int i = 0; i < kBuddyBlockAllocatorOrder; i++) {
-    free_lists_.push_back(nullptr);
-  }
-
+      kFrameSizeOrder(LargestPowerOf2DivisorOrder(frame_size)),
+      need_merge_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
+      block_splitted_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
+      free_lists_(kFrameSizeOrder + 1, nullptr) {
   // Create the giant block that spans entire memory.
   auto* start_block = new FrameDescriptor(start_phys_addr_);
   start_block->prev = start_block;
   start_block->next = start_block;
   free_lists_[kBuddyBlockAllocatorOrder] = start_block;
-
-  is_block_splitted_.reserve(PowerOf2(kBuddyBlockAllocatorOrder) - 1);
-  std::fill(is_block_splitted_.begin(), is_block_splitted_.end(), 0);
 }
 
-void* BuddyBlockAllocator::GetFrame(size_t order) {
+void* BuddyBlockAllocator::GetFrame(int order) {
   // Iterate starting from freelist[order], find the empty page.
   int free_list_index = -1;
   for (int i = order; i <= kBuddyBlockAllocatorOrder; i++) {
@@ -71,45 +67,93 @@ void* BuddyBlockAllocator::GetFrame(size_t order) {
 
   // Remove current chunk from free list.
   auto* frame_desc = RemoveFirstFromFreeList(free_list_index);
+  void* addr = frame_desc->page;
+  delete frame_desc;
 
   // We have to split the memory if larger chunk is only available.
-  if (free_list_index > (int)order) {
-    Split(free_list_index, order);
-  }
-
-  return frame_desc->page;
-}
-
-void BuddyBlockAllocator::FreeFrame(void* addr) {
-  size_t offset = GetOffset(addr);
-
-  // We need to find the size of the block.
-  size_t largest_order =
-      LargestPowerOf2DivisorOrder(offset) - kFrameSizeOrder + 1;
-
-  for (size_t order = 1; order <= largest_order; order++) {
-    if (IsBlockSplitted(offset, order)) {
-      // If the current block is splitted, then we have to free it.
-      MergeChunk(offset, order);
+  if (free_list_index > order) {
+    if (free_list_index < kBuddyBlockAllocatorOrder) {
+      FlipNeedMerge(GetOffset(addr), free_list_index + 1);
+    }
+    Split(free_list_index, order, addr);
+  } else {
+    // If we are using one of the already "free" page, then we have to filp
+    // "NeedMerge" bit of the containing block.
+    if (order < kBuddyBlockAllocatorOrder) {
+      FlipNeedMerge(GetOffset(addr), order + 1);
     }
   }
+
+  return addr;
 }
 
-void BuddyBlockAllocator::Split(size_t free_list_index, size_t order) {
-  FrameDescriptor* frame_desc = free_lists_[free_list_index];
-  size_t offset = GetOffset(frame_desc->page);
-
-  // Get the bit index from is_block_splitted.
+void BuddyBlockAllocator::Split(size_t free_list_index, size_t order,
+                                void* addr) {
+  size_t offset = GetOffset(addr);
   for (size_t i = free_list_index; i > order; i--) {
-    FlipBlockSplitted(offset, i);
+    FlipNeedMerge(offset, i);
+    SetSplitted(offset, i);
 
     // From the splitted chunk, put "right" part to the free list.
     AddToFreeList(i - 1, offset + kFrameSize * PowerOf2(i - 1));
   }
 }
 
+void BuddyBlockAllocator::FreeFrame(void* addr) {
+  size_t offset = GetOffset(addr);
+
+  // Possible largest size of this block.
+  size_t largest_possible_order =
+      offset == 0 ? kBuddyBlockAllocatorOrder
+                  : LargestPowerOf2DivisorOrder(offset) - kFrameSizeOrder;
+
+  // Need to figure out actual size.
+  size_t actual_order = largest_possible_order;
+  for (size_t order = 1; order <= largest_possible_order; order++) {
+    if (IsSplitted(offset, order)) {
+      actual_order = order - 1;
+      break;
+    }
+  }
+
+  kprintf("Actual order : %d %d\n", actual_order, offset);
+
+  size_t order = actual_order + 1;
+  FlipNeedMerge(offset, order);
+
+  for (; order <=
+         min(largest_possible_order + 1, (size_t)(kBuddyBlockAllocatorOrder));
+       order++) {
+    kprintf("both free? : %d %d\n", order, IsBothFreeOrOccupied(offset, order));
+    if (IsBothFreeOrOccupied(offset, order)) {
+      // If the current block is splitted, then we have to free it.
+      MergeChunk(offset, order);
+    } else {
+      break;
+    }
+  }
+  AddToFreeList(/*free_list_index=*/order - 1,
+                GetChunkStartOffset(offset, order - 1));
+}
+
 // "Merging" here means that the making two chunks of free block within current
 // block into one whole block.
+//
+//  sizeof(A) + sizeof(B) == 2^order
+//
+//  |-----------------|----------------|
+//  |                 |                |
+//  |        A        |        B       |  : order
+//  |                 |                |
+//  |-----------------|----------------|
+//
+//  Becomes
+//
+//  |-----------------|----------------|
+//  |                                  |
+//  |                                  |  : order
+//  |                                  |
+//  |-----------------|----------------|
 void BuddyBlockAllocator::MergeChunk(size_t offset, size_t order) {
   // We have to find the other part of the block from the free list.
   size_t chunk_size = kFrameSize * PowerOf2(order);
@@ -123,31 +167,68 @@ void BuddyBlockAllocator::MergeChunk(size_t offset, size_t order) {
     auto* right_page = FindPageFromFreeList(
         order - 1, GetAddrFromOffset(chunk_start_offset + chunk_size / 2));
     RemovePageFromFreeList(order - 1, right_page);
+    delete right_page;
   } else {
     auto* left_page =
         FindPageFromFreeList(order - 1, GetAddrFromOffset(chunk_start_offset));
     RemovePageFromFreeList(order - 1, left_page);
+    delete left_page;
   }
 
-  FlipBlockSplitted(offset, order);
+  if (order < (size_t)kBuddyBlockAllocatorOrder) {
+    FlipNeedMerge(offset, order + 1);
+  }
+  SetMerged(offset, order);
 }
 
-size_t BuddyBlockAllocator::FlipBlockSplitted(size_t offset, size_t order) {
+size_t BuddyBlockAllocator::FlipNeedMerge(size_t offset, size_t order) {
   size_t chunk_size = kFrameSize * PowerOf2(order);
   size_t index_within_layer = offset / chunk_size;
 
   size_t index =
       PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  return FlipBitByIndex(&is_block_splitted_, index);
+  return FlipBitByIndex(&need_merge_, index);
 }
 
-bool BuddyBlockAllocator::IsBlockSplitted(size_t offset, size_t order) const {
+bool BuddyBlockAllocator::IsBothFreeOrOccupied(size_t offset,
+                                               size_t order) const {
   size_t chunk_size = kFrameSize * PowerOf2(order);
   size_t index_within_layer = offset / chunk_size;
 
   size_t index =
       PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  return GetBitByIndex(is_block_splitted_, index);
+  return !GetBitByIndex(need_merge_, index);
+}
+
+void BuddyBlockAllocator::SetSplitted(size_t offset, size_t order) {
+  size_t chunk_size = kFrameSize * PowerOf2(order);
+  size_t index_within_layer = offset / chunk_size;
+
+  size_t index =
+      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
+  if (!GetBitByIndex(block_splitted_, index)) {
+    FlipBitByIndex(&block_splitted_, index);
+  }
+}
+
+void BuddyBlockAllocator::SetMerged(size_t offset, size_t order) {
+  size_t chunk_size = kFrameSize * PowerOf2(order);
+  size_t index_within_layer = offset / chunk_size;
+
+  size_t index =
+      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
+  if (GetBitByIndex(block_splitted_, index)) {
+    FlipBitByIndex(&block_splitted_, index);
+  }
+}
+
+bool BuddyBlockAllocator::IsSplitted(size_t offset, size_t order) const {
+  size_t chunk_size = kFrameSize * PowerOf2(order);
+  size_t index_within_layer = offset / chunk_size;
+
+  size_t index =
+      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
+  return GetBitByIndex(block_splitted_, index);
 }
 
 void BuddyBlockAllocator::AddToFreeList(size_t free_list_index, size_t offset) {
@@ -172,7 +253,10 @@ FrameDescriptor* BuddyBlockAllocator::RemoveFirstFromFreeList(
   auto* first = free_lists_[free_list_index];
   free_lists_[free_list_index] = first->next;
 
-  if (free_lists_[free_list_index] != nullptr) {
+  // If there were only "first" in the list.
+  if (free_lists_[free_list_index] == first) {
+    free_lists_[free_list_index] = nullptr;
+  } else if (free_lists_[free_list_index] != nullptr) {
     auto* new_first = free_lists_[free_list_index];
     new_first->prev = first->prev;
     first->prev->next = new_first;
@@ -194,7 +278,13 @@ void BuddyBlockAllocator::RemovePageFromFreeList(size_t free_list_index,
 
   // Move the head to point next if the head is getting removed.
   if (free_lists_[free_list_index] == desc) {
-    free_lists_[free_list_index] = desc->next;
+    if (desc != desc->next) {
+      free_lists_[free_list_index] = desc->next;
+    } else {
+      // If desc was the last description in the list, then we mark it as
+      // nullptr.
+      free_lists_[free_list_index] = nullptr;
+    }
   }
 }
 
@@ -216,8 +306,54 @@ FrameDescriptor* BuddyBlockAllocator::FindPageFromFreeList(
   return nullptr;
 }
 
-void BuddyBlockAllocator::PrintSplitStatus() {
-  // TODO
+size_t BuddyBlockAllocator::GetChunkStartOffset(size_t offset,
+                                                size_t order) const {
+  size_t chunk_size = kFrameSize * PowerOf2(order);
+  size_t index_within_layer = offset / chunk_size;
+  return chunk_size * index_within_layer;
+}
+
+void BuddyBlockAllocator::PrintNeedMergeStatus() const {
+  for (int i = kBuddyBlockAllocatorOrder; i > 0; i--) {
+    for (size_t j = 0; j < PowerOf2(kBuddyBlockAllocatorOrder - i); j++) {
+      if (!IsBothFreeOrOccupied(j * kFrameSize * PowerOf2(i), i)) {
+        kprintf("1");
+      } else {
+        kprintf("0");
+      }
+    }
+    kprintf("\n");
+  }
+}
+
+void BuddyBlockAllocator::PrintSplitStatus() const {
+  for (int i = kBuddyBlockAllocatorOrder; i > 0; i--) {
+    for (size_t j = 0; j < PowerOf2(kBuddyBlockAllocatorOrder - i); j++) {
+      if (IsSplitted(j * kFrameSize * PowerOf2(i), i)) {
+        kprintf("S");
+      } else {
+        kprintf("M");
+      }
+    }
+    kprintf("\n");
+  }
+}
+
+void BuddyBlockAllocator::PrintFreeLists() const {
+  for (size_t i = 0; i < free_lists_.size(); i++) {
+    kprintf("------------- %d ------------\n", i);
+    const FrameDescriptor* head = free_lists_.at(i);
+    if (head != nullptr) {
+      const FrameDescriptor* curr = head;
+      do {
+        curr->Print();
+      } while (curr != head);
+    }
+  }
+}
+
+void FrameDescriptor::Print() const {
+  kprintf("Page [%x] Prev [%x] Next [%x] \n", page, prev, next);
 }
 
 }  // namespace Kernel

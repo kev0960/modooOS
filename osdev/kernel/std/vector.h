@@ -78,6 +78,16 @@ class vector {
     }
   }
 
+  vector(size_t size, const T& v) : size_(size), alloc_size_(size_) {
+    data_ = alloc_::allocate(allocator_, sizeof(T) * size);
+    for (size_t i = 0; i < size_; i++) {
+      alloc_::construct(allocator_, &data_[i]);
+    }
+    for (size_t i = 0; i < size_; i++) {
+      data_[i] = v;
+    }
+  }
+
   vector(const vector& v) { CopyFrom(v); }
 
   vector(vector&& v) {
