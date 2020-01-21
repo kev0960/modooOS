@@ -42,7 +42,7 @@ BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr,
       kFrameSizeOrder(LargestPowerOf2DivisorOrder(frame_size)),
       need_merge_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
       block_splitted_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
-      free_lists_(kFrameSizeOrder + 1, nullptr) {
+      free_lists_(kBuddyBlockAllocatorOrder + 1, nullptr) {
   // Create the giant block that spans entire memory.
   auto* start_block = new FrameDescriptor(start_phys_addr_);
   start_block->prev = start_block;
@@ -116,15 +116,12 @@ void BuddyBlockAllocator::FreeFrame(void* addr) {
     }
   }
 
-  kprintf("Actual order : %d %d\n", actual_order, offset);
-
   size_t order = actual_order + 1;
-  FlipNeedMerge(offset, order);
+  if (order <= (size_t)kBuddyBlockAllocatorOrder) {
+    FlipNeedMerge(offset, order);
+  }
 
-  for (; order <=
-         min(largest_possible_order + 1, (size_t)(kBuddyBlockAllocatorOrder));
-       order++) {
-    kprintf("both free? : %d %d\n", order, IsBothFreeOrOccupied(offset, order));
+  for (; order <= (size_t)(kBuddyBlockAllocatorOrder); order++) {
     if (IsBothFreeOrOccupied(offset, order)) {
       // If the current block is splitted, then we have to free it.
       MergeChunk(offset, order);
@@ -350,6 +347,15 @@ void BuddyBlockAllocator::PrintFreeLists() const {
       } while (curr != head);
     }
   }
+}
+
+bool BuddyBlockAllocator::IsEmpty() const {
+  for (size_t i = 0; i < free_lists_.size() - 1; i++) {
+    if (free_lists_.at(i) != nullptr) {
+      return false;
+    }
+  }
+  return free_lists_.at(free_lists_.size() - 1) != nullptr;
 }
 
 void FrameDescriptor::Print() const {

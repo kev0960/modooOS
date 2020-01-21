@@ -37,6 +37,7 @@ class BuddyBlockAllocator {
   void PrintSplitStatus() const;
   void PrintNeedMergeStatus() const;
   void PrintFreeLists() const;
+  bool IsEmpty() const;
 
  private:
   // Split blocks to allocate "order" size pages from chunk in free_list_index.
@@ -54,7 +55,7 @@ class BuddyBlockAllocator {
   }
 
   void* GetAddrFromOffset(size_t offset) {
-    return reinterpret_cast<void*>(offset -
+    return reinterpret_cast<void*>(offset +
                                    reinterpret_cast<size_t>(start_phys_addr_));
   }
 
