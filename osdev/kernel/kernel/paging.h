@@ -1,94 +1,71 @@
 #ifndef PAGING_H
 #define PAGING_H
 
-#include "../std/array.h"
 #include "../std/types.h"
-#include "../std/vector.h"
 
 namespace Kernel {
+// Physical Memory Layout
+//
+//  THIS IS THE PHYSICAL MEMORY (Not Virtual)
+//
+//   ----------------- End of RAM
+//   |               |
+//   |               |
+//   |               |
+//   |   User Mem    |
+//   |               |
+//   |               |
+//   |               |
+//   |               |
+//   -----------------   0x00000000 3FFFFFFF (1GB)
+//   |               |
+//   |               |
+//   |  Kernel Heap  |
+//   |               |
+//   -----------------   0x00000000 01400000
+//   |     Buffer    |
+//   -----------------   0x00000000 ????????
+//   |               |
+//   | Device Driver |   E.g Vga output : 0x00000000 000b8000
+//   |               |
+//   -----------------   0x00000000 ????????
+//   |               |
+//   |  Kernel Stack |   8 KB
+//   |               |
+//   -----------------   0x00000000 ????????
+//   |               |
+//   |   Boot Data   |
+//   |  structures   |
+//   |               |
+//   -----------------   0x00000000 00000000
+//
+// Virtual Memory Layout
+//
+// 0xFFFFFFFF 80000000 ~ 0xFFFFFFFF BFFFFFFF --> Kernel memory
+//
+// 0x00000000 00000000 ~ --> User memory.
+//
 
-// Physical frame allocator.
-// We use buddy block based allocation.
-class FrameAllocator {};
-
-struct FrameDescriptor {
-  void* page;
-  FrameDescriptor* prev;
-  FrameDescriptor* next;
-
-  FrameDescriptor(void* page) : page(page), prev(nullptr), next(nullptr) {}
-
-  void Print() const;
-};
-
-class BuddyBlockAllocator {
+class KernelPageTable {
  public:
-  BuddyBlockAllocator(uint8_t* const start_phys_addr,
-                      int buddy_block_allocator_order = 13,
-                      size_t frame_size = 4 * 1024 /* 4 KB */
-  );
-
-  // This gives 2^order frames (total 2^order * 4kb).
-  void* GetFrame(int order);
-
-  void FreeFrame(void* addr);
-
-  // USE FOR DEBUGGING
-  void PrintSplitStatus() const;
-  void PrintNeedMergeStatus() const;
-  void PrintFreeLists() const;
-  bool IsEmpty() const;
+  void Init4KBPaging(uint64_t kernel_vm_start_addr, size_t bytes);
 
  private:
-  // Split blocks to allocate "order" size pages from chunk in free_list_index.
-  // That means it will keep split the block until it reaches order.
-  // Note: size of the chunk = 2^{order}
-  void Split(size_t free_list_index, size_t order, void* addr);
+  void SetPML4E(uint64_t start_addr, uint64_t size);
+  // [start_addr, end_addr)
+  void SetPDPT(uint64_t start_addr, uint64_t end_addr,
+               uint64_t* pdpe_base_addr);
+  void SetPDT(uint64_t start_addr, uint64_t size, uint64_t* pdt_base_addr);
+  void SetPT(uint64_t start_addr, uint64_t size, uint64_t* pt_base_addr);
 
-  // Merge splitted chunk.
-  void MergeChunk(size_t offset, size_t order);
+  template <typename GetOffset, typename GetStartAddr,
+            typename SetNextLevelPageTable, size_t AddressSpaceSizePerEntry>
+  void SetTableEntry(uint64_t start_addr, uint64_t end_addr,
+                     uint64_t* table_base_addr);
 
-  template <typename T>
-  size_t GetOffset(T* addr) {
-    return reinterpret_cast<size_t>(addr) -
-           reinterpret_cast<size_t>(start_phys_addr_);
-  }
-
-  void* GetAddrFromOffset(size_t offset) {
-    return reinterpret_cast<void*>(offset +
-                                   reinterpret_cast<size_t>(start_phys_addr_));
-  }
-
-  size_t FlipNeedMerge(size_t offset, size_t order);
-  bool IsBothFreeOrOccupied(size_t offset, size_t order) const;
-
-  void SetSplitted(size_t offset, size_t order);
-  void SetMerged(size_t offset, size_t order);
-  bool IsSplitted(size_t offset, size_t order) const;
-
-  size_t GetChunkStartOffset(size_t offset, size_t order) const;
-
-  void AddToFreeList(size_t free_list_index, size_t offset);
-  FrameDescriptor* RemoveFirstFromFreeList(size_t free_list_index);
-  void RemovePageFromFreeList(size_t free_list_index, FrameDescriptor* desc);
-  FrameDescriptor* FindPageFromFreeList(size_t free_list_index,
-                                        void* page_addr);
-
-  // The physical address that this allocator starts.
-  uint8_t* const start_phys_addr_;
-
-  const int kBuddyBlockAllocatorOrder;
-  const size_t kFrameSize;
-  const size_t kFrameSizeOrder;
-
-  // Each bit indicates whether certain block should be merged or not.
-  // Stores (is left free XOR is right free)
-  std::vector<int> need_merge_;
-
-  // Each bit indicates whether certain block is splitted.
-  std::vector<int> block_splitted_;
-
-  std::vector<FrameDescriptor*> free_lists_;
+  // Register start_addr ~ start_addr + size address as Kernel Page.
+  void RegisterKernelPage(uint64_t start_addr, uint64_t size);
+  uint64_t* pml4e_base_addr_;
 };
 
 class UserPageAllocator {};

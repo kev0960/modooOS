@@ -1,365 +1,257 @@
 #include "paging.h"
 #include "../std/algorithm.h"
 #include "../std/printf.h"
+#include "kernel_util.h"
+#include "kmalloc.h"
 
 namespace Kernel {
 namespace {
-// E.g 12 --> 4. 96 --> 32.
-constexpr size_t LargestPowerOf2Divisor(size_t x) { return x & (-x); }
 
-// E.g 12 --> 2. 96 --> 5.
-constexpr size_t LargestPowerOf2DivisorOrder(size_t x) {
-  return __builtin_ctz(LargestPowerOf2Divisor(x));
+constexpr uint64_t kKernelVirtualOffset = 0xFFFFFFFF80000000;
+constexpr uint64_t FourKB = 0x1000;
+
+constexpr uint64_t kPML4AddressSizePerEntry = (1LL << 39);
+constexpr size_t kPML4EntryNum = 512;
+
+constexpr uint64_t kPDPTableAddressSizePerEntry = (1LL << 30);
+constexpr size_t kPDPTEntryNum = 512;
+
+constexpr uint64_t kPDTableAddressSizePerEntry = (1LL << 21);
+constexpr size_t kPDTableEntryNum = 512;
+
+constexpr uint64_t kPageTableAddressSizePerEntry = (1LL << 12);
+constexpr size_t kPageTableEntryNum = 512;
+
+void SetPresent(uint64_t* entry) { (*entry) |= 1; }
+bool IsPresent(uint64_t entry) { return entry & 1; }
+
+void SetReadWrite(uint64_t* entry) { (*entry) |= 0x2; }
+
+void SetSupervisor(uint64_t* entry) { (*entry) |= 0x4; }
+
+void SetBaseAddress(uint64_t base_addr, uint64_t* entry) {
+  ASSERT(base_addr % FourKB == 0);
+  (*entry) |= base_addr;
 }
 
-constexpr size_t PowerOf2(size_t x) { return 1 << x; }
-
-template <typename T>
-constexpr int GetBitByIndex(const std::vector<T>& v, size_t index) {
-  // int --> 32 bits.
-  size_t index_in_vec = index / (8 * sizeof(T));
-  return v.at(index_in_vec) & (0x1 << (index % (8 * sizeof(T))));
+uint64_t* GetBaseAddress(uint64_t entry) {
+  return reinterpret_cast<uint64_t*>(entry & (0x000FFFFFFFFFF000LL));
 }
 
-template <typename T>
-constexpr int FlipBitByIndex(std::vector<T>* v, size_t index) {
-  // int --> 32 bits.
-  size_t index_in_vec = index / (8 * sizeof(T));
-  (*v)[index_in_vec] = v->at(index_in_vec) ^ (0x1 << (index % (8 * sizeof(T))));
+template <typename T, typename U>
+T KernelToPhys(U* kernel_virtual_addr) {
+  return reinterpret_cast<T>(reinterpret_cast<uint64_t>(kernel_virtual_addr) -
+                             kKernelVirtualOffset);
+}
 
-  // Returns the modified bit.
-  return GetBitByIndex(*v, index);
+template <typename T, typename U>
+T PhysToKernel(U* physical_addr) {
+  return reinterpret_cast<T>(reinterpret_cast<uint64_t>(physical_addr) +
+                             kKernelVirtualOffset);
+}
+
+size_t GetPML4Offset(uint64_t addr) {
+  addr = addr >> 39;
+  return addr % 512;
+}
+
+uint64_t GetPML4StartAddr(uint64_t addr) { return (addr >> 39) << 39; }
+
+size_t GetPDPOffset(uint64_t addr) {
+  addr = addr >> 30;
+  return addr % 512;
+}
+
+uint64_t GetPDPStartAddr(uint64_t addr) { return (addr >> 30) << 30; }
+
+size_t GetPDOffset(uint64_t addr) {
+  addr = addr >> 21;
+  return addr % 512;
+}
+
+uint64_t GetPDStartAddr(uint64_t addr) { return (addr >> 21) << 21; }
+
+size_t GetPTOffset(uint64_t addr) {
+  addr = addr >> 12;
+  return addr % 512;
+}
+
+uint64_t GetPTStartAddr(uint64_t addr) { return (addr >> 12) << 12; }
+
+// For 4KB Paging, all the page table entries share the similar structure. We
+// don't have to define specific functions for each type of tables.
+void SetEntry(uint64_t page_dir_pointer_addr, bool present, bool rw, bool super,
+              uint64_t* entry) {
+  // Clear the entry to 0.
+  *entry = 0;
+
+  if (present) {
+    SetPresent(entry);
+  }
+
+  if (rw) {
+    SetReadWrite(entry);
+  }
+
+  if (super) {
+    SetSupervisor(entry);
+  }
+
+  // Note page_dir_pointer_addr is assumed to be 4KB aligned.
+  ASSERT(page_dir_pointer_addr % 0x1000 == 0);
+  SetBaseAddress(page_dir_pointer_addr, entry);
+}
+
+// Always returns physical address. The actual table lives in the kernel memory.
+uint64_t* CreateNewTable() {
+  uint64_t* table_base_addr =
+      KernelToPhys<uint64_t*>(kaligned_alloc(FourKB, sizeof(uint64_t) * 512));
+
+  // Zero initialize.
+  for (size_t i = 0; i < kPDPTEntryNum; i++) {
+    SetEntry(0, /*present=*/false, false, false, &table_base_addr[i]);
+  }
+
+  return table_base_addr;
 }
 
 }  // namespace
 
-BuddyBlockAllocator::BuddyBlockAllocator(uint8_t* const start_phys_addr,
-                                         int buddy_block_allocator_order,
-                                         size_t frame_size)
-    : start_phys_addr_(start_phys_addr),
-      kBuddyBlockAllocatorOrder(buddy_block_allocator_order),
-      kFrameSize(frame_size),
-      kFrameSizeOrder(LargestPowerOf2DivisorOrder(frame_size)),
-      need_merge_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
-      block_splitted_(PowerOf2(kBuddyBlockAllocatorOrder) - 1, 0),
-      free_lists_(kBuddyBlockAllocatorOrder + 1, nullptr) {
-  // Create the giant block that spans entire memory.
-  auto* start_block = new FrameDescriptor(start_phys_addr_);
-  start_block->prev = start_block;
-  start_block->next = start_block;
-  free_lists_[kBuddyBlockAllocatorOrder] = start_block;
+void KernelPageTable::Init4KBPaging(uint64_t kernel_vm_start_addr,
+                                    size_t bytes) {
+  // First initialize the Page-Map Level-4 Table (the first table).
+  pml4e_base_addr_ = KernelToPhys<uint64_t*>(
+      kaligned_alloc(FourKB, sizeof(uint64_t) * kPML4EntryNum));
+
+  // Zero initialize.
+  for (size_t i = 0; i < 512; i++) {
+    SetEntry(0, /*present=*/false, false, false, &pml4e_base_addr_[i]);
+  }
+
+  // Initialize kernel paging.
+  SetPML4E(kernel_vm_start_addr, bytes);
 }
 
-void* BuddyBlockAllocator::GetFrame(int order) {
-  // Iterate starting from freelist[order], find the empty page.
-  int free_list_index = -1;
-  for (int i = order; i <= kBuddyBlockAllocatorOrder; i++) {
-    if (free_lists_[i] != nullptr) {
-      free_list_index = i;
-      break;
+void KernelPageTable::RegisterKernelPage(uint64_t start_addr, uint64_t size) {
+  // size should be multiple of 4kb.
+  ASSERT(size % FourKB == 0);
+  ASSERT(start_addr % FourKB == 0);
+}
+
+void KernelPageTable::SetPML4E(uint64_t start_addr, uint64_t size) {
+  size_t offset_start = GetPML4Offset(start_addr);
+  size_t offset_end = GetPML4Offset(start_addr + size - 1);
+  uint64_t pml4_start_addr = GetPML4StartAddr(start_addr);
+
+  kprintf("start : %d end : %d start : %lx \n", offset_start, offset_end,
+          pml4_start_addr);
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (!IsPresent(pml4e_base_addr_[offset])) {
+      // We need to create a Page directory pointer table (Level 3).
+      uint64_t* pdpt_base_addr = CreateNewTable();
+      SetEntry((uint64_t)pdpt_base_addr, /*present=*/true, /*rw=*/true,
+               /*super=*/true, &pml4e_base_addr_[offset]);
     }
+    uint64_t* pdpt_base_addr =
+        PhysToKernel<uint64_t*>(GetBaseAddress(pml4e_base_addr_[offset]));
+    int delta = offset - offset_start;
+    SetPDPT(max(start_addr, pml4_start_addr + delta * kPML4AddressSizePerEntry),
+            min(start_addr + size,
+                pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry),
+            pdpt_base_addr);
   }
+}
 
-  // No free memory available for that size.
-  if (free_list_index == -1) {
-    return nullptr;
-  }
+void KernelPageTable::SetPDPT(uint64_t start_addr, uint64_t end_addr,
+                              uint64_t* pdpe_base_addr) {
+  size_t offset_start = GetPDPOffset(start_addr);
+  size_t offset_end = GetPDPOffset(end_addr - 1);
+  uint64_t pdpt_start_addr = GetPDPStartAddr(start_addr);
 
-  // Remove current chunk from free list.
-  auto* frame_desc = RemoveFirstFromFreeList(free_list_index);
-  void* addr = frame_desc->page;
-  delete frame_desc;
-
-  // We have to split the memory if larger chunk is only available.
-  if (free_list_index > order) {
-    if (free_list_index < kBuddyBlockAllocatorOrder) {
-      FlipNeedMerge(GetOffset(addr), free_list_index + 1);
+  kprintf("[PDPT] start : %d end : %d base : %lx start : %lx \n", offset_start,
+          offset_end, pdpe_base_addr, pdpt_start_addr);
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (!IsPresent(pdpe_base_addr[offset])) {
+      uint64_t* pdt_base_addr = CreateNewTable();
+      SetEntry((uint64_t)pdt_base_addr, /*present=*/true, /*rw=*/true,
+               /*super=*/true, &pdpe_base_addr[offset]);
     }
-    Split(free_list_index, order, addr);
-  } else {
-    // If we are using one of the already "free" page, then we have to filp
-    // "NeedMerge" bit of the containing block.
-    if (order < kBuddyBlockAllocatorOrder) {
-      FlipNeedMerge(GetOffset(addr), order + 1);
+    uint64_t* pdt_base_addr =
+        PhysToKernel<uint64_t*>(GetBaseAddress(pdpe_base_addr[offset]));
+    int delta = offset - offset_start;
+    SetPDT(
+        max(start_addr, pdpt_start_addr + delta * kPDPTableAddressSizePerEntry),
+        min(end_addr,
+            pdpt_start_addr + (delta + 1) * kPDPTableAddressSizePerEntry),
+        pdt_base_addr);
+  }
+}
+
+void KernelPageTable::SetPDT(uint64_t start_addr, uint64_t end_addr,
+                             uint64_t* pdt_base_addr) {
+  size_t offset_start = GetPDOffset(start_addr);
+  size_t offset_end = GetPDOffset(end_addr - 1);
+  uint64_t pdt_start_addr = GetPDStartAddr(start_addr);
+
+  kprintf("[PDT] start : %d end : %d base : %lx start : %lx \n", offset_start,
+          offset_end, pdt_base_addr, pdt_start_addr);
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (!IsPresent(pdt_base_addr[offset])) {
+      uint64_t* pt_base_addr = CreateNewTable();
+      SetEntry((uint64_t)pt_base_addr, /*present=*/true, /*rw=*/true,
+               /*super=*/true, &pdt_base_addr[offset]);
     }
-  }
-
-  return addr;
-}
-
-void BuddyBlockAllocator::Split(size_t free_list_index, size_t order,
-                                void* addr) {
-  size_t offset = GetOffset(addr);
-  for (size_t i = free_list_index; i > order; i--) {
-    FlipNeedMerge(offset, i);
-    SetSplitted(offset, i);
-
-    // From the splitted chunk, put "right" part to the free list.
-    AddToFreeList(i - 1, offset + kFrameSize * PowerOf2(i - 1));
+    uint64_t* pt_base_addr =
+        PhysToKernel<uint64_t*>(GetBaseAddress(pdt_base_addr[offset]));
+    int delta = offset - offset_start;
+    SetPT(
+        max(start_addr, pdt_start_addr + delta * kPDPTableAddressSizePerEntry),
+        min(end_addr,
+            pdt_start_addr + (delta + 1) * kPDTableAddressSizePerEntry),
+        pt_base_addr);
   }
 }
 
-void BuddyBlockAllocator::FreeFrame(void* addr) {
-  size_t offset = GetOffset(addr);
+void KernelPageTable::SetPT(uint64_t start_addr, uint64_t end_addr,
+                            uint64_t* pt_base_addr) {
+  size_t offset_start = GetPTOffset(start_addr);
+  size_t offset_end = GetPTOffset(end_addr - 1);
+  uint64_t pt_start_addr = GetPTStartAddr(start_addr);
 
-  // Possible largest size of this block.
-  size_t largest_possible_order =
-      offset == 0 ? kBuddyBlockAllocatorOrder
-                  : LargestPowerOf2DivisorOrder(offset) - kFrameSizeOrder;
+  /*
+  kprintf("start : %d end : %d base : %lx start : %lx \n", offset_start,
+          offset_end, pt_base_addr, pt_start_addr);
+          */
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    int delta = offset - offset_start;
+    SetEntry(pt_start_addr + delta * kPageTableAddressSizePerEntry, true, true,
+             true, &pt_base_addr[offset]);
+  }
+}
 
-  // Need to figure out actual size.
-  size_t actual_order = largest_possible_order;
-  for (size_t order = 1; order <= largest_possible_order; order++) {
-    if (IsSplitted(offset, order)) {
-      actual_order = order - 1;
-      break;
+template <typename GetOffset, typename GetStartAddr,
+          typename SetNextLevelPageTable, size_t AddressSpaceSizePerEntry>
+void KernelPageTable::SetTableEntry(uint64_t start_addr, uint64_t end_addr,
+                                    uint64_t* table_base_addr) {
+  size_t offset_start = GetOffset(start_addr);
+  size_t offset_end = GetOffset(end_addr - 1);
+  uint64_t entry_start_addr = GetStartAddr(start_addr);
+
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (!IsPresent(table_base_addr[offset])) {
+      uint64_t* next_level_page_base_addr = CreateNewTable();
+      SetEntry((uint64_t)next_level_page_base_addr, /*present=*/true,
+               /*rw=*/true, /*super=*/true, &table_base_addr[offset]);
     }
+    uint64_t* next_level_page_base_addr =
+        PhysToKernel<uint64_t*>(GetBaseAddress(table_base_addr[offset]));
+    int delta = offset - offset_start;
+    SetNextLevelPageTable(
+        max(start_addr, entry_start_addr + delta * AddressSpaceSizePerEntry),
+        min(end_addr,
+            entry_start_addr + (delta + 1) * AddressSpaceSizePerEntry),
+        next_level_page_base_addr);
   }
-
-  size_t order = actual_order + 1;
-  if (order <= (size_t)kBuddyBlockAllocatorOrder) {
-    FlipNeedMerge(offset, order);
-  }
-
-  for (; order <= (size_t)(kBuddyBlockAllocatorOrder); order++) {
-    if (IsBothFreeOrOccupied(offset, order)) {
-      // If the current block is splitted, then we have to free it.
-      MergeChunk(offset, order);
-    } else {
-      break;
-    }
-  }
-  AddToFreeList(/*free_list_index=*/order - 1,
-                GetChunkStartOffset(offset, order - 1));
-}
-
-// "Merging" here means that the making two chunks of free block within current
-// block into one whole block.
-//
-//  sizeof(A) + sizeof(B) == 2^order
-//
-//  |-----------------|----------------|
-//  |                 |                |
-//  |        A        |        B       |  : order
-//  |                 |                |
-//  |-----------------|----------------|
-//
-//  Becomes
-//
-//  |-----------------|----------------|
-//  |                                  |
-//  |                                  |  : order
-//  |                                  |
-//  |-----------------|----------------|
-void BuddyBlockAllocator::MergeChunk(size_t offset, size_t order) {
-  // We have to find the other part of the block from the free list.
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-  size_t chunk_start_offset = chunk_size * index_within_layer;
-
-  // Newly freed block is on the left side.
-  if (chunk_start_offset <= offset &&
-      offset < chunk_start_offset + chunk_size / 2) {
-    // Remove right block from the free list.
-    auto* right_page = FindPageFromFreeList(
-        order - 1, GetAddrFromOffset(chunk_start_offset + chunk_size / 2));
-    RemovePageFromFreeList(order - 1, right_page);
-    delete right_page;
-  } else {
-    auto* left_page =
-        FindPageFromFreeList(order - 1, GetAddrFromOffset(chunk_start_offset));
-    RemovePageFromFreeList(order - 1, left_page);
-    delete left_page;
-  }
-
-  if (order < (size_t)kBuddyBlockAllocatorOrder) {
-    FlipNeedMerge(offset, order + 1);
-  }
-  SetMerged(offset, order);
-}
-
-size_t BuddyBlockAllocator::FlipNeedMerge(size_t offset, size_t order) {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-
-  size_t index =
-      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  return FlipBitByIndex(&need_merge_, index);
-}
-
-bool BuddyBlockAllocator::IsBothFreeOrOccupied(size_t offset,
-                                               size_t order) const {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-
-  size_t index =
-      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  return !GetBitByIndex(need_merge_, index);
-}
-
-void BuddyBlockAllocator::SetSplitted(size_t offset, size_t order) {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-
-  size_t index =
-      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  if (!GetBitByIndex(block_splitted_, index)) {
-    FlipBitByIndex(&block_splitted_, index);
-  }
-}
-
-void BuddyBlockAllocator::SetMerged(size_t offset, size_t order) {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-
-  size_t index =
-      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  if (GetBitByIndex(block_splitted_, index)) {
-    FlipBitByIndex(&block_splitted_, index);
-  }
-}
-
-bool BuddyBlockAllocator::IsSplitted(size_t offset, size_t order) const {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-
-  size_t index =
-      PowerOf2(kBuddyBlockAllocatorOrder - order) - 1 + index_within_layer;
-  return GetBitByIndex(block_splitted_, index);
-}
-
-void BuddyBlockAllocator::AddToFreeList(size_t free_list_index, size_t offset) {
-  auto* frame_desc = new FrameDescriptor(start_phys_addr_ + offset);
-  if (free_lists_[free_list_index] != nullptr) {
-    auto* current_head = free_lists_[free_list_index];
-    frame_desc->next = current_head;
-    frame_desc->prev = current_head->prev;
-
-    current_head->prev->next = frame_desc;
-    current_head->prev = frame_desc;
-  } else {
-    free_lists_[free_list_index] = frame_desc;
-    frame_desc->next = frame_desc;
-    frame_desc->prev = frame_desc;
-  }
-}
-
-// Returns the first element from the free list.
-FrameDescriptor* BuddyBlockAllocator::RemoveFirstFromFreeList(
-    size_t free_list_index) {
-  auto* first = free_lists_[free_list_index];
-  free_lists_[free_list_index] = first->next;
-
-  // If there were only "first" in the list.
-  if (free_lists_[free_list_index] == first) {
-    free_lists_[free_list_index] = nullptr;
-  } else if (free_lists_[free_list_index] != nullptr) {
-    auto* new_first = free_lists_[free_list_index];
-    new_first->prev = first->prev;
-    first->prev->next = new_first;
-  }
-
-  return first;
-}
-
-// Remove the page from free_list.
-void BuddyBlockAllocator::RemovePageFromFreeList(size_t free_list_index,
-                                                 FrameDescriptor* desc) {
-  // Wire previous node and next node together.
-  if (desc->prev != nullptr) {
-    desc->prev->next = desc->next;
-  }
-  if (desc->next != nullptr) {
-    desc->next->prev = desc->prev;
-  }
-
-  // Move the head to point next if the head is getting removed.
-  if (free_lists_[free_list_index] == desc) {
-    if (desc != desc->next) {
-      free_lists_[free_list_index] = desc->next;
-    } else {
-      // If desc was the last description in the list, then we mark it as
-      // nullptr.
-      free_lists_[free_list_index] = nullptr;
-    }
-  }
-}
-
-// Find page_addr from free_list
-FrameDescriptor* BuddyBlockAllocator::FindPageFromFreeList(
-    size_t free_list_index, void* page_addr) {
-  FrameDescriptor* start = free_lists_[free_list_index];
-  FrameDescriptor* curr = start;
-
-  if (curr == nullptr) {
-    return nullptr;
-  }
-  do {
-    if (curr->page == page_addr) {
-      return curr;
-    }
-    curr = curr->next;
-  } while (start != curr && curr != nullptr);
-  return nullptr;
-}
-
-size_t BuddyBlockAllocator::GetChunkStartOffset(size_t offset,
-                                                size_t order) const {
-  size_t chunk_size = kFrameSize * PowerOf2(order);
-  size_t index_within_layer = offset / chunk_size;
-  return chunk_size * index_within_layer;
-}
-
-void BuddyBlockAllocator::PrintNeedMergeStatus() const {
-  for (int i = kBuddyBlockAllocatorOrder; i > 0; i--) {
-    for (size_t j = 0; j < PowerOf2(kBuddyBlockAllocatorOrder - i); j++) {
-      if (!IsBothFreeOrOccupied(j * kFrameSize * PowerOf2(i), i)) {
-        kprintf("1");
-      } else {
-        kprintf("0");
-      }
-    }
-    kprintf("\n");
-  }
-}
-
-void BuddyBlockAllocator::PrintSplitStatus() const {
-  for (int i = kBuddyBlockAllocatorOrder; i > 0; i--) {
-    for (size_t j = 0; j < PowerOf2(kBuddyBlockAllocatorOrder - i); j++) {
-      if (IsSplitted(j * kFrameSize * PowerOf2(i), i)) {
-        kprintf("S");
-      } else {
-        kprintf("M");
-      }
-    }
-    kprintf("\n");
-  }
-}
-
-void BuddyBlockAllocator::PrintFreeLists() const {
-  for (size_t i = 0; i < free_lists_.size(); i++) {
-    kprintf("------------- %d ------------\n", i);
-    const FrameDescriptor* head = free_lists_.at(i);
-    if (head != nullptr) {
-      const FrameDescriptor* curr = head;
-      do {
-        curr->Print();
-      } while (curr != head);
-    }
-  }
-}
-
-bool BuddyBlockAllocator::IsEmpty() const {
-  for (size_t i = 0; i < free_lists_.size() - 1; i++) {
-    if (free_lists_.at(i) != nullptr) {
-      return false;
-    }
-  }
-  return free_lists_.at(free_lists_.size() - 1) != nullptr;
-}
-
-void FrameDescriptor::Print() const {
-  kprintf("Page [%x] Prev [%x] Next [%x] \n", page, prev, next);
 }
 
 }  // namespace Kernel

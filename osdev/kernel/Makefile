@@ -9,7 +9,7 @@ VPATH = ./kernel:./boot:./std:./test
 OBJDIR = ./obj
 
 OBJS := boot.o interrupt_handler.o
-OBJS += kmain.o string_util.o string.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o kernel_util.o
+OBJS += kmain.o string_util.o string.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o
 OBJS += kernel_test.o paging_test.o
 
 CRTI_OBJ = ./obj/crti.o

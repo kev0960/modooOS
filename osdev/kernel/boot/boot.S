@@ -118,6 +118,7 @@ _start64:
   movw %ax, %gs
   movw %ax, %ss
 
+  // Add kernel virtual offset.
   addq $0xffffffff80000000, %rsp
 
   call _init
