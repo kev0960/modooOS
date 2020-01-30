@@ -1,4 +1,5 @@
 #include "../std/types.h"
+#include "mock.h"
 
 template <typename Impl>
 class MockIOProviderBase {
@@ -29,8 +30,8 @@ class MockIOProviderBase {
 };
 
 template <typename OverridenProvider>
-class MockIOProvider
-    : public MockIOProviderBase<MockIOProvider<OverridenProvider>> {
+class MockIOProviderDefault
+    : public MockIOProviderBase<MockIOProviderDefault<OverridenProvider>> {
  public:
   using Child = OverridenProvider;
 
@@ -40,14 +41,12 @@ class MockIOProvider
   virtual void Outw(uint16_t port, uint16_t val) {}
   virtual void Inw(uint16_t port) {}
 
-  MockIOProvider() = default;
+  MockIOProviderDefault() = default;
 };
 
-class MockIO : public MockIOProvider<MockIO> {
-  // Implement user's own mock io.
-  void Outb(uint16_t port, uint8_t val) override {
-  }
-  void Outw(uint16_t port, uint16_t val) override {
-  }
-};
+// To create a mock IO provider, use the following pattern.
+// class MockIOProvider : public MockIOProviderDefault<MockIOProvider> {
+//    // Implement functions that you want to override.
+//    void Outb(uint16_t porst, uint8_t val) override {}
+// };
 

@@ -3,7 +3,7 @@
 
 #include "interrupt.h"
 #include "kthread.h"
-#include "list.h"
+#include "../std/list.h"
 
 namespace Kernel {
 

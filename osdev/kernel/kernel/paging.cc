@@ -7,7 +7,7 @@
 namespace Kernel {
 namespace {
 
-constexpr uint64_t kKernelVirtualOffset = 0xFFFFFFFF80000000;
+constexpr uint64_t kKernelVirtualOffset = 0xFFFFFFFF'80000000LL;
 constexpr uint64_t FourKB = 0x1000;
 
 constexpr uint64_t kPML4AddressSizePerEntry = (1LL << 39);
@@ -35,7 +35,7 @@ void SetBaseAddress(uint64_t base_addr, uint64_t* entry) {
 }
 
 uint64_t* GetBaseAddress(uint64_t entry) {
-  return reinterpret_cast<uint64_t*>(entry & (0x000FFFFFFFFFF000LL));
+  return reinterpret_cast<uint64_t*>(entry & (0x000FFFFF'FFFFF000LL));
 }
 
 template <typename T, typename U>
@@ -107,6 +107,8 @@ uint64_t* CreateNewTable() {
   uint64_t* table_base_addr =
       KernelToPhys<uint64_t*>(kaligned_alloc(FourKB, sizeof(uint64_t) * 512));
 
+  ASSERT(table_base_addr != nullptr);
+
   // Zero initialize.
   for (size_t i = 0; i < kPDPTEntryNum; i++) {
     SetEntry(0, /*present=*/false, false, false, &table_base_addr[i]);
@@ -117,64 +119,84 @@ uint64_t* CreateNewTable() {
 
 }  // namespace
 
-void KernelPageTable::Init4KBPaging(uint64_t kernel_vm_start_addr,
-                                    size_t bytes) {
+uint64_t KernelPageTable::Alloc4KBZeroPagesAndGetCR3(uint64_t vm_start_addr,
+                                                     size_t bytes,
+                                                     bool is_kernel) {
   // First initialize the Page-Map Level-4 Table (the first table).
-  pml4e_base_addr_ = KernelToPhys<uint64_t*>(
-      kaligned_alloc(FourKB, sizeof(uint64_t) * kPML4EntryNum));
+  if (pml4e_base_addr_ == nullptr) {
+    pml4e_base_addr_ = KernelToPhys<uint64_t*>(
+        kaligned_alloc(FourKB, sizeof(uint64_t) * kPML4EntryNum));
 
-  // Zero initialize.
-  for (size_t i = 0; i < 512; i++) {
-    SetEntry(0, /*present=*/false, false, false, &pml4e_base_addr_[i]);
+    // Zero initialize.
+    for (size_t i = 0; i < 512; i++) {
+      SetEntry(0, /*present=*/false, false, false, &pml4e_base_addr_[i]);
+    }
   }
 
-  // Initialize kernel paging.
-  SetPML4E(kernel_vm_start_addr, bytes);
+  // Allocate pages.
+  SetPML4E(vm_start_addr, bytes, is_kernel);
+
+  // Set CR3 register.
+  uint64_t cr3 = 0;
+  SetBaseAddress((uint64_t)pml4e_base_addr_, &cr3);
+
+  return cr3;
 }
 
-void KernelPageTable::RegisterKernelPage(uint64_t start_addr, uint64_t size) {
-  // size should be multiple of 4kb.
-  ASSERT(size % FourKB == 0);
-  ASSERT(start_addr % FourKB == 0);
-}
-
-void KernelPageTable::SetPML4E(uint64_t start_addr, uint64_t size) {
+void KernelPageTable::SetPML4E(uint64_t start_addr, uint64_t size,
+                               bool is_kernel) {
   size_t offset_start = GetPML4Offset(start_addr);
   size_t offset_end = GetPML4Offset(start_addr + size - 1);
   uint64_t pml4_start_addr = GetPML4StartAddr(start_addr);
 
-  kprintf("start : %d end : %d start : %lx \n", offset_start, offset_end,
-          pml4_start_addr);
   for (size_t offset = offset_start; offset <= offset_end; offset++) {
     if (!IsPresent(pml4e_base_addr_[offset])) {
       // We need to create a Page directory pointer table (Level 3).
       uint64_t* pdpt_base_addr = CreateNewTable();
       SetEntry((uint64_t)pdpt_base_addr, /*present=*/true, /*rw=*/true,
-               /*super=*/true, &pml4e_base_addr_[offset]);
+               /*super=*/is_kernel, &pml4e_base_addr_[offset]);
+
+      bool found = false;
+      for (const auto& item : shared_kernel_pml4e_entries_) {
+        if (item.first == offset) {
+          found = true;
+        }
+      }
+
+      if (!found) {
+        shared_kernel_pml4e_entries_.push_back(
+            std::make_pair(offset, pml4e_base_addr_[offset]));
+      }
     }
     uint64_t* pdpt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pml4e_base_addr_[offset]));
     int delta = offset - offset_start;
-    SetPDPT(max(start_addr, pml4_start_addr + delta * kPML4AddressSizePerEntry),
-            min(start_addr + size,
-                pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry),
-            pdpt_base_addr);
+    // Check for the overflow!
+    if (pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry == 0) {
+      SetPDPT(
+          max(start_addr, pml4_start_addr + delta * kPML4AddressSizePerEntry),
+          start_addr + size, pdpt_base_addr, is_kernel);
+    } else {
+      SetPDPT(
+          max(start_addr, pml4_start_addr + delta * kPML4AddressSizePerEntry),
+          min(start_addr + size,
+              pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry),
+          pdpt_base_addr, is_kernel);
+    }
   }
 }
 
 void KernelPageTable::SetPDPT(uint64_t start_addr, uint64_t end_addr,
-                              uint64_t* pdpe_base_addr) {
+                              uint64_t* pdpe_base_addr, bool is_kernel) {
   size_t offset_start = GetPDPOffset(start_addr);
   size_t offset_end = GetPDPOffset(end_addr - 1);
   uint64_t pdpt_start_addr = GetPDPStartAddr(start_addr);
 
-  kprintf("[PDPT] start : %d end : %d base : %lx start : %lx \n", offset_start,
-          offset_end, pdpe_base_addr, pdpt_start_addr);
   for (size_t offset = offset_start; offset <= offset_end; offset++) {
     if (!IsPresent(pdpe_base_addr[offset])) {
       uint64_t* pdt_base_addr = CreateNewTable();
       SetEntry((uint64_t)pdt_base_addr, /*present=*/true, /*rw=*/true,
-               /*super=*/true, &pdpe_base_addr[offset]);
+               /*super=*/is_kernel, &pdpe_base_addr[offset]);
     }
     uint64_t* pdt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pdpe_base_addr[offset]));
@@ -183,23 +205,21 @@ void KernelPageTable::SetPDPT(uint64_t start_addr, uint64_t end_addr,
         max(start_addr, pdpt_start_addr + delta * kPDPTableAddressSizePerEntry),
         min(end_addr,
             pdpt_start_addr + (delta + 1) * kPDPTableAddressSizePerEntry),
-        pdt_base_addr);
+        pdt_base_addr, is_kernel);
   }
 }
 
 void KernelPageTable::SetPDT(uint64_t start_addr, uint64_t end_addr,
-                             uint64_t* pdt_base_addr) {
+                             uint64_t* pdt_base_addr, bool is_kernel) {
   size_t offset_start = GetPDOffset(start_addr);
   size_t offset_end = GetPDOffset(end_addr - 1);
   uint64_t pdt_start_addr = GetPDStartAddr(start_addr);
 
-  kprintf("[PDT] start : %d end : %d base : %lx start : %lx \n", offset_start,
-          offset_end, pdt_base_addr, pdt_start_addr);
   for (size_t offset = offset_start; offset <= offset_end; offset++) {
     if (!IsPresent(pdt_base_addr[offset])) {
       uint64_t* pt_base_addr = CreateNewTable();
       SetEntry((uint64_t)pt_base_addr, /*present=*/true, /*rw=*/true,
-               /*super=*/true, &pdt_base_addr[offset]);
+               /*super=*/is_kernel, &pdt_base_addr[offset]);
     }
     uint64_t* pt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pdt_base_addr[offset]));
@@ -208,24 +228,21 @@ void KernelPageTable::SetPDT(uint64_t start_addr, uint64_t end_addr,
         max(start_addr, pdt_start_addr + delta * kPDPTableAddressSizePerEntry),
         min(end_addr,
             pdt_start_addr + (delta + 1) * kPDTableAddressSizePerEntry),
-        pt_base_addr);
+        pt_base_addr, is_kernel);
   }
 }
 
 void KernelPageTable::SetPT(uint64_t start_addr, uint64_t end_addr,
-                            uint64_t* pt_base_addr) {
+                            uint64_t* pt_base_addr, bool is_kernel) {
   size_t offset_start = GetPTOffset(start_addr);
   size_t offset_end = GetPTOffset(end_addr - 1);
   uint64_t pt_start_addr = GetPTStartAddr(start_addr);
 
-  /*
-  kprintf("start : %d end : %d base : %lx start : %lx \n", offset_start,
-          offset_end, pt_base_addr, pt_start_addr);
-          */
   for (size_t offset = offset_start; offset <= offset_end; offset++) {
     int delta = offset - offset_start;
-    SetEntry(pt_start_addr + delta * kPageTableAddressSizePerEntry, true, true,
-             true, &pt_base_addr[offset]);
+    SetEntry(pt_start_addr + delta * kPageTableAddressSizePerEntry,
+             /*present=*/true, /*rw=*/true, /*super=*/is_kernel,
+             &pt_base_addr[offset]);
   }
 }
 
