@@ -1,19 +1,9 @@
 #include "../kernel/paging.h"
 #include "../kernel/cpp_macro.h"
 #include "kernel_test.h"
-#include "mock_reg_access.h"
 
 namespace Kernel {
 namespace kernel_test {
-
-// We need to provide visibility so this cannot be in the anonymous namespace.
-struct MockCPUAccessProvider
-    : public MockCPUAccessProviderDefault<MockCPUAccessProvider> {
-  void MockSetCR3(uint64_t cr3) override { cr3_ = cr3; }
-
-  uint64_t cr3_;
-};
-
 namespace {
 
 uint64_t* GetBaseAddress(uint64_t entry) {
@@ -52,9 +42,16 @@ size_t GetPTOffset(uint64_t addr) {
   return addr % 512;
 }
 
-bool IsPresent(uint64_t entry) { return entry & 1; }
+[[maybe_unused]] size_t GetPhysicalPageOffset(uint64_t addr) {
+  return addr % (1 << 12);
+}
 
-[[maybe_unused]] uint64_t GetPageTableEntry(uint64_t* pml4_base_addr, uint64_t addr) {
+bool IsPresent(uint64_t entry) {
+  return entry & 1;
+}
+bool IsSupervisor(uint64_t entry) { return entry & 4; }
+
+uint64_t GetPageTableEntry(uint64_t* pml4_base_addr, uint64_t addr) {
   size_t pml4_offset = GetPML4Offset(addr);
   EXPECT_TRUE(IsPresent(pml4_base_addr[pml4_offset]));
   uint64_t* pdp_base_addr = GetBaseAddress(pml4_base_addr[pml4_offset]);
@@ -71,7 +68,7 @@ bool IsPresent(uint64_t entry) { return entry & 1; }
   return pt_base_addr[pt_offset];
 }
 
-[[maybe_unused]] bool IsPagePresent(uint64_t* pml4_base_addr, uint64_t addr) {
+bool IsPagePresent(uint64_t* pml4_base_addr, uint64_t addr) {
   size_t pml4_offset = GetPML4Offset(addr);
   if (!IsPresent(pml4_base_addr[pml4_offset])) {
     return false;
@@ -110,14 +107,14 @@ TEST(PagingTest, CheckTestFunctions) {
 }
 
 TEST(PagingTest, Init1GBPaging) {
-  KernelPageTable kernel_page_table;
+  PageTable kernel_page_table;
   const size_t start_addr = 0xFFFFFFFF80000000LL;
   const size_t size = 1 << 30;
 
-  kernel_page_table.Alloc4KPagesForKernel<MockCPUAccessProvider>(start_addr,
-                                                                 size);
-  uint64_t* pml4e_base_addr = PhysToKernel<uint64_t*>(
-      GetBaseAddress(MockCPUAccessProvider::GetMock().cr3_));
+  uint64_t* pml4e_base_addr = kernel_page_table.CreateEmptyPageTable();
+  kernel_page_table.AllocateTable(pml4e_base_addr, start_addr, size, true,
+                                  start_addr);
+
   for (size_t addr = start_addr; addr < start_addr + size; addr += (1 << 5)) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
@@ -126,14 +123,14 @@ TEST(PagingTest, Init1GBPaging) {
 }
 
 TEST(PagingTest, Init3MBPaging) {
-  KernelPageTable kernel_page_table;
+  PageTable kernel_page_table;
   const size_t start_addr = 0xFFFFFFFF80000000LL;
   const size_t size = (1 << 20) * 3;
 
-  kernel_page_table.Alloc4KPagesForKernel<MockCPUAccessProvider>(start_addr,
-                                                                 size);
-  uint64_t* pml4e_base_addr = PhysToKernel<uint64_t*>(
-      GetBaseAddress(MockCPUAccessProvider::GetMock().cr3_));
+  uint64_t* pml4e_base_addr = kernel_page_table.CreateEmptyPageTable();
+  kernel_page_table.AllocateTable(pml4e_base_addr, start_addr, size, true,
+                                  start_addr);
+
   for (size_t addr = start_addr; addr < start_addr + size; addr += 1) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
@@ -142,14 +139,14 @@ TEST(PagingTest, Init3MBPaging) {
 }
 
 TEST(PagingTest, AllocBunchOf2MBPagingWeird4KBoundary) {
-  KernelPageTable kernel_page_table;
+  PageTable kernel_page_table;
   size_t start_addr = 0xFFFFFFFF80000000LL + (1 << 12) * 7;
   size_t size = (1 << 20) * 2;
 
-  kernel_page_table.Alloc4KPagesForKernel<MockCPUAccessProvider>(start_addr,
-                                                                 size);
-  uint64_t* pml4e_base_addr = PhysToKernel<uint64_t*>(
-      GetBaseAddress(MockCPUAccessProvider::GetMock().cr3_));
+  uint64_t* pml4e_base_addr = kernel_page_table.CreateEmptyPageTable();
+  kernel_page_table.AllocateTable(pml4e_base_addr, start_addr, size, true,
+                                  start_addr);
+
   for (size_t addr = start_addr; addr < start_addr + size; addr += 2) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
@@ -158,8 +155,9 @@ TEST(PagingTest, AllocBunchOf2MBPagingWeird4KBoundary) {
 
   start_addr = 0xFFFFFFFF80000000LL + (1 << 20) * 6 + (1 << 12) * 123;
   size = (1 << 20) * 2;
-  kernel_page_table.Alloc4KPagesForKernel<MockCPUAccessProvider>(start_addr,
-                                                                 size);
+  kernel_page_table.AllocateTable(pml4e_base_addr, start_addr, size, true,
+                                  start_addr);
+
   for (size_t addr = start_addr; addr < start_addr + size; addr += 2) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
@@ -168,13 +166,63 @@ TEST(PagingTest, AllocBunchOf2MBPagingWeird4KBoundary) {
 
   start_addr = 0xFFFFFFFF80000000LL + (1 << 25) * 6 + (1 << 15) * 21;
   size = (1 << 20) * 2;
-  kernel_page_table.Alloc4KPagesForKernel<MockCPUAccessProvider>(start_addr,
-                                                                 size);
+  kernel_page_table.AllocateTable(pml4e_base_addr, start_addr, size, true,
+                                  start_addr);
+
   for (size_t addr = start_addr; addr < start_addr + size; addr += 2) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
   EXPECT_FALSE(IsPagePresent(pml4e_base_addr, start_addr - 1));
   EXPECT_FALSE(IsPagePresent(pml4e_base_addr, start_addr + size));
+}
+
+TEST(PagingTest, AllocUserPage) {
+  PageTable kernel_page_table;
+  size_t start_addr = 0xFFFFFFFF80000000LL;
+  size_t size = (1 << 20);
+
+  // First Alloc kernel page.
+  // /*
+  uint64_t* kernel_pml4e_base_addr = kernel_page_table.CreateEmptyPageTable();
+  kernel_page_table.AllocateTable(kernel_pml4e_base_addr, start_addr, size,
+                                  true, start_addr);
+
+  for (size_t addr = start_addr; addr < start_addr + size; addr += 2) {
+    EXPECT_TRUE(IsPresent(GetPageTableEntry(kernel_pml4e_base_addr, addr)));
+    EXPECT_TRUE(IsSupervisor(GetPageTableEntry(kernel_pml4e_base_addr, addr)));
+  }
+  EXPECT_FALSE(IsPagePresent(kernel_pml4e_base_addr, start_addr - 1));
+  EXPECT_FALSE(IsPagePresent(kernel_pml4e_base_addr, start_addr + size));
+
+  // Now alloc user page.
+  uint64_t* user_pml4e_base_addr = kernel_page_table.CreateEmptyPageTable();
+  size_t user_start_addr = 0x10000000;
+  size_t user_physical_addr = 0x12345000;
+  kernel_page_table.AllocateTable(user_pml4e_base_addr, user_start_addr, size,
+                                  false, user_physical_addr);
+
+  // Check that user pages are properly allocated.
+  for (size_t addr = user_start_addr; addr < user_start_addr + size;
+       addr += 2) {
+    size_t user_entry = GetPageTableEntry(user_pml4e_base_addr, addr);
+    EXPECT_TRUE(IsPresent(user_entry));
+    size_t offset = GetPhysicalPageOffset(addr);
+    uint64_t* physical_page_table_start = GetBaseAddress(user_entry);
+
+    EXPECT_EQ((uint64_t)(physical_page_table_start) + offset,
+              addr + (user_physical_addr - user_start_addr));
+    EXPECT_FALSE(IsSupervisor(GetPageTableEntry(user_pml4e_base_addr, addr)));
+  }
+  EXPECT_FALSE(IsPagePresent(user_pml4e_base_addr, user_start_addr - 1));
+  EXPECT_FALSE(IsPagePresent(user_pml4e_base_addr, user_start_addr + size));
+
+  // Check that kernel page also exists.
+  for (size_t addr = start_addr; addr < start_addr + size; addr += 2) {
+    EXPECT_TRUE(IsPresent(GetPageTableEntry(user_pml4e_base_addr, addr)));
+    EXPECT_TRUE(IsSupervisor(GetPageTableEntry(user_pml4e_base_addr, addr)));
+  }
+  EXPECT_FALSE(IsPagePresent(user_pml4e_base_addr, start_addr - 1));
+  EXPECT_FALSE(IsPagePresent(user_pml4e_base_addr, start_addr + size));
 }
 
 }  // namespace
