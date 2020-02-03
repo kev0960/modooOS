@@ -10,8 +10,6 @@
 
 namespace Kernel {
 
-constexpr uint64_t kVGAMemoryStart = 0xffffffff80000000 + 0xb8000;
-
 // Referred from https://os.phil-opp.com/vga-text-mode/
 enum VGAColor {
   Black = 0,
@@ -35,6 +33,9 @@ enum VGAColor {
 template <size_t NUM_ROWS = 25, size_t NUM_COLS = 80>
 class VGAOutput {
  public:
+  constexpr static uint64_t kVGAMemoryStart =
+      0xffffffff80000000ULL + 0xb8000ULL;
+
   explicit VGAOutput(int offset = 0)
       : num_rows_(NUM_ROWS),
         num_cols_(NUM_COLS),
@@ -81,12 +82,6 @@ class VGAOutput {
     auto vga = reinterpret_cast<uint16_t*>(kVGAMemoryStart + offset_);
     for (size_t i = 0; i < current_row_; i++) {
       for (size_t j = 0; j < num_cols_; j++) {
-        /*
-        if (reinterpret_cast<uint64_t>(&vga[i * num_cols_ + j]) == 0x40c000 ||
-            reinterpret_cast<uint64_t>(&text_buffer_[i][j]) == 0x40c000) {
-          DisableInterrupt();
-          while(true){}
-        }*/
         vga[i * num_cols_ + j] = text_buffer_[i][j];
       }
     }
@@ -118,7 +113,6 @@ class VGAOutput {
     return (*this);
   }
 
- private:
   const size_t num_rows_;
   const size_t num_cols_;
 

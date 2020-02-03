@@ -29,15 +29,6 @@ void KernelTestRunner::RunTest() {
   }
 }
 
-template <>
-void KernelTest::ExpectEq(const char* file, int line, const char* const& t,
-                          const char* const& u) {
-  if (strcmp(t, u) != 0) {
-    kprintf("EXPECT_EQ Failed at: %s:%d\n", file, line);
-    bad_count_++;
-  }
-}
-
 KernelTest* current_running = nullptr;
 
 }  // namespace kernel_test

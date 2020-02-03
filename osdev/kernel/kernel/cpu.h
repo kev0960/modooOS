@@ -48,7 +48,7 @@ inline uint64_t ReadCR0() {
   return cr0;
 }
 
-class CPURegsAccessProvider {
+struct CPURegsAccessProvider {
   static inline uint64_t GetRFlags() {
     uint64_t rflags;
     asm volatile(

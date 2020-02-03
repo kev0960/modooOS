@@ -1,9 +1,9 @@
 #ifndef EXT2_H
 #define EXT2_H
 
-#include "string.h"
-#include "types.h"
-#include "vector.h"
+#include "../std/string.h"
+#include "../std/types.h"
+#include "../std/vector.h"
 
 namespace Kernel {
 // Note that the names and comments of these Ext2 structs are brought from

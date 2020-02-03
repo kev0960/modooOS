@@ -51,41 +51,49 @@ bool IsPresent(uint64_t entry) {
 }
 bool IsSupervisor(uint64_t entry) { return entry & 4; }
 
-uint64_t GetPageTableEntry(uint64_t* pml4_base_addr, uint64_t addr) {
+uint64_t GetPageTableEntry(uint64_t* pml4_base_addr_phys, uint64_t addr) {
   size_t pml4_offset = GetPML4Offset(addr);
+  uint64_t* pml4_base_addr = PhysToKernel<uint64_t*>(pml4_base_addr_phys);
   EXPECT_TRUE(IsPresent(pml4_base_addr[pml4_offset]));
-  uint64_t* pdp_base_addr = GetBaseAddress(pml4_base_addr[pml4_offset]);
+  uint64_t* pdp_base_addr_phys = GetBaseAddress(pml4_base_addr[pml4_offset]);
+  uint64_t* pdp_base_addr = PhysToKernel<uint64_t*>(pdp_base_addr_phys);
 
   size_t pdp_offset = GetPDPOffset(addr);
   EXPECT_TRUE(IsPresent(pdp_base_addr[pdp_offset]));
-  uint64_t* pd_base_addr = GetBaseAddress(pdp_base_addr[pdp_offset]);
+  uint64_t* pd_base_addr_phys = GetBaseAddress(pdp_base_addr[pdp_offset]);
+  uint64_t* pd_base_addr = PhysToKernel<uint64_t*>(pd_base_addr_phys);
 
   size_t pd_offset = GetPDOffset(addr);
   EXPECT_TRUE(IsPresent(pd_base_addr[pd_offset]));
-  uint64_t* pt_base_addr = GetBaseAddress(pd_base_addr[pd_offset]);
+  uint64_t* pt_base_addr_phys = GetBaseAddress(pd_base_addr[pd_offset]);
+  uint64_t* pt_base_addr = PhysToKernel<uint64_t*>(pt_base_addr_phys);
 
   size_t pt_offset = GetPTOffset(addr);
   return pt_base_addr[pt_offset];
 }
 
-bool IsPagePresent(uint64_t* pml4_base_addr, uint64_t addr) {
+bool IsPagePresent(uint64_t* pml4_base_addr_phys, uint64_t addr) {
   size_t pml4_offset = GetPML4Offset(addr);
+  uint64_t* pml4_base_addr = PhysToKernel<uint64_t*>(pml4_base_addr_phys);
   if (!IsPresent(pml4_base_addr[pml4_offset])) {
     return false;
   }
-  uint64_t* pdp_base_addr = GetBaseAddress(pml4_base_addr[pml4_offset]);
+  uint64_t* pdp_base_addr_phys = GetBaseAddress(pml4_base_addr[pml4_offset]);
+  uint64_t* pdp_base_addr = PhysToKernel<uint64_t*>(pdp_base_addr_phys);
 
   size_t pdp_offset = GetPDPOffset(addr);
   if (!IsPresent(pdp_base_addr[pml4_offset])) {
     return false;
   }
-  uint64_t* pd_base_addr = GetBaseAddress(pdp_base_addr[pdp_offset]);
+  uint64_t* pd_base_addr_phys = GetBaseAddress(pdp_base_addr[pdp_offset]);
+  uint64_t* pd_base_addr = PhysToKernel<uint64_t*>(pd_base_addr_phys);
 
   size_t pd_offset = GetPDOffset(addr);
   if (!IsPresent(pd_base_addr[pml4_offset])) {
     return false;
   }
-  uint64_t* pt_base_addr = GetBaseAddress(pd_base_addr[pd_offset]);
+  uint64_t* pt_base_addr_phys = GetBaseAddress(pd_base_addr[pd_offset]);
+  uint64_t* pt_base_addr = PhysToKernel<uint64_t*>(pt_base_addr_phys);
 
   size_t pt_offset = GetPTOffset(addr);
   return IsPresent(pt_base_addr[pt_offset]);
@@ -118,6 +126,8 @@ TEST(PagingTest, Init1GBPaging) {
   for (size_t addr = start_addr; addr < start_addr + size; addr += (1 << 5)) {
     EXPECT_TRUE(IsPresent(GetPageTableEntry(pml4e_base_addr, addr)));
   }
+  EXPECT_TRUE(
+      IsPresent(GetPageTableEntry(pml4e_base_addr, 0xFFFFFFFF'8040d2ffULL)));
   EXPECT_FALSE(IsPagePresent(pml4e_base_addr, start_addr - 1));
   EXPECT_FALSE(IsPagePresent(pml4e_base_addr, start_addr + size));
 }

@@ -4,6 +4,7 @@
 #include "../std/types.h"
 #include "../std/vector.h"
 #include "kernel_util.h"
+#include "printf.h"
 
 namespace Kernel {
 // Physical Memory Layout
@@ -58,9 +59,11 @@ class PageTable {
 
   // Create an empty page table (only PML4E table is created). Returns the base
   // offset of the PML4E Table.
+  // NOTE: THIS ALWAYS RETURNS A PHYSICAL ADDRESS. MUST BE CONVERTED TO KERNEL
+  // VIRTUAL ADDRESS IF YOU WANT TO DEREFERENCE IT.
   uint64_t* CreateEmptyPageTable() const;
 
-  void AllocateTable(uint64_t* pml4e_base_addr, uint64_t vm_start_addr,
+  void AllocateTable(uint64_t* pml4e_base_addr_phys, uint64_t vm_start_addr,
                      size_t bytes, bool is_kernel,
                      uint64_t physical_addr_start);
 
@@ -85,6 +88,38 @@ class PageTable {
   // Kenrel pages can be shared accross page tables of the user program.
   std::vector<std::pair</*offset*/ size_t, /*entry*/ uint64_t>>
       shared_kernel_pml4e_entries_;
+};
+
+class PageTableManager {
+ public:
+  static PageTableManager& GetPageTableManager() {
+    static PageTableManager page_table_manager;
+    return page_table_manager;
+  }
+
+  static constexpr uint64_t kKernelVMStart = 0xFFFF'FFFF'8000'0000ULL;
+
+  uint64_t* GetKernelPml4eBaseAddr() { return kernel_pml4e_base_phys_addr_; }
+  template <typename CPURegsAccessProvider>
+  void SetCR3(uint64_t* pml4e_base_phys_addr) {
+    uint64_t base_addr = reinterpret_cast<uint64_t>(pml4e_base_phys_addr);
+    ASSERT(base_addr % (1 << 12) == 0);
+    CPURegsAccessProvider::SetCR3(base_addr);
+  }
+
+ private:
+  PageTableManager() {
+    // Create PML4E Table for the kernel.
+    kernel_pml4e_base_phys_addr_ = page_table_.CreateEmptyPageTable();
+
+    // Map kernel VM to physical memory starting 0.
+    page_table_.AllocateTable(kernel_pml4e_base_phys_addr_, kKernelVMStart,
+                              /*size=*/(1 << 30), /*is_kernel=*/true,
+                              /*physical=*/0);
+  }
+
+  PageTable page_table_;
+  uint64_t* kernel_pml4e_base_phys_addr_;
 };
 
 class UserPageAllocator {};
