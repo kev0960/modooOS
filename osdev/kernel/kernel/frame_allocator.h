@@ -6,7 +6,7 @@
 
 namespace Kernel {
 
-  // Physical frame allocator.
+// Physical frame allocator.
 // We use buddy block based allocation.
 class FrameAllocator {};
 
@@ -90,7 +90,33 @@ class BuddyBlockAllocator {
   std::vector<FrameDescriptor*> free_lists_;
 };
 
+class UserFrameAllocator {
+  public:
+  // Any address below is not accessible by physical  frame allocator. Those
+  // addresses are directly mapped to the kernel address space.
+  static constexpr uint64_t kAllocatablePhysicalAddrStart = 0x4000'0000;
 
-}
+  // Order of 2^13 with 4KB (2^12) pages.
+  static constexpr uint64_t kSingleAllocatorSize = (1 << 13) * (1 << 12);
+
+  static UserFrameAllocator& GetPhysicalFrameAllocator() {
+    static UserFrameAllocator user_frame_allocator;
+    return user_frame_allocator;
+  }
+
+  // Allocate a physical frame. Returns a physical address.
+  void* AllocateFrame(int order);
+
+  // Free the physical frame. frame MUST be a physical address.
+  void FreeFrame(void* frame);
+
+ private:
+  UserFrameAllocator();
+
+  std::vector<BuddyBlockAllocator> allocators_;
+  uint64_t physical_addr_boundary_;
+};
+
+}  // namespace Kernel
 
 #endif

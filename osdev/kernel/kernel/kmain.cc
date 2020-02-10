@@ -38,6 +38,7 @@ void KernelMain() {
   auto& page_table_manager = Kernel::PageTableManager::GetPageTableManager();
   page_table_manager.SetCR3<Kernel::CPURegsAccessProvider>(
       page_table_manager.GetKernelPml4eBaseAddr());
+  Kernel::vga_output << "Init Paging is done! \n";
 
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 

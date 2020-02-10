@@ -3,6 +3,7 @@
 
 #include "../std/types.h"
 #include "../std/vector.h"
+#include "interrupt.h"
 #include "kernel_util.h"
 #include "printf.h"
 
@@ -67,6 +68,10 @@ class PageTable {
                      size_t bytes, bool is_kernel,
                      uint64_t physical_addr_start);
 
+  // Remove pages from the table.
+  void DeallocatePages(uint64_t* pml4e_base_addr_phys, uint64_t vm_start_addr,
+                       size_t bytes);
+
  private:
   void SetPML4E(uint64_t start_addr, uint64_t size, uint64_t* pml4e_base_addr,
                 bool is_kernel, uint64_t physical_addr_start);
@@ -78,9 +83,14 @@ class PageTable {
               bool is_kernel, uint64_t physical_addr_start);
   void SetPT(uint64_t start_addr, uint64_t end_addr, uint64_t* pt_base_addr,
              bool is_kernel, uint64_t physical_addr_start);
-  void Set4KBPhysicalPage(uint64_t start_addr, uint64_t end_addr,
-                          uint64_t* physical_table_base_addr,
-                          uint64_t physical_addr_start);
+
+  void FreePML4E(uint64_t start_addr, uint64_t size, uint64_t* pml4e_base_addr);
+
+  // Returns true if every entry in this table is freed.
+  bool FreePDPT(uint64_t start_addr, uint64_t end_addr,
+                uint64_t* pdpe_base_addr);
+  bool FreePDT(uint64_t start_addr, uint64_t end_addr, uint64_t* pdt_base_addr);
+  bool FreePT(uint64_t start_addr, uint64_t end_addr, uint64_t* pt_base_addr);
 
   // Register start_addr ~ start_addr + size address as Kernel Page.
   void RegisterKernelPage(uint64_t start_addr, uint64_t size);
@@ -107,6 +117,16 @@ class PageTableManager {
     CPURegsAccessProvider::SetCR3(base_addr);
   }
 
+  // Returns physical address to the pml4e base address.
+  uint64_t* CreateUserPageTable() { return page_table_.CreateEmptyPageTable(); }
+
+  // Allocate 2^order bytes of pages for user_vm_address.
+  void AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
+                    uint64_t* user_vm_address, size_t order);
+
+  void PageFaultHandler(CPUInterruptHandlerArgs* args,
+                        InterruptHandlerSavedRegs* regs);
+
  private:
   PageTableManager() {
     // Create PML4E Table for the kernel.
@@ -122,7 +142,10 @@ class PageTableManager {
   uint64_t* kernel_pml4e_base_phys_addr_;
 };
 
-class UserPageAllocator {};
 }  // namespace Kernel
+
+extern "C" void PageFaultInterruptHandlerCaller(
+    Kernel::CPUInterruptHandlerArgs* args,
+    Kernel::InterruptHandlerSavedRegs* regs);
 
 #endif

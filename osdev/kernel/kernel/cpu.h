@@ -92,6 +92,15 @@ struct CPURegsAccessProvider {
     return cr0;
   }
 
+  static inline uint64_t ReadCR2() {
+    uint64_t cr2;
+    asm volatile(
+        "mov %%cr2, %%rax\n"
+        "mov %%rax, %0"
+        : "=m"(cr2)::"%rax");
+    return cr2;
+  }
+
   static inline void SetCR3(uint64_t cr3) {
     asm volatile(
         "movq %0, %%rax\n"

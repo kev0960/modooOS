@@ -4,6 +4,7 @@
 #include "cpp_macro.h"
 #include "io.h"
 #include "keyboard.h"
+#include "paging.h"
 #include "scheduler.h"
 #include "timer.h"
 #include "vga_output.h"
@@ -59,6 +60,7 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " rflags : " << args->rflags << "\n";
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
+
   if (int_num == 14 || int_num == 13 || int_num == 6) {
     while (true)
       ;
@@ -84,6 +86,10 @@ void InstallIDTEntry(IDTType type_attr, bool has_error_code) {
                      ? reinterpret_cast<uint64_t>(
                            CPUInterruptHandlerWithErrorCode<INT_NUM>)
                      : reinterpret_cast<uint64_t>(CPUInterruptHandler<INT_NUM>);
+
+  if constexpr (INT_NUM == 0xE) {
+    ih_addr = reinterpret_cast<uint64_t>(PageFaultInterruptHandler);
+  }
 
   auto& entry = idt_entries[INT_NUM];
 

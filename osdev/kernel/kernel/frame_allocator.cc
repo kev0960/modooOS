@@ -1,6 +1,7 @@
 #include "frame_allocator.h"
 #include "../std/algorithm.h"
 #include "../std/printf.h"
+#include "kernel_util.h"
 
 namespace Kernel {
 namespace {
@@ -361,6 +362,47 @@ bool BuddyBlockAllocator::IsEmpty() const {
 
 void FrameDescriptor::Print() const {
   kprintf("Page [%x] Prev [%x] Next [%x] \n", page, prev, next);
+}
+
+UserFrameAllocator::UserFrameAllocator()
+    : physical_addr_boundary_(kAllocatablePhysicalAddrStart) {
+  // Create 2^13 size buddy block allocator. This spans 2^25 == 32 MB bytes of
+  // the physical address space.
+  allocators_.push_back(
+      BuddyBlockAllocator(reinterpret_cast<uint8_t*>(physical_addr_boundary_)));
+
+  physical_addr_boundary_ += kSingleAllocatorSize;
+}
+
+void* UserFrameAllocator::AllocateFrame(int order) {
+  if (order > 13) {
+    kprintf("Cannot allocate order of %d > 13 \n", order);
+    return nullptr;
+  }
+
+  for (auto& allocator : allocators_) {
+    void* addr = allocator.GetFrame(order);
+    if (addr != nullptr) {
+      return addr;
+    }
+  }
+
+  // If allocator pool is not large enough, then we should create a new one.
+  allocators_.push_back(
+      BuddyBlockAllocator(reinterpret_cast<uint8_t*>(physical_addr_boundary_)));
+  physical_addr_boundary_ += kSingleAllocatorSize;
+
+  return allocators_.back().GetFrame(order);
+}
+
+void UserFrameAllocator::FreeFrame(void* frame) {
+  ASSERT(reinterpret_cast<uint64_t>(frame) < physical_addr_boundary_);
+  size_t index =
+      (reinterpret_cast<uint64_t>(frame) - kAllocatablePhysicalAddrStart) /
+      kSingleAllocatorSize;
+  ASSERT(index < allocators_.size());
+
+  allocators_[index].FreeFrame(frame);
 }
 
 }  // namespace Kernel

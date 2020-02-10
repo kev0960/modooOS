@@ -1,7 +1,7 @@
 CC=~/opt/cross/bin/x86_64-elf-g++
 SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
                -Werror -I ./std -MMD -mno-red-zone -mcmodel=kernel -fno-pie -mgeneral-regs-only \
-							 -fno-threadsafe-statics -fno-rtti -fno-exceptions
+							 -fno-threadsafe-statics -fno-rtti -fno-exceptions -std=c++17
 CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
@@ -9,8 +9,8 @@ VPATH = ./kernel:./boot:./std:./test
 OBJDIR = ./obj
 
 OBJS := boot.o interrupt_handler.o
-OBJS += kmain.o string_util.o string.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o
-OBJS += kernel_test.o paging_test.o
+OBJS += kmain.o string_util.o string.o kernel_math.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o process.o elf.o
+OBJS += kernel_test.o
 
 CRTI_OBJ = ./obj/crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)

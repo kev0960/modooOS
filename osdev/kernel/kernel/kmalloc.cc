@@ -1,32 +1,11 @@
 #include "kmalloc.h"
 #include "../std/printf.h"
 #include "../std/string.h"
+#include "kernel_math.h"
 #include "kernel_util.h"
 
 namespace Kernel {
 namespace {
-
-int RoundUpNearestPowerOfTwoLog(uint32_t bytes) {
-  // For example,
-  // 0000 0000 | 0000 0000 | 0000 0001 | 0010 0000
-  // num_leading_zeros : 23
-  // num_trailing_zeros : 5
-  // --> returns 32 - 23 + 1 = 10 (2^10)
-  //
-  // 0000 0000 | 0000 0000 | 0000 0001 | 0000 0000
-  // num_leading_zeros : 23
-  // num_trailing_zeros : 8 (+ 1) = 9
-  // --> returns 9.
-  int num_leading_zeros = __builtin_clz(bytes);
-  int num_trailing_zeros = __builtin_ffs(bytes);
-
-  // bytes is the power of 2.
-  if (num_leading_zeros + num_trailing_zeros == 32) {
-    return num_trailing_zeros - 1;
-  } else {
-    return 32 - num_leading_zeros;
-  }
-}
 
 int RoundDownNearestPowerOfTwoLog(uint32_t bytes) {
   int num_leading_zeros = __builtin_clz(bytes);
@@ -352,7 +331,7 @@ void KernelMemoryManager::ShowDebugInfo() const {
   kprintf("Current Total heap size : %d \n", current_heap_size_ - 8);
   kprintf("---------- Free list offsets  ---------- \n");
   for (int i = 0; i < NUM_BUCKETS; i++) {
-    kprintf("%5d", free_list_[i]);
+    kprintf("%10d|", free_list_[i]);
   }
 }
 

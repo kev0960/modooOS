@@ -1,3 +1,6 @@
+#ifndef DESCRIPTOR_TABLE
+#define DESCRIPTOR_TABLE
+
 #include "../std/types.h"
 #include "cpu.h"
 
@@ -37,3 +40,5 @@ class GDTTableManager {
 };
 
 }  // namespace Kernel
+
+#endif

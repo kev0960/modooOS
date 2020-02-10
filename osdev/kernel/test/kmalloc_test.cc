@@ -4,73 +4,76 @@
 namespace Kernel {
 namespace kernel_test {
 
-/*
-TEST(kmallocTest, SimpleAllocAndFree) {
-kernel_memory_manager.Reset();
-void* mem1 = kmalloc(8);
+/*******************************************************************
+ * MUST RUN WITH KERNEL PAGING DISABLED (kernel_memory_manger.reset() destroys
+ * every page tables that are allocated on heap)
+ * ***************************************************************/
 
-kfree(mem1);
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+TEST(kmallocTest, SimpleAllocAndFree) {
+  kernel_memory_manager.Reset();
+  void* mem1 = kmalloc(8);
+
+  kfree(mem1);
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
 }
 
 TEST(kmallocTest, MergeTwoChunksToOne) {
-kernel_memory_manager.Reset();
-void* mem1 = kmalloc(8);
-void* mem2 = kmalloc(8);
+  kernel_memory_manager.Reset();
+  void* mem1 = kmalloc(8);
+  void* mem2 = kmalloc(8);
 
-kfree(mem1);
-kfree(mem2);
+  kfree(mem1);
+  kfree(mem2);
 
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
 }
 
 TEST(kmallocTest, MergeThreeChunksToOne) {
-kernel_memory_manager.Reset();
-void* mem1 = kmalloc(8);
-void* mem2 = kmalloc(8);
-void* mem3 = kmalloc(8);
+  kernel_memory_manager.Reset();
+  void* mem1 = kmalloc(8);
+  void* mem2 = kmalloc(8);
+  void* mem3 = kmalloc(8);
 
-kfree(mem1);
-kfree(mem3);
-kfree(mem2);
+  kfree(mem1);
+  kfree(mem3);
+  kfree(mem2);
 
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
 }
 
 TEST(kmallocTest, DecreaseSize) {
-kernel_memory_manager.Reset();
-for (int i = 50; i >= 1; i--) {
-  void* mem = kmalloc(i * 10);
-  kfree(mem);
-}
+  kernel_memory_manager.Reset();
+  for (int i = 50; i >= 1; i--) {
+    void* mem = kmalloc(i * 10);
+    kfree(mem);
+  }
 
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
 }
 
 TEST(kmallocTest, IncreaseSize) {
-kernel_memory_manager.Reset();
-for (int i = 1; i <= 50; i++) {
-  void* mem = kmalloc(i * 10);
-  kfree(mem);
-  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
-}
+  kernel_memory_manager.Reset();
+  for (int i = 1; i <= 50; i++) {
+    void* mem = kmalloc(i * 10);
+    kfree(mem);
+    EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  }
 
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
-kernel_memory_manager.DumpMemory();
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  kernel_memory_manager.DumpMemory();
 }
 
 TEST(kmallocTest, LargeMemory) {
-kernel_memory_manager.Reset();
-for (int i = 1; i <= 10; i++) {
-  void* mem = kmalloc(i * 1000000);
-  kfree(mem);
-  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
-}
+  kernel_memory_manager.Reset();
+  for (int i = 1; i <= 10; i++) {
+    void* mem = kmalloc(i * 1000000);
+    kfree(mem);
+    EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  }
 
-EXPECT_TRUE(kernel_memory_manager.SanityCheck());
-kernel_memory_manager.DumpMemory();
+  EXPECT_TRUE(kernel_memory_manager.SanityCheck());
+  kernel_memory_manager.DumpMemory();
 }
-*/
 
 TEST(kmallocTest, SimpleAligned) {
   kernel_memory_manager.Reset();

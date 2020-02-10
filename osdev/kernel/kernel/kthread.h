@@ -19,6 +19,7 @@ class KernelThread {
  public:
   using EntryFuncType = void (*)();
 
+  // If need_stack is true, then rsp will be used as a RSP.
   KernelThread(EntryFuncType entry_function, bool need_stack = true);
 
   static KernelThread* CurrentThread();
@@ -40,12 +41,19 @@ class KernelThread {
 
   // Terminates the thread by removing from the scheduling queue.
   void Terminate();
+  void TerminateInInterruptHandler(CPUInterruptHandlerArgs* args,
+                                   InterruptHandlerSavedRegs* regs);
 
   // Wait until this thread finishes.
   void Join();
 
   void MakeSleep() { status_ = THREAD_SLEEP; }
   void MakeRun() { status_ = THREAD_RUN; }
+
+  virtual bool IsKernelThread() const { return true; }
+
+  // Should not be called for kernel thread.
+  virtual uint64_t* GetPageTableBaseAddress() const;
 
   // The pointer that stores the current thread info. We cannot pass the this
   // pointer since this does not take any memory space.
@@ -54,7 +62,7 @@ class KernelThread {
   size_t lock_wait_cnt;
   uint64_t saved_rbp;
 
- private:
+ protected:
   size_t thread_id_;
   SavedRegisters regs_;
 

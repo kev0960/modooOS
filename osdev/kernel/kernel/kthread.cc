@@ -1,7 +1,7 @@
 #include "kthread.h"
+#include "../std/printf.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
-#include "printf.h"
 #include "scheduler.h"
 #include "sync.h"
 
@@ -126,11 +126,32 @@ void KernelThread::Terminate() {
   PANIC();
 }
 
+void KernelThread::TerminateInInterruptHandler(
+    CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
+  // No need to remove thread from the queue since running thread is not in the
+  // queue.
+
+  status_ = THREAD_TERMINATE;
+  KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
+      args, regs);
+  kprintf("Reached here? %d \n", thread_id_);
+  PANIC();
+}
+
 // Do not optimze this function. When optimizing turned on, the compiler will
 void __attribute__((optimize("O0"))) KernelThread::Join() {
   while (status_ != THREAD_TERMINATE) {
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
+}
+
+uint64_t* KernelThread::GetPageTableBaseAddress() const {
+  kprintf(
+      "Should not try to get page table base address of the kernel thread. "
+      "Why do you even need when we don't need to change CR3 for context "
+      "switch?\n");
+  PANIC();
+  return nullptr;
 }
 
 void Semaphore::Up(bool inside_interrupt_handler) {

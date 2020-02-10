@@ -138,6 +138,7 @@ class vector {
   }
 
   T& operator[](size_t index) { return data_[index]; }
+  T& back() { return data_[size_ - 1]; }
   const T& at(size_t index) const { return data_[index]; }
   size_t size() const { return size_; }
   size_t capacity() const { return alloc_size_; }

@@ -70,5 +70,6 @@ struct InterruptHandlerSavedRegs {
 
 extern "C" void TimerInterruptHandler();
 extern "C" void CustomContextSwitchInterruptHandler();
+extern "C" void PageFaultInterruptHandler();
 
 #endif

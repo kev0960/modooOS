@@ -45,7 +45,7 @@ void GDTTableManager::SetUpGDTTables() {
                      /* access */ 0b11110010,
                      /* granularity */ 0b10100000);
 
-  gdt_entry_ptr_.limit = (sizeof(GDTEntry) * kNumGDTEntryDefined);
+  gdt_entry_ptr_.limit = sizeof(GDTEntry) * kNumGDTEntryDefined - 1;
   gdt_entry_ptr_.gdt_table = reinterpret_cast<uint64_t>(gdt_entries_);
 
   asm volatile("lgdt %0" ::"m"(gdt_entry_ptr_) :);

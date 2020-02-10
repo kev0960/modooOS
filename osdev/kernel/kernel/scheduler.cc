@@ -59,6 +59,12 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   CopyCPUInteruptHandlerArgs(args, next_thread_regs);
   *regs = next_thread_regs->regs;
 
+  // If the next thread is a user process, then we have to reset CR3
+  if (!next_thread->IsKernelThread()) {
+    CPURegsAccessProvider::SetCR3(
+        reinterpret_cast<uint64_t>(next_thread->GetPageTableBaseAddress()));
+  }
+
   KernelThread::SetCurrentThread(next_thread);
   // Since we changed the interrupt handler's stack to the next thread's
   // stack, the handler will return where the next thread has switched.

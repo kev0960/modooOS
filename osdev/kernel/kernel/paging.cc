@@ -1,8 +1,14 @@
 #include "paging.h"
 #include "../std/algorithm.h"
 #include "../std/printf.h"
+#include "../std/utility.h"
+#include "cpu.h"
+#include "ext2.h"
+#include "frame_allocator.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
+#include "kthread.h"
+#include "process.h"
 
 namespace Kernel {
 namespace {
@@ -23,6 +29,8 @@ constexpr uint64_t kPageTableAddressSizePerEntry = (1LL << 12);
 constexpr size_t kPageTableEntryNum = 512;
 
 void SetPresent(uint64_t* entry) { (*entry) |= 1; }
+void SetFree(uint64_t* entry) { (*entry) &= (0xFFFFFFFF'FFFFFFFELL); }
+
 bool IsPresent(uint64_t entry) { return entry & 1; }
 
 void SetReadWrite(uint64_t* entry) { (*entry) |= 0x2; }
@@ -113,6 +121,11 @@ uint64_t* CreateNewTable() {
   }
 
   return table_base_addr;
+}
+
+// Get the 4KB boundary address.
+constexpr uint64_t Get4KBBoundary(uint64_t addr) {
+  return addr % (0xFFFFFFFF'FFFFF000LL);
 }
 
 }  // namespace
@@ -271,4 +284,199 @@ void PageTable::SetPT(uint64_t start_addr, uint64_t end_addr,
   }
 }
 
+void PageTable::FreePML4E(uint64_t start_addr, uint64_t size,
+                          uint64_t* pml4e_base_addr) {
+  size_t offset_start = GetPML4Offset(start_addr);
+  size_t offset_end = GetPML4Offset(start_addr + size - 1);
+  uint64_t pml4_start_addr = GetPML4StartAddr(start_addr);
+
+  ASSERT((uint64_t)pml4e_base_addr >= kKernelVirtualOffset);
+
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (IsPresent(pml4e_base_addr[offset])) {
+      uint64_t* pdpt_base_addr =
+          PhysToKernel<uint64_t*>(GetBaseAddress(pml4e_base_addr[offset]));
+      int delta = offset - offset_start;
+
+      uint64_t pdpt_start_addr =
+          max(start_addr, pml4_start_addr + delta * kPML4AddressSizePerEntry);
+      uint64_t pdpt_end_addr = start_addr + size;
+
+      // If pml4 end boundary is not overflown, then compare properly.
+      if (pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry != 0) {
+        pdpt_end_addr =
+            min(start_addr + size,
+                pml4_start_addr + (delta + 1) * kPML4AddressSizePerEntry);
+      }
+
+      if (FreePDPT(pdpt_start_addr, pdpt_end_addr, pdpt_base_addr)) {
+        SetFree(&pml4e_base_addr[offset]);
+      }
+    }
+  }
+}
+
+bool PageTable::FreePDPT(uint64_t start_addr, uint64_t end_addr,
+                         uint64_t* pdpe_base_addr) {
+  size_t offset_start = GetPDPOffset(start_addr);
+  size_t offset_end = GetPDPOffset(end_addr - 1);
+  uint64_t pdpt_start_addr = GetPDPStartAddr(start_addr);
+
+  ASSERT((uint64_t)pdpe_base_addr >= kKernelVirtualOffset);
+
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (IsPresent(pdpe_base_addr[offset])) {
+      uint64_t* pdt_base_addr =
+          PhysToKernel<uint64_t*>(GetBaseAddress(pdpe_base_addr[offset]));
+      int delta = offset - offset_start;
+      uint64_t pdt_start_addr = max(
+          start_addr, pdpt_start_addr + delta * kPDPTableAddressSizePerEntry);
+
+      // Set the next level page table.
+      if (FreePDT(pdt_start_addr,
+                  min(end_addr, pdpt_start_addr +
+                                    (delta + 1) * kPDPTableAddressSizePerEntry),
+                  pdt_base_addr)) {
+        SetFree(&pdpe_base_addr[offset]);
+      }
+    }
+  }
+
+  // If everything is free in this table, then we can just free corresponding
+  // pml4e entry.
+  for (size_t i = 0; i < kPDPTEntryNum; i++) {
+    if (IsPresent(pdpe_base_addr[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool PageTable::FreePDT(uint64_t start_addr, uint64_t end_addr,
+                        uint64_t* pdt_base_addr) {
+  size_t offset_start = GetPDOffset(start_addr);
+  size_t offset_end = GetPDOffset(end_addr - 1);
+  uint64_t pdt_start_addr = GetPDStartAddr(start_addr);
+
+  ASSERT((uint64_t)pdt_base_addr >= kKernelVirtualOffset);
+
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    if (IsPresent(pdt_base_addr[offset])) {
+      uint64_t* pt_base_addr =
+          PhysToKernel<uint64_t*>(GetBaseAddress(pdt_base_addr[offset]));
+      int delta = offset - offset_start;
+      uint64_t pt_start_addr =
+          max(start_addr, pdt_start_addr + delta * kPDTableAddressSizePerEntry);
+
+      // Set the next level page table.
+      if (FreePT(pt_start_addr,
+                 min(end_addr, pdt_start_addr +
+                                   (delta + 1) * kPDTableAddressSizePerEntry),
+                 pt_base_addr)) {
+        SetFree(&pdt_base_addr[offset]);
+      }
+    }
+  }
+
+  // If everything is free in this table, then we can just free corresponding
+  // pdpt entry.
+  for (size_t i = 0; i < kPDTableEntryNum; i++) {
+    if (IsPresent(pdt_base_addr[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool PageTable::FreePT(uint64_t start_addr, uint64_t end_addr,
+                       uint64_t* pt_base_addr) {
+  size_t offset_start = GetPTOffset(start_addr);
+  size_t offset_end = GetPTOffset(end_addr - 1);
+
+  ASSERT((uint64_t)pt_base_addr >= kKernelVirtualOffset);
+
+  for (size_t offset = offset_start; offset <= offset_end; offset++) {
+    SetFree(&pt_base_addr[offset]);
+
+    // Free the physical frame.
+    uint64_t* frame_phys_addr = GetBaseAddress(pt_base_addr[offset]);
+    UserFrameAllocator::GetPhysicalFrameAllocator().FreeFrame(frame_phys_addr);
+  }
+
+  for (size_t i = 0; i < kPageTableEntryNum; i++) {
+    if (IsPresent(pt_base_addr[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void PageTableManager::AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
+                                    uint64_t* user_vm_address, size_t order) {
+  // Make sure that the requested vm address is actually in user space.
+  ASSERT((uint64_t)user_vm_address < kKernelVMStart);
+
+  // Get physical frame.
+  uint64_t physical_frame = reinterpret_cast<uint64_t>(
+      UserFrameAllocator::GetPhysicalFrameAllocator().AllocateFrame(order));
+
+  // Assign physical frames to the page table.
+  page_table_.AllocateTable(
+      user_pml4e_base_phys_addr_, reinterpret_cast<uint64_t>(user_vm_address),
+      (1 << order) * FourKB, /*is_kernel=*/false, physical_frame);
+}
+
+void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
+                                        InterruptHandlerSavedRegs* regs) {
+  uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();
+  kprintf("Fault addr : %lx \n", fault_addr);
+
+  // We first need to check whether the fault address is valid.
+  KernelThread* current_thread = KernelThread::CurrentThread();
+
+  // Kernel thread should not page fault!
+  if (current_thread->IsKernelThread()) {
+    kprintf("#PF in kernel thread! \n");
+    PANIC();
+    while (1) {
+    }
+  }
+
+  Process* process = static_cast<Process*>(current_thread);
+  auto address_info = process->GetAddressInfo(fault_addr);
+  if (address_info == ProcessAddressInfo::NOT_VALID_ADDR) {
+    // Terminate this process if the fault address is not allowed.
+    process->TerminateInInterruptHandler(args, regs);
+    return;
+  }
+
+  // Otherwise, allocate the memory.
+  uint64_t boundary = Get4KBBoundary(fault_addr);
+  AllocatePage(process->GetPageTableBaseAddress(), (uint64_t*)boundary, 0);
+
+  if (address_info == ProcessAddressInfo::ELF_SEGMENT_ADDR) {
+    ELFProgramHeader header = process->GetMatchingProgramHeader(fault_addr);
+
+    uint64_t file_read_start_offset =
+        header.p_offset + (fault_addr - header.p_vaddr);
+    uint64_t file_read_end_offset =
+        header.p_offset +
+        min(header.p_filesz, boundary + FourKB - header.p_vaddr);
+    uint64_t num_read = file_read_end_offset - file_read_start_offset;
+
+    // If the address was ELF section, then we need to copy it from the file.
+    auto& file_system = Ext2FileSystem::GetExt2FileSystem();
+    file_system.ReadFile(process->GetFileName().c_str(),
+                         reinterpret_cast<uint8_t*>(fault_addr), num_read,
+                         file_read_start_offset);
+  }
+}
+
 }  // namespace Kernel
+
+void PageFaultInterruptHandlerCaller(Kernel::CPUInterruptHandlerArgs* args,
+                                     Kernel::InterruptHandlerSavedRegs* regs) {
+  Kernel::PageTableManager::GetPageTableManager().PageFaultHandler(args, regs);
+}
