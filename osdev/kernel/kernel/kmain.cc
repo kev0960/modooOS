@@ -7,6 +7,7 @@
 #include "kthread.h"
 #include "paging.h"
 #include "printf.h"
+#include "process.h"
 #include "sync.h"
 #include "vga_output.h"
 
@@ -39,7 +40,6 @@ void KernelMain() {
   page_table_manager.SetCR3<Kernel::CPURegsAccessProvider>(
       page_table_manager.GetKernelPml4eBaseAddr());
   Kernel::vga_output << "Init Paging is done! \n";
-
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   auto& ata_driver = Kernel::ATADriver::GetATADriver();
@@ -48,6 +48,11 @@ void KernelMain() {
   auto& ext2 = Kernel::Ext2FileSystem::GetExt2FileSystem();
   (void)(ext2);
 
+
+  auto& process_manager = Kernel::ProcessManager::GetProcessManager();
+  auto* process = process_manager.CreateProcess("/a.out");
+  process->Start();
+  UNUSED(process);
   while (1) {
   }
 }

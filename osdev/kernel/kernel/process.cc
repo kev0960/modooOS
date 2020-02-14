@@ -17,7 +17,8 @@ constexpr uint64_t kFourKB = (1 << 12);
 // Since this is a user process, it does not need a kernel stack.
 Process::Process(KernelThread* parent, const KernelString& file_name,
                  EntryFuncType entry_function)
-    : KernelThread(entry_function, /*need_stack=*/false),
+    : KernelThread(nullptr, /*need_stack=*/true),
+      in_kernel_space_(false),
       parent_(parent),
       kernel_list_elem_(nullptr),
       file_name_(file_name) {
@@ -39,7 +40,10 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   PageTableManager::GetPageTableManager().AllocatePage(
       pml4e_base_phys_addr_, (uint64_t*)kUserProcessStackAddress, 0);
 
-  regs_.rsp = kUserProcessStackAddress;
+  user_regs_.rip = (uint64_t)entry_function;
+  user_regs_.rsp = kUserProcessStackAddress;
+  user_regs_.cs = 0x1B;  // User Code segment
+  user_regs_.ss = 0x23;  // User Stack segment.
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
@@ -94,17 +98,6 @@ Process* ProcessManager::CreateProcess(string_view file_name) {
 
   process->SetProgramHeaders(elf_reader.GetProgramHeaders());
   kfree(buf);
-
-  /*
-   for (const ELFProgramHeader& header : process->GetProgramHeaders()) {
-     uint64_t vm_boundary = Get4KBBoundary(header.p_vaddr);
-     uint64_t needed_page_size = header.p_vaddr + header.p_memsz - vm_boundary;
-
-     PageTableManager::GetPageTableManager().AllocatePage(
-         (uint64_t*)process->GetPageTableBaseAddress(), (uint64_t*)vm_boundary,
-         RoundUpNearestPowerOfTwoLog(needed_page_size));
-   }
-   */
 
   // Now as soon as the kernel switches to this thread, it will first copy the
   // contents from the program headers.

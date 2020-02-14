@@ -1,8 +1,9 @@
 #include "timer.h"
+#include "../std/stdint.h"
 #include "cpu.h"
+#include "kthread.h"
 #include "printf.h"
 #include "scheduler.h"
-#include "stdint.h"
 
 namespace Kernel {
 PITimer::PITimer() : timer_tick_lower_(0), timer_tick_upper_(0) {}

@@ -125,7 +125,16 @@ uint64_t* CreateNewTable() {
 
 // Get the 4KB boundary address.
 constexpr uint64_t Get4KBBoundary(uint64_t addr) {
-  return addr % (0xFFFFFFFF'FFFFF000LL);
+  return addr & (0xFFFFFFFF'FFFFF000LL);
+}
+
+template <typename T, typename U>
+void CopyCPUInteruptHandlerArgs(T* to, U* from) {
+  to->rip = from->rip;
+  to->rsp = from->rsp;
+  to->rflags = from->rflags;
+  to->ss = from->ss;
+  to->cs = from->cs;
 }
 
 }  // namespace
@@ -440,11 +449,17 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   if (current_thread->IsKernelThread()) {
     kprintf("#PF in kernel thread! \n");
     PANIC();
-    while (1) {
-    }
   }
 
   Process* process = static_cast<Process*>(current_thread);
+  process->SetInKernel();
+
+  auto* process_regs = process->GetSavedUserRegs();
+  process_regs->regs = *regs;
+  CopyCPUInteruptHandlerArgs(process_regs, args);
+
+  kprintf("Next thread regs ; %lx %lx %lx %lx\n", process_regs->rip,
+          process_regs->cs, process_regs->ss, args->rip);
   auto address_info = process->GetAddressInfo(fault_addr);
   if (address_info == ProcessAddressInfo::NOT_VALID_ADDR) {
     // Terminate this process if the fault address is not allowed.
@@ -454,6 +469,7 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 
   // Otherwise, allocate the memory.
   uint64_t boundary = Get4KBBoundary(fault_addr);
+  kprintf("boundary : %lx \n", boundary);
   AllocatePage(process->GetPageTableBaseAddress(), (uint64_t*)boundary, 0);
 
   if (address_info == ProcessAddressInfo::ELF_SEGMENT_ADDR) {
@@ -472,6 +488,11 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                          reinterpret_cast<uint8_t*>(fault_addr), num_read,
                          file_read_start_offset);
   }
+
+  // Done handling.
+  process->SetInUser();
+
+  kprintf("REad file done.. %lx %lx", args->cs, args->ss);
 }
 
 }  // namespace Kernel
@@ -479,4 +500,5 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 void PageFaultInterruptHandlerCaller(Kernel::CPUInterruptHandlerArgs* args,
                                      Kernel::InterruptHandlerSavedRegs* regs) {
   Kernel::PageTableManager::GetPageTableManager().PageFaultHandler(args, regs);
+  kprintf("args : %lx %lx %lx\n", args->rip, args->cs, args->ss);
 }

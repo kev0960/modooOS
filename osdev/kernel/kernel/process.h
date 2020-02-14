@@ -23,6 +23,8 @@ class Process : public KernelThread {
 
   KernelList<Process*>* GetChildrenList() { return &children_; }
   bool IsKernelThread() const override { return false; }
+  bool IsInKernelSpace() const override { return in_kernel_space_; }
+
   uint64_t* GetPageTableBaseAddress() const override {
     return pml4e_base_phys_addr_;
   }
@@ -35,7 +37,11 @@ class Process : public KernelThread {
     return program_headers_;
   }
 
+  SavedRegisters* GetSavedUserRegs() { return &user_regs_; }
   const KernelString& GetFileName() { return file_name_; }
+
+  void SetInKernel() { in_kernel_space_ = true; }
+  void SetInUser() { in_kernel_space_ = false; }
 
   // Check whether the address falls within
   //   - Current process's stack size.
@@ -47,6 +53,9 @@ class Process : public KernelThread {
   ELFProgramHeader GetMatchingProgramHeader(uint64_t addr) const;
 
  private:
+  bool in_kernel_space_;
+  SavedRegisters user_regs_;
+
   KernelThread* parent_;
 
   KernelListElement<Process*> kernel_list_elem_;

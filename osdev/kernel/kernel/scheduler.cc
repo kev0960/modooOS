@@ -1,6 +1,8 @@
 #include "scheduler.h"
+#include "../std/printf.h"
 #include "cpu.h"
-#include "printf.h"
+#include "descriptor_table.h"
+#include "process.h"
 #include "timer.h"
 #include "vga_output.h"
 
@@ -13,6 +15,8 @@ void CopyCPUInteruptHandlerArgs(T* to, U* from) {
   to->rip = from->rip;
   to->rsp = from->rsp;
   to->rflags = from->rflags;
+  to->ss = from->ss;
+  to->cs = from->cs;
 }
 
 }  // namespace
@@ -44,19 +48,46 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
+  kprintf("Schedule!%d \n", current_thread->Id());
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
   }
 
-  auto* current_thread_regs = current_thread->GetSavedRegs();
+  // Current thread must be runninng in kernel space (since this is the
+  // interrupt handler running at ring 0).
+  // ASSERT(current_thread->IsInKernelSpace());
+
+  bool in_ks = current_thread->IsInKernelSpace();
+  auto* current_thread_regs = current_thread->GetSavedKernelRegs();
   CopyCPUInteruptHandlerArgs(current_thread_regs, args);
   current_thread_regs->regs = *regs;
 
+  if (!in_ks) {
+    kprintf("%lx %lx %lx\n", current_thread_regs->rip, current_thread_regs->ss,
+            current_thread_regs->cs);
+    while (1)
+      ;
+  }
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
-  auto* next_thread_regs = next_thread->GetSavedRegs();
-  CopyCPUInteruptHandlerArgs(args, next_thread_regs);
+
+  // If the target thread is a user process (i.e we are jumping into the user
+  // space), we have to set the interrupt frame's RSP as User's RSP (user_rsp)
+  // instead of the kernel rsp.
+  SavedRegisters* next_thread_regs;
+  if (next_thread->IsInKernelSpace()) {
+    next_thread_regs = next_thread->GetSavedKernelRegs();
+    CopyCPUInteruptHandlerArgs(args, next_thread_regs);
+  } else {
+    Process* process = static_cast<Process*>(next_thread);
+    next_thread_regs = process->GetSavedUserRegs();
+    CopyCPUInteruptHandlerArgs(args, next_thread_regs);
+
+    // Also set TSS RSP0 as current user process's kernel stack rsp.
+    TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
+        next_thread->GetSavedKernelRegs()->rsp);
+  }
   *regs = next_thread_regs->regs;
 
   // If the next thread is a user process, then we have to reset CR3

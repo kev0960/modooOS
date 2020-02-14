@@ -15,6 +15,7 @@ void AssertTrue(bool condition, const char* func_name, int line) {
 void Panic(const char* func_name, int line) {
   DisableInterrupt();
   kprintf("Kernel Panic at : %s:%d", func_name, line);
+  while(1);
 }
 
 }  // namespace __

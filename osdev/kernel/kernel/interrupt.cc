@@ -61,10 +61,8 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
 
-  if (int_num == 14 || int_num == 13 || int_num == 6) {
-    while (true)
-      ;
-  }
+  while (true)
+    ;
 }
 
 template <int INT_NUM>

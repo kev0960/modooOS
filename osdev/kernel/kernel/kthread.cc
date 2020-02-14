@@ -1,5 +1,6 @@
 #include "kthread.h"
 #include "../std/printf.h"
+#include "cpu.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
 #include "scheduler.h"
@@ -81,7 +82,11 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
   thread_id_ = ThreadIdManager::GetThreadId();
 
   // The rip of this function will be entry_function.
-  regs_.rip = reinterpret_cast<uint64_t>(entry_function);
+  kernel_regs_.rip = reinterpret_cast<uint64_t>(entry_function);
+
+  kprintf("rip : %lx \n", kernel_regs_.rip);
+  kernel_regs_.cs = 0x8;
+  kernel_regs_.ss = 0x10;
 
   // Set up the thread's stack.
   if (need_stack) {
@@ -91,7 +96,8 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
     constexpr int num_stack_elements = kKernelThreadStackSize / 8;
     // Since the stack is the highest address, set rsp as the top most address
     // of the stack.
-    regs_.rsp = reinterpret_cast<uint64_t>(&stack[num_stack_elements - 1]);
+    kernel_regs_.rsp =
+        reinterpret_cast<uint64_t>(&stack[num_stack_elements - 1]);
 
     // We are pushing Done as a return address. When the thread finishes, it
     // will return to Done() which will finish the thread.
@@ -100,10 +106,10 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 
   // Set it as current RFLAGS.
   // TODO Think more carefully about this.
-  regs_.rflags = GetRFlags();
+  kernel_regs_.rflags = GetRFlags();
 
   kernel_list_elem_.Set(this);
-  InitSavedRegs(&regs_.regs);
+  InitSavedRegs(&kernel_regs_.regs);
 }
 
 void KernelThread::Start() {
@@ -121,6 +127,7 @@ void KernelThread::Terminate() {
   // queue.
 
   status_ = THREAD_TERMINATE;
+  kprintf("TErminate?? %d \n", thread_id_);
   KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   kprintf("Reached here? %d \n", thread_id_);
   PANIC();
@@ -132,6 +139,7 @@ void KernelThread::TerminateInInterruptHandler(
   // queue.
 
   status_ = THREAD_TERMINATE;
+  kprintf("TErminate?? %d \n", thread_id_);
   KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
       args, regs);
   kprintf("Reached here? %d \n", thread_id_);

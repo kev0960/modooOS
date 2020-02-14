@@ -1,7 +1,7 @@
-#include "kthread.h"
+#include "../kernel/kthread.h"
 #include "kernel_test.h"
-#include "scheduler.h"
-#include "sync.h"
+#include "../kernel/scheduler.h"
+#include "../kernel/sync.h"
 
 namespace Kernel {
 namespace kernel_test {

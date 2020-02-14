@@ -1,10 +1,10 @@
 #include "elf.h"
+#include "../std/printf.h"
 #include "kernel_util.h"
-
 namespace Kernel {
 namespace {
 
-constexpr uint32_t kELFMagic = 0x7F454C46;
+constexpr uint32_t kELFMagic = 0x464c457f;
 constexpr uint8_t kELFClass64Bit = 0x2;
 constexpr uint8_t kELFLittleEndian = 0x1;
 
@@ -33,7 +33,7 @@ ELFReader::ELFReader(const uint8_t* data, size_t file_size) {
     return;
   }
 
-  if (header_.e_ident_class != kELFLittleEndian) {
+  if (header_.e_ident_data != kELFLittleEndian) {
     error_ = "Not a Little endian encoded file.";
     is_valid_ = false;
     return;

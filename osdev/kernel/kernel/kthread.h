@@ -10,6 +10,9 @@ struct SavedRegisters {
   uint64_t rip;
   uint64_t rsp;
   uint64_t rflags;
+  uint64_t cs;
+  uint64_t ss;
+
   InterruptHandlerSavedRegs regs;
 } __attribute__((packed));
 
@@ -29,7 +32,7 @@ class KernelThread {
   // Called when the thread is done executing.
   static void Done() { CurrentThread()->Terminate(); }
 
-  SavedRegisters* GetSavedRegs() { return &regs_; }
+  SavedRegisters* GetSavedKernelRegs() { return &kernel_regs_; }
   size_t Id() const { return thread_id_; }
   KernelListElement<KernelThread*>* GetKenrelListElem() {
     return &kernel_list_elem_;
@@ -51,6 +54,7 @@ class KernelThread {
   void MakeRun() { status_ = THREAD_RUN; }
 
   virtual bool IsKernelThread() const { return true; }
+  virtual bool IsInKernelSpace() const { return true; }
 
   // Should not be called for kernel thread.
   virtual uint64_t* GetPageTableBaseAddress() const;
@@ -64,7 +68,7 @@ class KernelThread {
 
  protected:
   size_t thread_id_;
-  SavedRegisters regs_;
+  SavedRegisters kernel_regs_;
 
   ThreadStatus status_;
   KernelListElement<KernelThread*> kernel_list_elem_;

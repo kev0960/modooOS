@@ -148,7 +148,7 @@ PageFaultInterruptHandler:
 
   // Set InterruptHandlerSavedRegs to rax.
   movq %rsp, %rsi
-  lea 0x78(%rsp), %rdi
+  lea 0x80(%rsp), %rdi
   callq PageFaultInterruptHandlerCaller
 
   mov $0x20, %eax
@@ -169,5 +169,6 @@ PageFaultInterruptHandler:
   pop %r13
   pop %r14
   pop %r15
+  addq $8, %rsp // Pop the error code.
 
   iretq
