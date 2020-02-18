@@ -38,15 +38,22 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   // TODO the stack address is set as arbitrary large number. We need to
   // revisit again and set the value properly.
   PageTableManager::GetPageTableManager().AllocatePage(
-      pml4e_base_phys_addr_, (uint64_t*)kUserProcessStackAddress, 0);
+      pml4e_base_phys_addr_, (uint64_t*)(kUserProcessStackAddress - kFourKB),
+      0);
 
+  kprintf("Allocate \n");
   user_regs_.rip = (uint64_t)entry_function;
-  user_regs_.rsp = kUserProcessStackAddress;
-  user_regs_.cs = 0x1B;  // User Code segment
-  user_regs_.ss = 0x23;  // User Stack segment.
+  user_regs_.rsp = kUserProcessStackAddress - 8;
+  user_regs_.cs = 0x1B;       // User Code segment
+  user_regs_.ss = 0x23;       // User Stack segment.
+  user_regs_.rflags = 0x200;  // Interrupt is enabled.
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
+  if (addr == 0) {
+    return ProcessAddressInfo::NOT_VALID_ADDR;
+  }
+
   if (kUserProcessStackAddress - kFourKB <= addr &&
       addr <= kUserProcessStackAddress) {
     return ProcessAddressInfo::STACK_ADDR;

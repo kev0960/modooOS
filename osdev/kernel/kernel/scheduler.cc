@@ -48,27 +48,25 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
-  kprintf("Schedule!%d \n", current_thread->Id());
+
+  kprintf("Schedule!%d %lx %d\n", current_thread->Id(), args->rip,
+          current_thread->status_);
+
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
   }
 
-  // Current thread must be runninng in kernel space (since this is the
-  // interrupt handler running at ring 0).
-  // ASSERT(current_thread->IsInKernelSpace());
-
-  bool in_ks = current_thread->IsInKernelSpace();
-  auto* current_thread_regs = current_thread->GetSavedKernelRegs();
+  SavedRegisters* current_thread_regs = nullptr;
+  if (args->cs == kKernelCodeSegment) {
+    current_thread_regs = current_thread->GetSavedKernelRegs();
+  } else {
+    current_thread_regs =
+        static_cast<Process*>(current_thread)->GetSavedUserRegs();
+  }
   CopyCPUInteruptHandlerArgs(current_thread_regs, args);
   current_thread_regs->regs = *regs;
 
-  if (!in_ks) {
-    kprintf("%lx %lx %lx\n", current_thread_regs->rip, current_thread_regs->ss,
-            current_thread_regs->cs);
-    while (1)
-      ;
-  }
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
 

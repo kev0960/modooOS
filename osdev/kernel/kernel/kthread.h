@@ -66,11 +66,11 @@ class KernelThread {
   size_t lock_wait_cnt;
   uint64_t saved_rbp;
 
+  ThreadStatus status_;
  protected:
   size_t thread_id_;
   SavedRegisters kernel_regs_;
 
-  ThreadStatus status_;
   KernelListElement<KernelThread*> kernel_list_elem_;
 };
 
@@ -81,7 +81,9 @@ class Semaphore {
   // If we are using semaphore inside of the interrupt handler, then we should
   // set without_lock as true.
   void Up(bool inside_interrupt_handler = false);
-  void Down(bool inside_interrupt_handler = false);
+  void Down();
+  void DownInInterruptHandler(CPUInterruptHandlerArgs* args,
+                              InterruptHandlerSavedRegs* regs);
 
  private:
   int cnt_;

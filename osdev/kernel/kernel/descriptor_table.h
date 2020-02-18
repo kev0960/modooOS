@@ -91,8 +91,8 @@ class TaskStateSegmentManager {
   TSS* GetTSS() { return &tss_; }
 
   void SetRSP0(uint64_t rsp) {
-    //tss_.rsp0_low = rsp;
-    //tss_.rsp0_high = rsp >> 32;
+    // tss_.rsp0_low = rsp;
+    // tss_.rsp0_high = rsp >> 32;
     tss_.arr[1] = rsp;
     tss_.arr[2] = rsp >> 32;
   }
@@ -104,6 +104,8 @@ class TaskStateSegmentManager {
 
   TSS tss_;
 };
+
+constexpr static uint16_t kKernelCodeSegment = 0x8;
 
 }  // namespace Kernel
 

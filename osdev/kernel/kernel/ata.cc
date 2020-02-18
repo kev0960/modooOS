@@ -1,7 +1,7 @@
 #include "ata.h"
-#include "algorithm.h"
+#include "../std/algorithm.h"
+#include "../std/printf.h"
 #include "io.h"
-#include "printf.h"
 #include "sync.h"
 
 namespace Kernel {
@@ -240,32 +240,6 @@ void ATADriver::InitATA() {
   InitATADevice(&secondary_slave_, /* primary = */ false, /* slave = */ true);
 
   kprintf("Check Primary Master ... \n");
-  // Identify(&primary_master_);
-  /*
-  kprintf("Check Primary Slave ... \n");
-  Identify(&primary_slave_);
-  kprintf("Check Secondary Master ... \n");
-  Identify(&secondary_master_);
-  kprintf("Check Secondary Slave ... \n");
-  Identify(&secondary_slave_);*/
-
-  /*
-  uint8_t buf[256 * 2];
-  for (int j = 0; j < 100; j++) {
-    Read(&primary_master_, j, buf);
-
-    for (int i = 0; i < 512; i++) {
-      kprintf("%x ", buf[i]);
-    }
-  }*/
-
-  /*
-  uint8_t buf[256 * 2] = "this iswtf ;aslkjdfalsjf;alsjflasfjlasf";
-  Write(buf, 512, 0);
-  uint8_t buf2[256 * 2];
-  Read(buf2, 512, 0);
-
-  kprintf("read again : %s \n", buf2);*/
 }
 
 void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {

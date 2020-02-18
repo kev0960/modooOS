@@ -1,6 +1,7 @@
 #include "kthread.h"
 #include "../std/printf.h"
 #include "cpu.h"
+#include "kernel_context.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
 #include "scheduler.h"
@@ -84,7 +85,6 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
   // The rip of this function will be entry_function.
   kernel_regs_.rip = reinterpret_cast<uint64_t>(entry_function);
 
-  kprintf("rip : %lx \n", kernel_regs_.rip);
   kernel_regs_.cs = 0x8;
   kernel_regs_.ss = 0x10;
 
@@ -186,17 +186,28 @@ void Semaphore::Up(bool inside_interrupt_handler) {
   }
 }
 
-void Semaphore::Down(bool inside_interrupt_handler) {
+void Semaphore::Down() {
+  bool need_irq_lock = CPURegsAccessProvider::IsInterruptEnabled();
+
+  /*
+  if (!CPURegsAccessProvider::IsInterruptEnabled()) {
+    // In interrupt handler context.
+    DownInInterruptHandler(
+        KernelContext::GetKernelContext().GetCPUInterruptHandlerArgs(),
+        KernelContext::GetKernelContext().GetInterruptHandlerSavedRegs());
+    return;
+  }*/
+
   IrqLock lock;
 
   while (true) {
-    if (!inside_interrupt_handler) {
+    if (need_irq_lock) {
       lock.lock();
     }
 
     if (cnt_ > 0) {
       cnt_--;
-      if (!inside_interrupt_handler) {
+      if (need_irq_lock) {
         lock.unlock();
       }
       return;
@@ -217,9 +228,43 @@ void Semaphore::Down(bool inside_interrupt_handler) {
 
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
 
-    if (!inside_interrupt_handler) {
+    if (need_irq_lock) {
       lock.unlock();
     }
+  }
+}
+
+void Semaphore::DownInInterruptHandler(CPUInterruptHandlerArgs* args,
+                                       InterruptHandlerSavedRegs* regs) {
+  if (CPURegsAccessProvider::IsInterruptEnabled()) {
+    kprintf(
+        "Interrupt was enabled when calling Semaphore "
+        "DownInInterruptHandler!\n");
+    PANIC();
+  }
+  kprintf("sema down %d", cnt_);
+
+  while (true) {
+    if (cnt_ > 0) {
+      cnt_--;
+      return;
+    }
+
+    // If there is something to switch into, then we make current thread
+    // sleep. Otherwise, do nothing.
+    if (KernelThreadScheduler::GetKernelThreadList().size() > 0) {
+      // If not able to acquire semaphore, put itself into the waiter queue.
+      // First mark it as non runnable.
+      auto* current = KernelThread::CurrentThread();
+      current->MakeSleep();
+
+      // Then move it to the waiters_ list.
+      current->GetKenrelListElem()->ChangeList(&waiters_);
+      current->GetKenrelListElem()->PushBack();
+    }
+
+    KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
+        args, regs);
   }
 }
 

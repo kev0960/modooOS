@@ -1,6 +1,7 @@
 #include "timer.h"
 #include "../std/stdint.h"
 #include "cpu.h"
+#include "kernel_context.h"
 #include "kthread.h"
 #include "printf.h"
 #include "scheduler.h"
@@ -37,19 +38,6 @@ PITimer pic_timer;
 
 extern "C" void PITimerCaller(Kernel::CPUInterruptHandlerArgs* args,
                               Kernel::InterruptHandlerSavedRegs* regs) {
-  // kprintf("rax: %lx \n", regs->rax);
-  /*
-  kprintf("rbp: %lx \n", regs->rbp);
-  kprintf("rax: %x \n", regs->rax);
-  kprintf("rbx: %x \n", regs->rcx);
-  kprintf("rsi: %x \n", regs->rsi);
-  kprintf("rdi: %x \n", regs->rdi);
-  while(1);*/
-  /*
-  kprintf("rflags: %x \n", args->rflags);
-  kprintf("rsp: %x \n", args->rsp);
-  kprintf("ss: %x \n", args->ss);*/
-
   Kernel::pic_timer.TimerInterruptHandler(args, regs);
 }
 
