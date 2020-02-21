@@ -131,6 +131,7 @@ bool Poll(ATADevice* device) {
 
 void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
                    size_t read_size) {
+  //kprintf("REad wait!! %d \n", KernelThread::CurrentThread()->Id());
   // Reset device if error.
   auto stat = inb(device->status);
   if ((stat & kStatusRegBSY) || (stat & kStatusRegDRQ)) {
@@ -253,10 +254,15 @@ void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {
     size_t num_to_read = min(512ul, buffer_size - current_read);
 
     // Disk access must be exclusive.
+    CPURegsAccessProvider::EnableInterrupt();
     disk_access_.Down();
+
+    // Even if this is called inside of the interrupt handler, external
+    // interrupt should be received.
     ReadOneSector(&primary_master_, lba, buf + current_read, num_to_read);
     disk_access_.Up();
 
+    //kprintf("Read done %d ", KernelThread::CurrentThread()->Id());
     // 1 LBA = 512 bytes
     lba += 1;
   }

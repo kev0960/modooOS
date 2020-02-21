@@ -17,6 +17,7 @@ struct SavedRegisters {
 } __attribute__((packed));
 
 class KernelThread {
+  public:
   enum ThreadStatus { THREAD_RUN, THREAD_SLEEP, THREAD_TERMINATE };
 
  public:
@@ -66,6 +67,9 @@ class KernelThread {
   size_t lock_wait_cnt;
   uint64_t saved_rbp;
 
+  // This is used when the kernel thread exits the page fault handler.
+  uint64_t empty_kernel_stack_;
+
   ThreadStatus status_;
  protected:
   size_t thread_id_;
@@ -80,7 +84,7 @@ class Semaphore {
 
   // If we are using semaphore inside of the interrupt handler, then we should
   // set without_lock as true.
-  void Up(bool inside_interrupt_handler = false);
+  void Up();
   void Down();
   void DownInInterruptHandler(CPUInterruptHandlerArgs* args,
                               InterruptHandlerSavedRegs* regs);

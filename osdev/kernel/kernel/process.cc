@@ -22,6 +22,7 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       parent_(parent),
       kernel_list_elem_(nullptr),
       file_name_(file_name) {
+        kprintf("Create process");
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
     Process* parent_process = static_cast<Process*>(parent);
 
@@ -41,7 +42,6 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       pml4e_base_phys_addr_, (uint64_t*)(kUserProcessStackAddress - kFourKB),
       0);
 
-  kprintf("Allocate \n");
   user_regs_.rip = (uint64_t)entry_function;
   user_regs_.rsp = kUserProcessStackAddress - 8;
   user_regs_.cs = 0x1B;       // User Code segment

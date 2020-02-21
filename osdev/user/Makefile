@@ -1,5 +1,5 @@
 CC=~/opt/cross/bin/x86_64-elf-gcc
-CFLAGS= -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I -mgeneral-regs-only
+CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I -mgeneral-regs-only
 LDFLAGS = -nostdlib
 
 TARGET = hello

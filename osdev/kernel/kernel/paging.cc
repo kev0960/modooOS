@@ -3,6 +3,7 @@
 #include "../std/printf.h"
 #include "../std/utility.h"
 #include "cpu.h"
+#include "descriptor_table.h"
 #include "ext2.h"
 #include "frame_allocator.h"
 #include "kernel_context.h"
@@ -448,11 +449,14 @@ static int cnt = 0;
 void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                                         InterruptHandlerSavedRegs* regs) {
   uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();
-  kprintf("Fault addr : %lx %lx %lx \n", fault_addr, args->rip, args->rflags);
   cnt++;
 
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
+
+  kprintf("!!! PF ;Fault addr : %lx %lx %lx %lx %lx %lx (%d)\n", fault_addr,
+          args, args->rip, args->rflags, args->cs, args->ss,
+          current_thread->Id());
 
   // Kernel thread should not page fault!
   if (current_thread->IsKernelThread()) {
@@ -488,8 +492,9 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         min(header.p_filesz, boundary + FourKB - header.p_vaddr);
     uint64_t num_read = file_read_end_offset - file_read_start_offset;
 
-    kprintf("%lx %lx %x %x %lx\n", file_read_start_offset, file_read_end_offset,
-            header.p_offset, header.p_vaddr, max(header.p_vaddr, boundary));
+    kprintf("Read %lx %lx %x %x %lx\n", file_read_start_offset,
+            file_read_end_offset, header.p_offset, header.p_vaddr,
+            max(header.p_vaddr, boundary));
     // If the address was ELF section, then we need to copy it from the file.
     auto& file_system = Ext2FileSystem::GetExt2FileSystem();
     file_system.ReadFile(
@@ -498,11 +503,22 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         file_read_start_offset);
   }
 
-  kprintf("Intr enabled? %d \n", CPURegsAccessProvider::IsInterruptEnabled());
+  kprintf("Aft read: %lx %lx %lx %lx %lx %lx (%d)\n", fault_addr, args,
+          args->rip, args->rflags, args->cs, args->ss, current_thread->Id());
+  CPURegsAccessProvider::DisableInterrupt();
+
   // Done handling.
   process->SetInUser();
 
-  kprintf("\nREad file done.. %lx %lx %lx", args->cs, args->ss, args->rflags);
+  TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
+      current_thread->empty_kernel_stack_);
+  /*
+  *regs = process_regs->regs;
+  CopyCPUInteruptHandlerArgs(args, process_regs);
+  */
+  kprintf("\nREad file done.. (%d) %lx %lx %lx %lx %lx \n",
+          current_thread->Id(), args, args->rip, args->cs, args->ss,
+          args->rflags);
 }
 
 }  // namespace Kernel
@@ -510,4 +526,5 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 void PageFaultInterruptHandlerCaller(Kernel::CPUInterruptHandlerArgs* args,
                                      Kernel::InterruptHandlerSavedRegs* regs) {
   Kernel::PageTableManager::GetPageTableManager().PageFaultHandler(args, regs);
+  kprintf("PF handler done");
 }

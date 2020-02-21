@@ -60,6 +60,9 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   vga_output << " rflags : " << args->rflags << "\n";
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
+
+  while (1)
+    ;
 }
 
 template <int INT_NUM>
@@ -171,7 +174,7 @@ __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   EndOfIRQForSlave();
   EndOfIRQ();
 
-  kATADiskCommandSema.Up(true);
+  kATADiskCommandSema.Up();
 }
 
 /*

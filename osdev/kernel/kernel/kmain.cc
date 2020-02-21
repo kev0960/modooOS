@@ -53,9 +53,8 @@ void KernelMain() {
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
-  //auto* process2 = process_manager.CreateProcess("/a.out");UNUSED(process2);
-
-    //process2->Start();
+  auto* process2 = process_manager.CreateProcess("/a.out");UNUSED(process2);
+  process2->Start();
   UNUSED(process);
   while (1) {
   }

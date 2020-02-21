@@ -104,15 +104,16 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
     stack[num_stack_elements - 1] = reinterpret_cast<uint64_t>(&Done);
   }
 
-  // Set it as current RFLAGS.
-  // TODO Think more carefully about this.
-  kernel_regs_.rflags = GetRFlags();
+  // Set it as interrupt enabled RFLAGS.
+  kernel_regs_.rflags = 0x200;
+  empty_kernel_stack_ = kernel_regs_.rsp;
 
   kernel_list_elem_.Set(this);
   InitSavedRegs(&kernel_regs_.regs);
 }
 
 void KernelThread::Start() {
+  kprintf("Start : %d \n", thread_id_);
   IrqLock m_;
 
   m_.lock();
@@ -162,9 +163,11 @@ uint64_t* KernelThread::GetPageTableBaseAddress() const {
   return nullptr;
 }
 
-void Semaphore::Up(bool inside_interrupt_handler) {
+void Semaphore::Up() {
+  bool need_irq_lock = CPURegsAccessProvider::IsInterruptEnabled();
+
   IrqLock lock;
-  if (!inside_interrupt_handler) {
+  if (need_irq_lock) {
     lock.lock();
   }
 
@@ -181,23 +184,13 @@ void Semaphore::Up(bool inside_interrupt_handler) {
     elem->PushBack();
   }
 
-  if (!inside_interrupt_handler) {
+  if (need_irq_lock) {
     lock.unlock();
   }
 }
 
 void Semaphore::Down() {
   bool need_irq_lock = CPURegsAccessProvider::IsInterruptEnabled();
-
-  /*
-  if (!CPURegsAccessProvider::IsInterruptEnabled()) {
-    // In interrupt handler context.
-    DownInInterruptHandler(
-        KernelContext::GetKernelContext().GetCPUInterruptHandlerArgs(),
-        KernelContext::GetKernelContext().GetInterruptHandlerSavedRegs());
-    return;
-  }*/
-
   IrqLock lock;
 
   while (true) {
@@ -242,7 +235,6 @@ void Semaphore::DownInInterruptHandler(CPUInterruptHandlerArgs* args,
         "DownInInterruptHandler!\n");
     PANIC();
   }
-  kprintf("sema down %d", cnt_);
 
   while (true) {
     if (cnt_ > 0) {
