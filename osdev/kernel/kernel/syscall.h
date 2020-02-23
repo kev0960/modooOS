@@ -9,7 +9,7 @@ class SyscallManager {
     return syscall_manager;
   }
 
-  static void SyscallHandler();
+  void SyscallHandler(uint64_t syscall_num);
 
  private:
   SyscallManager();

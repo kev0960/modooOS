@@ -449,6 +449,7 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
 
+  kprintf("#PF[%lx] at %d \n", fault_addr, current_thread->Id());
   // Kernel thread should not page fault!
   if (current_thread->IsKernelThread()) {
     kprintf("#PF in kernel thread! \n");
@@ -469,6 +470,7 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     process->TerminateInInterruptHandler(args, regs);
     return;
   }
+  kprintf("Addr info : %lx of %lx \n", address_info, fault_addr);
 
   // Otherwise, allocate the memory.
   uint64_t boundary = Get4KBBoundary(fault_addr);

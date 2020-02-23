@@ -47,7 +47,7 @@ ELFReader::ELFReader(const uint8_t* data, size_t file_size) {
 
   section_headers_.reserve(header_.e_shnum);
   for (int sh_off = 0; sh_off < header_.e_shnum; sh_off++) {
-    program_headers_.push_back(*reinterpret_cast<const ELFProgramHeader*>(
+    section_headers_.push_back(*reinterpret_cast<const ELFSectionHeader*>(
         data + header_.e_shoff + sh_off * sizeof(ELFSectionHeader)));
   }
 }

@@ -74,13 +74,18 @@ SyscallManager::SyscallManager() {
   CPURegsAccessProvider::SetMSR(kFMASK_MSR, rflags_mask, rflags_mask >> 32);
 }
 
+void SyscallManager::SyscallHandler(uint64_t syscall_num) {
+  kprintf("Syscall %d %lx %lx\n", syscall_num,
+          KernelThread::CurrentThread()->Id(),
+          CPURegsAccessProvider::GetRFlags());
+}
+
 extern "C" void SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
                                      uint64_t arg2, uint64_t arg3,
                                      uint64_t arg4, uint64_t arg5,
                                      uint64_t arg6) {
   kprintf("Syscall : %d %d %d %d %d\n", syscall_num, arg1, arg2, arg3, arg4);
-  while (1)
-    ;
+  SyscallManager::GetSyscallManager().SyscallHandler(syscall_num);
   UNUSED(arg1);
   UNUSED(arg2);
   UNUSED(arg3);
@@ -88,7 +93,5 @@ extern "C" void SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
   UNUSED(arg5);
   UNUSED(arg6);
 }
-
-void SyscallManager::SyscallHandler() {}
 
 }  // namespace Kernel
