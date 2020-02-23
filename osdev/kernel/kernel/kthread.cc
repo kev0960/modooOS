@@ -57,9 +57,9 @@ class ThreadIdManager {
 KernelThread* KernelThread::CurrentThread() {
   KernelThread* current_thread;
 
-  // Current thread block is stored in fs register.
+  // Current thread block is stored in gs register.
   // Note that segment register does not support lea. That means,
-  // mov %fs:0 %eax is equivalent to mov [%fs:0] %eax. Thus, we have to store
+  // mov %gs:0 %eax is equivalent to mov [%gs:0] %eax. Thus, we have to store
   // the ADDRESS of the memory that contains the address of the thread block.
   // This is why we are passing self.
   asm volatile("movq %%fs:0, %0" : "=r"(current_thread)::);
@@ -106,10 +106,13 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 
   // Set it as interrupt enabled RFLAGS.
   kernel_regs_.rflags = 0x200;
-  empty_kernel_stack_ = kernel_regs_.rsp;
+  kernel_stack_top_ = kernel_regs_.rsp;
 
   kernel_list_elem_.Set(this);
   InitSavedRegs(&kernel_regs_.regs);
+
+  ASSERT(KERNEL_THREAD_SAVED_KERNEL_TOP_OFFSET ==
+         OffsetOf(*this, &KernelThread::kernel_stack_top_));
 }
 
 void KernelThread::Start() {

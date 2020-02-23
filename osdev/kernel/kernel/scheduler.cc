@@ -47,19 +47,16 @@ void KernelThreadScheduler::YieldInInterruptHandler(
     return;
   }
 
+  uint64_t saved_rbp;
+  asm volatile(
+      "movq %%fs:0, %%rax \n\t"
+      "movq 208(%%rax), %0 \n\t"
+      : "=r"(saved_rbp)::"rax");
   KernelThread* current_thread = KernelThread::CurrentThread();
 
-  kprintf("[%lx] %d ", args, current_thread->Id());
-  if (current_thread->Id() == 3) {
-    kprintf("Schedule!%d %lx %lx %lx\n", current_thread->Id(), args->rip,
-            current_thread->GetSavedKernelRegs()->rflags,
-            current_thread->GetSavedKernelRegs()->regs.r12);
-  }
-  /*
-  kprintf("Schedule!%d %lx %lx %d %lx\n", current_thread->Id(), args->rip,
-          *(uint64_t*)args->rip, current_thread->status_,
-          current_thread->GetSavedKernelRegs()->rflags);
-  */
+  kprintf("Schedule!%d %lx %lx %lx %lx\n", current_thread->Id(), current_thread,
+          current_thread->GetSavedKernelRegs()->rflags, saved_rbp,
+          current_thread->GetKernelStackTop());
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
@@ -94,13 +91,6 @@ void KernelThreadScheduler::YieldInInterruptHandler(
     TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
         next_thread->GetSavedKernelRegs()->rsp);
   }
-  if (next_thread->Id() == 3) {
-    kprintf("Next thr : %d %lx ", next_thread->IsInKernelSpace(), args);
-  }
-  /*
-  kprintf("Next thread : %d %lx %lx %lx %lx %d\n", next_thread->Id(),
-          next_thread_regs->rip, next_thread_regs->rflags, next_thread_regs->cs,
-          next_thread_regs->regs.r12, next_thread->IsInKernelSpace());*/
   *regs = next_thread_regs->regs;
 
   // If the next thread is a user process, then we have to reset CR3
@@ -115,9 +105,9 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 }
 
 void KernelThreadScheduler::Yield() {
-  //kprintf(" y(%d) ", KernelThread::CurrentThread()->Id());
+  // kprintf(" y(%d) ", KernelThread::CurrentThread()->Id());
   asm volatile("int $0x30\n");
-  //kprintf("Yield done! %d ", KernelThread::CurrentThread()->Id());
+  // kprintf("Yield done! %d ", KernelThread::CurrentThread()->Id());
 }
 
 }  // namespace Kernel

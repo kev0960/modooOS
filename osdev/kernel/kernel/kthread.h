@@ -4,6 +4,8 @@
 #include "interrupt.h"
 #include "kernel_list.h"
 
+#define KERNEL_THREAD_SAVED_KERNEL_TOP_OFFSET 208
+
 namespace Kernel {
 
 struct SavedRegisters {
@@ -17,7 +19,7 @@ struct SavedRegisters {
 } __attribute__((packed));
 
 class KernelThread {
-  public:
+ public:
   enum ThreadStatus { THREAD_RUN, THREAD_SLEEP, THREAD_TERMINATE };
 
  public:
@@ -60,6 +62,8 @@ class KernelThread {
   // Should not be called for kernel thread.
   virtual uint64_t* GetPageTableBaseAddress() const;
 
+  uint64_t GetKernelStackTop() const { return kernel_stack_top_; }
+
   // The pointer that stores the current thread info. We cannot pass the this
   // pointer since this does not take any memory space.
   KernelThread* const self;
@@ -67,13 +71,14 @@ class KernelThread {
   size_t lock_wait_cnt;
   uint64_t saved_rbp;
 
-  // This is used when the kernel thread exits the page fault handler.
-  uint64_t empty_kernel_stack_;
-
   ThreadStatus status_;
+
  protected:
   size_t thread_id_;
   SavedRegisters kernel_regs_;
+
+  // This is used when the kernel thread exits the page fault handler.
+  uint64_t kernel_stack_top_;
 
   KernelListElement<KernelThread*> kernel_list_elem_;
 };

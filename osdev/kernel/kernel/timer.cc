@@ -18,7 +18,7 @@ void PITimer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
   timer_tick_lower_++;
 
   // This one should be the last.
-  if (timer_tick_lower_ % 5 == 0) {
+  if (timer_tick_lower_ % 50 == 0) {
     KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
         args, regs);
   }
