@@ -44,8 +44,8 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
 
   user_regs_.rip = (uint64_t)entry_function;
   user_regs_.rsp = kUserProcessStackAddress - 8;
-  user_regs_.cs = 0x1B;       // User Code segment
-  user_regs_.ss = 0x23;       // User Stack segment.
+  user_regs_.cs = 0x23;       // User Code segment
+  user_regs_.ss = 0x1b;       // User Stack segment.
   user_regs_.rflags = 0x200;  // Interrupt is enabled.
 }
 

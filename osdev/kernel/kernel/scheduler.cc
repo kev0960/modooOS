@@ -47,16 +47,8 @@ void KernelThreadScheduler::YieldInInterruptHandler(
     return;
   }
 
-  uint64_t saved_rbp;
-  asm volatile(
-      "movq %%fs:0, %%rax \n\t"
-      "movq 208(%%rax), %0 \n\t"
-      : "=r"(saved_rbp)::"rax");
   KernelThread* current_thread = KernelThread::CurrentThread();
 
-  kprintf("Schedule!%d %lx %lx %lx %lx\n", current_thread->Id(), current_thread,
-          current_thread->GetSavedKernelRegs()->rflags, saved_rbp,
-          current_thread->GetKernelStackTop());
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
     kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
@@ -75,6 +67,9 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
 
+  kprintf("Schedule!(%d) -> (%d) %lx %lx\n", current_thread->Id(), next_thread->Id(),
+          current_thread->GetSavedKernelRegs()->rflags,
+          current_thread->GetKernelStackTop());
   // If the target thread is a user process (i.e we are jumping into the user
   // space), we have to set the interrupt frame's RSP as User's RSP (user_rsp)
   // instead of the kernel rsp.

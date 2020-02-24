@@ -55,11 +55,13 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
     vga_output << " [" << kCPUExceptionErrorMessages[int_num] << "]";
   }
   vga_output << "\n";
+  vga_output << "at : " << KernelThread::CurrentThread()->Id();
   vga_output << " cs : " << args->cs << "\n";
   vga_output << " rip : " << args->rip << "\n";
   vga_output << " rflags : " << args->rflags << "\n";
   vga_output << " rsp : " << args->rsp << "\n";
   vga_output << " ss : " << args->ss << "\n";
+
 
   while (1)
     ;

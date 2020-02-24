@@ -1,4 +1,5 @@
 #include "descriptor_table.h"
+#include "../std/printf.h"
 
 namespace Kernel {
 namespace {
@@ -49,13 +50,14 @@ void GDTTableManager::SetUpGDTTables() {
                      /* access */ 0b10010010,
                      /* granularity */ 0b10100000);
 
-  // User Code Segment (DPL --> 11)
-  SetUpGDTTableEntry(&gdt_entries_[3], 0, 0xFFFFFFFF,
-                     /* access */ 0b11111010,
-                     /* granularity */ 0b10100000);
   // User Data Segment
-  SetUpGDTTableEntry(&gdt_entries_[4], 0, 0xFFFFFFFF,
+  SetUpGDTTableEntry(&gdt_entries_[3], 0, 0xFFFFFFFF,
                      /* access */ 0b11110010,
+                     /* granularity */ 0b10100000);
+
+  // User Code Segment (DPL --> 11)
+  SetUpGDTTableEntry(&gdt_entries_[4], 0, 0xFFFFFFFF,
+                     /* access */ 0b11111010,
                      /* granularity */ 0b10100000);
 
   auto& task_state_segment_manager =
