@@ -22,7 +22,7 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       parent_(parent),
       kernel_list_elem_(nullptr),
       file_name_(file_name) {
-        kprintf("Create process");
+  kprintf("Create process");
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
     Process* parent_process = static_cast<Process*>(parent);
 
@@ -47,6 +47,32 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   user_regs_.cs = 0x23;       // User Code segment
   user_regs_.ss = 0x1b;       // User Stack segment.
   user_regs_.rflags = 0x200;  // Interrupt is enabled.
+}
+
+Process::Process(Process* parent)
+    : KernelThread(nullptr, /*need_stack=*/true),
+      in_kernel_space_(false),
+      parent_(parent),
+      kernel_list_elem_(nullptr),
+      file_name_(parent->file_name_) {
+  kprintf("Cloning the process!");
+  kernel_list_elem_.ChangeList(parent->GetChildrenList());
+  kernel_list_elem_.PushBack();
+
+  // We need to get a frame for the process.
+  auto& page_table_manager = PageTableManager::GetPageTableManager();
+  pml4e_base_phys_addr_ = page_table_manager.CreateUserPageTable();
+
+  PageTableManager::GetPageTableManager().AllocatePage(
+      pml4e_base_phys_addr_, (uint64_t*)(kUserProcessStackAddress - kFourKB),
+      0);
+
+  // Copy the current state of the parent.
+  user_regs_ = *parent->GetSavedUserRegs();
+
+  // Specify the return value (0 to the child process for fork()) to the newly
+  // created process.
+  user_regs_.regs.rax = 0;
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {

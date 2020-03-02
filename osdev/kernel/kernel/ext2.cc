@@ -1,11 +1,11 @@
 #include "ext2.h"
-#include "algorithm.h"
-#include "array.h"
+#include "../std/algorithm.h"
+#include "../std/array.h"
+#include "../std/printf.h"
+#include "../std/string.h"
 #include "ata.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
-#include "printf.h"
-#include "string.h"
 
 namespace Kernel {
 constexpr size_t kBlockSize = 1024;
@@ -44,6 +44,12 @@ template <typename T>
 void GetFromBlockId(T* t, size_t block_id) {
   // sector size is 512 bytes. That means, 1 block spans 2 sectors.
   ATADriver::GetATADriver().Read(t, 2 * block_id);
+}
+
+template <typename T>
+void WriteFromBlockId(T* t, size_t block_id) {
+  ATADriver::GetATADriver().Write(reinterpret_cast<uint8_t*>(t), 1024,
+                                  2 * block_id);
 }
 
 template <typename T>
@@ -271,6 +277,33 @@ Ext2FileSystem::Ext2FileSystem() {
 
   root_inode_ = inode_table[1];
   root_dir_ = ParseDirectory(root_inode_);
+
+  block_bitmap.reserve(num_block_desc_);
+  inode_bitmap.reserve(num_block_desc_);
+  for (size_t i = 0; i < num_block_desc_; i++) {
+    BitmapInfo bitmap;
+    bitmap.bitmap_block_id = block_descs_[i].block_bitmap;
+    GetArrayFromBlockId(reinterpret_cast<uint8_t*>(bitmap.bitmap.GetBitmap()),
+                        1024, bitmap.bitmap_block_id);
+    block_bitmap.push_back(bitmap);
+
+    bitmap.bitmap_block_id = block_descs_[i].inode_bitmap;
+    GetArrayFromBlockId(reinterpret_cast<uint8_t*>(bitmap.bitmap.GetBitmap()),
+                        1024, bitmap.bitmap_block_id);
+    inode_bitmap.push_back(bitmap);
+  }
+
+  size_t emp = GetEmptyBlock();
+  kprintf("Empty : %x \n", emp);
+  MarkEmptyBlockAsUsed(emp);
+
+  emp = GetEmptyBlock();
+  kprintf("Empty : %x \n", emp);
+  MarkEmptyBlockAsUsed(emp);
+
+  emp = GetEmptyBlock();
+  kprintf("Empty : %x \n", emp);
+  MarkEmptyBlockAsUsed(emp);
 }
 
 size_t Ext2FileSystem::ReadFile(string_view path, uint8_t* buf, size_t num_read,
@@ -329,6 +362,28 @@ void Ext2FileSystem::ReadFile(const Ext2Inode& file_inode, uint8_t* buf,
 
     ++iter;
   }
+}
+
+size_t Ext2FileSystem::GetEmptyBlock() {
+  for (size_t i = 0; i < block_bitmap.size(); i++) {
+    BitmapInfo& block_info = block_bitmap[i];
+    int index_in_group = block_info.bitmap.GetEmptyBitIndex();
+    if (index_in_group != -1) {
+      kprintf("index : (%d) %lx ", i, index_in_group);
+      return index_in_group + super_block_.blocks_per_group * i;
+    }
+  }
+  return 0;
+}
+
+void Ext2FileSystem::MarkEmptyBlockAsUsed(size_t block_id) {
+  size_t block_group_index = block_id / super_block_.blocks_per_group;
+  BitmapInfo& block_info = block_bitmap[block_group_index];
+  kprintf("flip index : (%d) %lx \n", block_group_index,
+          block_id % super_block_.blocks_per_group);
+  block_info.bitmap.FlipBit(block_id % super_block_.blocks_per_group);
+
+  WriteFromBlockId(block_info.bitmap.GetBitmap(), block_info.bitmap_block_id);
 }
 
 FileInfo Ext2FileSystem::Stat(string_view path) {

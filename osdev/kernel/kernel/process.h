@@ -21,6 +21,9 @@ class Process : public KernelThread {
   Process(KernelThread* parent, const KernelString& file_name,
           EntryFuncType entry_function);
 
+  // Clone the current process by fork.
+  Process(Process* parent);
+
   KernelList<Process*>* GetChildrenList() { return &children_; }
   bool IsKernelThread() const override { return false; }
   bool IsInKernelSpace() const override { return in_kernel_space_; }

@@ -452,7 +452,8 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   kprintf("#PF[%lx] at %d \n", fault_addr, current_thread->Id());
   // Kernel thread should not page fault!
   if (current_thread->IsKernelThread()) {
-    kprintf("#PF in kernel thread! \n");
+    kprintf("#PF in kernel thread! %lx %lx %lx\n", args->rip, args->rsp,
+            CPURegsAccessProvider::ReadCR2());
     PANIC();
   }
 
@@ -500,6 +501,13 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 
   TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
       current_thread->GetKernelStackTop());
+}
+
+void PageTableManager::CopyUserPageTable(uint64_t* from_pml4_base_addr,
+                                         uint64_t* to_pml4_base_addr) {
+  // Copy page table.
+  UNUSED(from_pml4_base_addr);
+  UNUSED(to_pml4_base_addr);
 }
 
 }  // namespace Kernel

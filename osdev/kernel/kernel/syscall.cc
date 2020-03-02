@@ -3,6 +3,7 @@
 #include "cpp_macro.h"
 #include "cpu.h"
 #include "kthread.h"
+#include "process.h"
 
 #define SET_KERNEL_THREAD_TOP_OFFSET(offset, reg) \
   SET_KERNEL_THREAD_TOP_OFFSET_(offset, reg)
@@ -80,45 +81,78 @@ SyscallManager::SyscallManager() {
   uint32_t star_lo, star_hi;
   CPURegsAccessProvider::GetMSR(kSTAR_MSR, &star_lo, &star_hi);
 
-  // CS for user (1B) and CS for kernel (08). SS is +8 from each CS.
+  // When sysretq executes, it reads first 2 bytes and + 16 to set CS and + 8 to
+  // set SS of user process. When syscall executes, it reads last 2 bytes and
+  // set CS and +8 for SS for kernel.
   star_hi = 0x00130008;
 
   CPURegsAccessProvider::SetMSR(kSTAR_MSR, star_lo, star_hi);
 }
 
-void SyscallManager::SyscallHandler(uint64_t syscall_num) {
-  /*
-  kprintf("Syscall %d %lx %lx\n", syscall_num,
-          KernelThread::CurrentThread()->Id(),
-          CPURegsAccessProvider::GetRFlags());*/
+int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
+                                   uint64_t arg2, uint64_t arg3, uint64_t arg4,
+                                   uint64_t arg5, uint64_t arg6) {
+  kprintf("Syscall %d %lx \n", syscall_num,
+          KernelThread::CurrentThread()->Id());
+
+  switch (syscall_num) {
+    case SYS_EXIT:
+      SysExit(arg1);
+      break;
+    case SYS_WRITE:
+      return SysWrite(arg1, reinterpret_cast<const char*>(arg2), arg3);
+  }
+
   UNUSED(syscall_num);
-}
-
-extern "C" void SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
-                                     uint64_t arg2, uint64_t arg3,
-                                     uint64_t arg4, uint64_t arg5,
-                                     uint64_t arg6) {
-  /*kprintf("Syscall : %d %d %d %d %d %d %d\n", syscall_num, arg1, arg2, arg3,
-          arg4, arg5, arg6);*/
-
-  uint64_t* return_addr =
-      (uint64_t*)KernelThread::CurrentThread()->GetKernelStackTop() -
-      4;  // (uint64_t*)__builtin_frame_address(0);
-  /*
-  kprintf("r9 : %lx rip : %lx rflags: %lx rsp: %lx ret: %lx\n", return_addr[0],
-          return_addr[1], return_addr[2], return_addr[3], return_addr);
-         */
-  // kprintf("Return addr : %lx \n", __builtin_return_address(0));
-  SyscallManager::GetSyscallManager().SyscallHandler(syscall_num);
   UNUSED(arg1);
   UNUSED(arg2);
   UNUSED(arg3);
   UNUSED(arg4);
   UNUSED(arg5);
   UNUSED(arg6);
-  UNUSED(return_addr);
-  kprintf("sycall done %lx %lx %lx\n", return_addr[3], return_addr,
-          CPURegsAccessProvider::GetRFlags());
+
+  return 0;
+}
+
+// Terminate the process.
+void SyscallManager::SysExit(uint64_t exit_num) {
+  KernelThread* current_thread = KernelThread::CurrentThread();
+  kprintf("Terminate thread : %d %d\n", exit_num, current_thread->Id());
+  current_thread->Terminate();
+}
+
+extern "C" int SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
+                                    uint64_t arg2, uint64_t arg3, uint64_t arg4,
+                                    uint64_t arg5, uint64_t arg6) {
+  kprintf("%lx %lx %lx %lx %lx \n", syscall_num, arg1, arg2, arg3, arg4);
+  return SyscallManager::GetSyscallManager().SyscallHandler(
+      syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
+}
+
+int SyscallManager::SysWrite(uint32_t fd, const char* buf, size_t count) {
+  Process* current_process =
+      static_cast<Process*>(KernelThread::CurrentThread());
+
+  // TODO Check current open file descriptors of current process.
+  if (fd != 1) {
+    return -1;
+  }
+
+  // TODO check whether buf is valid.
+  kprintf("[%d:%d]%s", count, current_process->Id(), buf);
+  return 0;
+}
+
+int SyscallManager::SysFork() {
+  // Fork the current process.
+  Process* current_process =
+      static_cast<Process*>(KernelThread::CurrentThread());
+
+  // Create new process.
+  Process* child = new Process(current_process);
+  child->Start();
+
+  return child->Id();
 }
 
 }  // namespace Kernel

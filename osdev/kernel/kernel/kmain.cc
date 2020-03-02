@@ -56,13 +56,19 @@ void KernelMain() {
 
   kprintf("Syscall handler setup is done! \n");
 
+  /*
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
   auto* process2 = process_manager.CreateProcess("/a.out");
+  auto* process3 = process_manager.CreateProcess("/a.out");
+  auto* process4 = process_manager.CreateProcess("/a.out");
   UNUSED(process2);
   process2->Start();
+  process3->Start();
+  process4->Start();
   UNUSED(process);
+  */
   while (1) {
   }
 }

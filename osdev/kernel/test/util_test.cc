@@ -1,6 +1,8 @@
+#include "../kernel/kernel_list.h"
+#include "../std/bitmap.h"
+#include "../std/list.h"
+#include "../std/vector.h"
 #include "kernel_test.h"
-#include "list.h"
-#include "vector.h"
 
 #define INSERT_FRONT(NUM)                  \
   KernelListElement<int> elem##NUM(&list); \
@@ -208,6 +210,36 @@ TEST(KernelVectorTest, CopyVector) {
   for (size_t i = 0; i < vec2.size(); i++) {
     EXPECT_EQ(vec2[i].data, i + 1);
   }
+}
+
+TEST(KenrelBitmapTest, Bitmap) {
+  Bitmap<64> bitmap;
+  *bitmap.GetBitmap() = 0;
+
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), 0);
+  EXPECT_FALSE(bitmap.IsSet(0));
+  bitmap.FlipBit(0);
+  EXPECT_TRUE(bitmap.IsSet(0));
+
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), 1);
+  bitmap.FlipBit(1);
+  bitmap.FlipBit(2);
+  bitmap.FlipBit(3);
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), 4);
+
+  bitmap.FlipBit(0);
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), 0);
+}
+
+TEST(KenrelBitmapTest, BitmapLarge) {
+  Bitmap<256> bitmap;
+  for (int i = 0; i < 4; i++) {
+    bitmap.GetBitmap()[i] = 0xFFFFFFFFFFFFFFFF;
+  }
+
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), -1);
+  bitmap.FlipBit(123);
+  EXPECT_EQ(bitmap.GetEmptyBitIndex(), 123);
 }
 
 }  // namespace kernel_test

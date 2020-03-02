@@ -1,6 +1,7 @@
 #ifndef EXT2_H
 #define EXT2_H
 
+#include "../std/bitmap.h"
 #include "../std/string.h"
 #include "../std/types.h"
 #include "../std/vector.h"
@@ -454,8 +455,8 @@ struct Ext2Directory {
 };
 
 struct FileInfo {
-  size_t inode; // Inode number.
-  size_t file_size; // File size in bytes.
+  size_t inode;      // Inode number.
+  size_t file_size;  // File size in bytes.
 };
 
 class Ext2FileSystem {
@@ -476,12 +477,21 @@ class Ext2FileSystem {
   FileInfo Stat(string_view path);
 
  private:
+  struct BitmapInfo {
+    size_t bitmap_block_id;
+    Bitmap<1024 * 8> bitmap;
+  };
+
   Ext2FileSystem();
   Ext2Inode ReadInode(size_t inode_addr);
   void ReadFile(const Ext2Inode& file_inode, uint8_t* buf, size_t num_read,
                 size_t offset = 0);
   std::vector<Ext2Directory> ParseDirectory(const Ext2Inode& dir);
   int GetInodeNumberFromPath(string_view path);
+
+  // Get empty block. returns the block number.
+  size_t GetEmptyBlock();
+  void MarkEmptyBlockAsUsed(size_t block_id);
 
   Ext2SuperBlock super_block_;
   Ext2Inode root_inode_;
@@ -490,6 +500,9 @@ class Ext2FileSystem {
 
   Ext2BlockGroupDescriptor* block_descs_;
   size_t num_block_desc_;
+
+  std::vector<BitmapInfo> block_bitmap;
+  std::vector<BitmapInfo> inode_bitmap;
 };
 }  // namespace Kernel
 

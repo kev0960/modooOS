@@ -127,6 +127,10 @@ class PageTableManager {
   void PageFaultHandler(CPUInterruptHandlerArgs* args,
                         InterruptHandlerSavedRegs* regs);
 
+  // Copy page table of parent process to the user process. Used for fork().
+  void CopyUserPageTable(uint64_t* from_pml4_base_addr,
+                         uint64_t* to_pml4_base_addr);
+
  private:
   PageTableManager() {
     // Create PML4E Table for the kernel.
