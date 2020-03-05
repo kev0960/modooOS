@@ -10,7 +10,7 @@ namespace std {
 template <typename T, size_t Size>
 class array {
  public:
-  const T& at(size_t i) { return data[i]; }
+  const T& at(size_t i) const { return data[i]; }
   T& operator[](size_t i) { return data[i]; }
   constexpr size_t size() const { return Size; }
   void fill(const T& value) {
