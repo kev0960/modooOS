@@ -1,0 +1,485 @@
+#include "ext2.h"
+#include "../../std/algorithm.h"
+#include "../../std/array.h"
+#include "../../std/printf.h"
+#include "../../std/string.h"
+#include "../kernel_util.h"
+#include "../kmalloc.h"
+#include "ata.h"
+#include "block_iterator.h"
+
+namespace Kernel {
+namespace {
+
+void ParseInodeMode(uint16_t mode) {
+  kprintf("Mode :: ");
+  const char* file_formats[] = {
+      "fifo", "character device", "dir", "block device", "file", "sym", "sock"};
+  uint16_t file_format_modes[] = {0x1000, 0x2000, 0x4000, 0x6000,
+                                  0x8000, 0xA000, 0xC000};
+
+  for (int i = 0; i < 7; i++) {
+    if ((mode & file_format_modes[i]) == file_format_modes[i]) {
+      kprintf("%s ", file_formats[i]);
+    }
+  }
+
+  const char* access[] = {"r", "w", "x", "r", "w", "x", "r", "w", "x"};
+  uint16_t access_modes[] = {0x100, 0x80, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1};
+  for (int i = 0; i < 9; i++) {
+    if ((mode & access_modes[i]) == access_modes[i]) {
+      kprintf("%s", access[i]);
+    } else {
+      kprintf("-");
+    }
+  }
+  kprintf("\n");
+}
+
+[[maybe_unused]] void PrintInodeInfo(const Ext2Inode& inode) {
+  kprintf("Inode Block Info ----------- \n");
+  kprintf("Size (%x) Created at (%x) Num blocks (%x) ", inode.size, inode.ctime,
+          inode.blocks);
+  ParseInodeMode(inode.mode);
+  for (size_t i = 0; i < min((uint16_t)15, inode.blocks); i++) {
+    if (inode.block[i]) {
+      kprintf("[%x] ", inode.block[i]);
+    }
+  }
+  kprintf("\n");
+}
+
+template <typename T>
+T ReadAndAdvance(uint8_t*& buf) {
+  T t = *(T*)(buf);
+  buf += sizeof(T);
+  return t;
+}
+
+[[maybe_unused]] void ParseDirectory(uint8_t* buf, int num_read) {
+  int current = 0;
+  while (current < num_read) {
+    uint8_t* prev = buf;
+
+    // Read inode number.
+    uint32_t inode = ReadAndAdvance<uint32_t>(buf);
+
+    // Read total entry size.
+    uint16_t entry_size = ReadAndAdvance<uint16_t>(buf);
+
+    if (entry_size == 0) break;
+
+    // Read name length.
+    uint8_t name_len = ReadAndAdvance<uint8_t>(buf);
+
+    // Read type indicator.
+    uint8_t file_type = ReadAndAdvance<uint8_t>(buf);
+
+    kprintf("Inode : (%x) Entry size : (%x) Name Len : (%x) File type : (%x) ",
+            inode, entry_size, name_len, file_type);
+    for (size_t i = 0; i < name_len; i++) {
+      kprintf("%c", buf[i]);
+    }
+    kprintf("\n");
+    buf = prev + entry_size;
+    current += entry_size;
+  }
+}
+
+}  // namespace
+
+Ext2FileSystem::Ext2FileSystem() {
+  GetFromBlockId(&super_block_, 1);
+
+  num_block_desc_ = integer_ratio_round_up(super_block_.blocks_count,
+                                           super_block_.blocks_per_group);
+  block_descs_ = (Ext2BlockGroupDescriptor*)kmalloc(
+      sizeof(Ext2BlockGroupDescriptor) * num_block_desc_);
+  GetArrayFromBlockId(block_descs_, num_block_desc_, 2);
+
+  ASSERT((1024 << super_block_.log_block_size) == kBlockSize);
+  ASSERT(super_block_.inode_size == sizeof(Ext2Inode));
+
+  std::array<Ext2Inode, 2> inode_table;
+  GetFromBlockId(&inode_table, block_descs_[0].inode_table);
+
+  root_inode_ = inode_table[1];
+  root_dir_ = ParseDirectory(&root_inode_);
+
+  block_bitmap.reserve(num_block_desc_);
+  inode_bitmap.reserve(num_block_desc_);
+  for (size_t i = 0; i < num_block_desc_; i++) {
+    BitmapInfo bitmap;
+    bitmap.bitmap_block_id = block_descs_[i].block_bitmap;
+    GetArrayFromBlockId(reinterpret_cast<uint8_t*>(bitmap.bitmap.GetBitmap()),
+                        1024, bitmap.bitmap_block_id);
+    block_bitmap.push_back(bitmap);
+
+    bitmap.bitmap_block_id = block_descs_[i].inode_bitmap;
+    GetArrayFromBlockId(reinterpret_cast<uint8_t*>(bitmap.bitmap.GetBitmap()),
+                        1024, bitmap.bitmap_block_id);
+    inode_bitmap.push_back(bitmap);
+  }
+
+  int num_wrote = 0;
+  for (int i = 0; i < 5001; i++) {
+    char data[10];
+    sprintf(data, "%d,", i);
+    WriteFile("/a.txt", (uint8_t*)data, strlen(data), num_wrote);
+    num_wrote += strlen(data);
+  }
+
+  auto info = Stat("/a.txt");
+  kprintf(" size : %d %d\n", info.file_size, info.inode);
+  int sz = info.file_size;
+  uint8_t* file = (uint8_t*)kmalloc(1000);
+  ReadFile("/a.txt", file, 1000, sz - 1000);
+  // kprintf("%s \n", file);
+}
+
+size_t Ext2FileSystem::ReadFile(string_view path, uint8_t* buf, size_t num_read,
+                                size_t offset) {
+  int inode_num = GetInodeNumberFromPath(path);
+  if (inode_num == -1) {
+    kprintf("File is not found!\n");
+    return 0;
+  }
+
+  Ext2Inode file = ReadInode(inode_num);
+  if (offset >= file.size) {
+    return 0;
+  }
+
+  // Prevent reading more than the file size.
+  size_t num_actually_read = min(num_read, file.size - offset);
+  ReadFile(&file, buf, num_actually_read, offset);
+
+  return num_actually_read;
+}
+
+Ext2Inode Ext2FileSystem::ReadInode(size_t inode_addr) {
+  // Block group that the inode belongs to.
+  size_t block_group_index = (inode_addr - 1) / super_block_.inodes_per_group;
+
+  // Index of the inode within the block group.
+  size_t index = (inode_addr - 1) % super_block_.inodes_per_group;
+
+  size_t inode_table_block_id = block_descs_[block_group_index].inode_table;
+
+  // Single "Block" contains (block_size / inode_size = 8) inodes.
+  size_t block_containing_inode = inode_table_block_id + index / 8;
+
+  std::array<Ext2Inode, 8> block_with_inodes;
+  GetFromBlockId(&block_with_inodes, block_containing_inode);
+  return block_with_inodes[index % 8];
+}
+
+void Ext2FileSystem::WriteInode(size_t inode_addr, const Ext2Inode& inode) {
+  // Block group that the inode belongs to.
+  size_t block_group_index = (inode_addr - 1) / super_block_.inodes_per_group;
+
+  // Index of the inode within the block group.
+  size_t index = (inode_addr - 1) % super_block_.inodes_per_group;
+
+  size_t inode_table_block_id = block_descs_[block_group_index].inode_table;
+
+  // Single "Block" contains (block_size / inode_size = 8) inodes.
+  size_t block_containing_inode = inode_table_block_id + index / 8;
+
+  std::array<Ext2Inode, 8> block_with_inodes;
+  GetFromBlockId(&block_with_inodes, block_containing_inode);
+
+  block_with_inodes[index % 8] = inode;
+  WriteFromBlockId(block_with_inodes.data(), block_containing_inode);
+}
+
+void Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
+                              size_t num_read, size_t offset) {
+  BlockIterator iter(file_inode);
+  iter.SetOffset(offset);
+
+  size_t start_block_index = offset / kBlockSize;
+  size_t end_block_index;
+
+  if ((offset + num_read) % kBlockSize == 0) {
+    end_block_index = (offset + num_read) / kBlockSize;
+  } else {
+    end_block_index = (offset + num_read) / kBlockSize + 1;
+  }
+
+  kprintf("s : %d %d %d %d\n", start_block_index, end_block_index, offset,
+          offset + num_read);
+  size_t read = 0;
+  for (; start_block_index < end_block_index; start_block_index++) {
+    Block block = *iter;
+    size_t current_block_offset = 0;
+    if (iter.Pos() < offset) {
+      current_block_offset = (offset - iter.Pos());
+    }
+    for (; read < num_read && current_block_offset < kBlockSize;
+         read++, current_block_offset++) {
+      buf[read] = block[current_block_offset];
+    }
+
+    ++iter;
+  }
+}
+
+void Ext2FileSystem::WriteFile(string_view path, uint8_t* buf, size_t num_write,
+                               size_t offset) {
+  size_t inode_num = GetInodeNumberFromPath(path);
+  WriteFile(inode_num, buf, num_write, offset);
+}
+
+void Ext2FileSystem::WriteFile(size_t inode_num, uint8_t* buf, size_t num_write,
+                               size_t offset) {
+  Ext2Inode file_inode = ReadInode(inode_num);
+
+  // Expand the block first.
+  if (offset + num_write >= file_inode.size) {
+    // kprintf("Expanding %d --> %d \n", file_inode.size, offset + num_write);
+    ExpandFileSize(inode_num, offset + num_write);
+  }
+
+  BlockIterator iter(&file_inode);
+  iter.SetOffset(offset);
+
+  size_t start_block_index = offset / kBlockSize;
+  size_t end_block_index;
+
+  if ((offset + num_write) % kBlockSize == 0) {
+    end_block_index = (offset + num_write) / kBlockSize;
+  } else {
+    end_block_index = (offset + num_write) / kBlockSize + 1;
+  }
+
+  size_t write = 0;
+  for (; start_block_index < end_block_index; start_block_index++) {
+    size_t current_block_offset = 0;
+    if (iter.Pos() < offset) {
+      current_block_offset = (offset - iter.Pos());
+    }
+    // TODO You don't have to read the block if you are writing to the entire
+    // block.
+    Block block = *iter;
+    for (; write < num_write && current_block_offset < kBlockSize;
+         write++, current_block_offset++) {
+      block[current_block_offset] = buf[write];
+    }
+
+    WriteFromBlockId(block.data(), iter.GetDataBlockID());
+    ++iter;
+  }
+}
+
+void Ext2FileSystem::ExpandFileSize(size_t inode_num,
+                                    size_t expanded_file_size) {
+  Ext2Inode file_inode = ReadInode(inode_num);
+  size_t current_file_size = file_inode.size;
+  ASSERT(current_file_size != 0);
+
+  if (current_file_size >= expanded_file_size) {
+    return;
+  }
+
+  //kprintf("Size : %d --> %d \n", current_file_size, expanded_file_size);
+  file_inode.size = expanded_file_size;
+  WriteInode(inode_num, file_inode);
+
+  auto prev = BlockIterator(&file_inode);
+  prev.SetOffset(current_file_size - 1);
+  auto end = BlockIterator(&file_inode);
+  end.SetOffset(expanded_file_size - 1);
+
+  auto curr = prev;
+
+  if (curr == end) {
+    return;
+  }
+
+  // TODO Batch the writes to the device.
+  while (true) {
+    kprintf("Curr : ");
+    curr.Print();
+    kprintf("Prev : ");
+    prev.Print();
+    for (size_t i = 0; i <= curr.Index().CurrentDepth(); i++) {
+      if (i > prev.Index().CurrentDepth() ||
+          prev.Index()[i] != curr.Index()[i]) {
+        size_t empty_block_id = GetEmptyBlock();
+        MarkEmptyBlockAsUsed(empty_block_id);
+        file_inode.blocks++;
+        // curr.SetBlockId(i, empty_block_id);
+
+        kprintf("Diff! Empty block : [%d] at %d\n", empty_block_id, i);
+        if (i == 0) {
+          file_inode.block[curr.Index()[0]] = empty_block_id;
+          // Need to update the inode.
+          WriteInode(inode_num, file_inode);
+        } else {
+          Block block = curr.GetBlockFromDepth(i - 1);
+          BlockIterator::SetNthEntryAtAddressBlock(&block, curr.Index()[i],
+                                                   empty_block_id);
+          WriteFromBlockId(block.data(), curr.GetBlockId(i - 1));
+        }
+      }
+    }
+    if (curr == end) {
+      break;
+    }
+
+    prev = curr;
+    ++curr;
+  }
+}
+
+size_t Ext2FileSystem::GetEmptyBlock() {
+  for (size_t i = 0; i < block_bitmap.size(); i++) {
+    BitmapInfo& block_info = block_bitmap[i];
+    int index_in_group = block_info.bitmap.GetEmptyBitIndex();
+    if (index_in_group != -1) {
+      kprintf("index : (%d) %lx ", i, index_in_group);
+      return index_in_group + super_block_.blocks_per_group * i;
+    }
+  }
+  return 0;
+}
+
+void Ext2FileSystem::MarkEmptyBlockAsUsed(size_t block_id) {
+  size_t block_group_index = block_id / super_block_.blocks_per_group;
+  BitmapInfo& block_info = block_bitmap[block_group_index];
+  block_info.bitmap.FlipBit(block_id % super_block_.blocks_per_group);
+
+  WriteFromBlockId(block_info.bitmap.GetBitmap(), block_info.bitmap_block_id);
+}
+
+size_t Ext2FileSystem::GetEmptyInode() {
+  for (size_t i = 0; i < inode_bitmap.size(); i++) {
+    BitmapInfo& inode_info = inode_bitmap[i];
+    int index_in_group = inode_info.bitmap.GetEmptyBitIndex();
+    if (index_in_group != -1) {
+      kprintf("index : (%d) %lx ", i, index_in_group);
+      return index_in_group + super_block_.inodes_per_group * i;
+    }
+  }
+  return 0;
+}
+
+void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
+  size_t inode_group_index = inode_num / super_block_.inodes_per_group;
+  BitmapInfo& inode_info = inode_bitmap[inode_group_index];
+  inode_info.bitmap.FlipBit(inode_num % super_block_.inodes_per_group);
+
+  WriteFromBlockId(inode_info.bitmap.GetBitmap(), inode_info.bitmap_block_id);
+}
+
+FileInfo Ext2FileSystem::Stat(string_view path) {
+  int inode_num = GetInodeNumberFromPath(path);
+  if (inode_num == -1) {
+    kprintf("File is not found \n");
+    return FileInfo{};
+  }
+
+  Ext2Inode file = ReadInode(inode_num);
+  PrintInodeInfo(file);
+  FileInfo info;
+  info.file_size = file.size;
+  info.inode = inode_num;
+
+  return info;
+}
+
+std::vector<Ext2Directory> Ext2FileSystem::ParseDirectory(Ext2Inode* dir) {
+  // Read the entire directory.
+  uint8_t* dir_data = reinterpret_cast<uint8_t*>(kmalloc(dir->size));
+  ReadFile(dir, dir_data, dir->size);
+
+  std::vector<Ext2Directory> dir_info;
+
+  size_t current = 0;
+  uint8_t* current_read = dir_data;
+
+  while (current < dir->size) {
+    uint8_t* dir_start = current_read;
+
+    // Read inode number.
+    uint32_t inode = ReadAndAdvance<uint32_t>(current_read);
+
+    // Read total entry size.
+    uint16_t entry_size = ReadAndAdvance<uint16_t>(current_read);
+
+    if (entry_size == 0) {
+      break;
+    }
+
+    // Read name length.
+    uint8_t name_len = ReadAndAdvance<uint8_t>(current_read);
+
+    // Read type indicator.
+    uint8_t file_type = ReadAndAdvance<uint8_t>(current_read);
+
+    KernelString file_name(reinterpret_cast<char*>(current_read), name_len);
+    Ext2Directory dir_entry;
+    dir_entry.inode = inode;
+    dir_entry.file_type = file_type;
+    dir_entry.name = file_name;
+
+    dir_info.push_back(dir_entry);
+
+    current_read = dir_start + entry_size;
+    current += entry_size;
+  }
+
+  return dir_info;
+}
+
+int Ext2FileSystem::GetInodeNumberFromPath(string_view path) {
+  if (path.empty()) {
+    PANIC();
+  }
+
+  // TODO Support relative paths.
+  ASSERT(path[0] == '/');
+
+  size_t current = 1;
+  std::vector<Ext2Directory> current_dir = root_dir_;
+
+  while (true) {
+    size_t end = path.find_first_of('/', current);
+    if (end != npos) {
+      string_view name = path.substr(current, end - current);
+
+      bool found = false;
+      for (const auto& file : current_dir) {
+        if (file.name == name) {
+          // Case for /.../.../name/
+          if (end == path.size() - 1) {
+            return file.inode;
+          } else {
+            // Case for /.../name/...
+            Ext2Inode inode = ReadInode(file.inode);
+            current_dir = ParseDirectory(&inode);
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) {
+        return -1;
+      }
+      current = end + 1;
+    } else {
+      // Case for /.../.../name
+      string_view name = path.substr(current);
+      for (const auto& file : current_dir) {
+        if (file.name == name) {
+          return file.inode;
+        }
+      }
+      return -1;
+    }
+  }
+  return -1;
+}
+
+}  // namespace Kernel

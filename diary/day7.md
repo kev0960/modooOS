@@ -10,7 +10,7 @@ qemu-system-x86_64 -cdrom kernel.iso -serial stdio -m 1024M -drive file=hdd.img,
 (Note you can specify boot order)
 qemu-system-x86_64 -cdrom iso_image -boot order=d -drive file=disk_image,format=raw
 
-3) mkfs.ext2 hdd.img
+3) mkfs.ext2 -b 1024 -I 128 hdd.img
 
 4) sudo mount -t ext2 -o loop hdd.img /mnt
 
