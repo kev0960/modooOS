@@ -64,6 +64,7 @@ class BlockIndices {
   }
   bool operator!=(const BlockIndices& b) const { return !(operator==(b)); }
 
+  void Print() const;
  private:
   void RecursiveIndexIncrease(int current_depth);
 

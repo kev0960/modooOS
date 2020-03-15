@@ -49,7 +49,7 @@ class VGAOutput {
     }
   }
 
-  void PrintString(string_view s, VGAColor color = White) {
+  void PrintString(std::string_view s, VGAColor color = White) {
     while (!s.empty()) {
       auto len = min(num_cols_ - current_col_, s.size());
       size_t endline_or_col_chars = s.find_first_of('\n', 0, len);
@@ -92,7 +92,7 @@ class VGAOutput {
     }
   }
 
-  VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(string_view s) {
+  VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(std::string_view s) {
     PrintString(s);
     return (*this);
   }
@@ -108,7 +108,7 @@ class VGAOutput {
   }
 
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(char c) {
-    string_view s(&c, 1);
+    std::string_view s(&c, 1);
     PrintString(s);
     return (*this);
   }
@@ -140,7 +140,7 @@ class VGAOutput {
   }
 
   // Print the string at single line.
-  void PrintStringLineAtCursor(string_view s, VGAColor color) {
+  void PrintStringLineAtCursor(std::string_view s, VGAColor color) {
     if (current_row_ == num_rows_) {
       ScrollTextBufferUp();
       current_row_--;

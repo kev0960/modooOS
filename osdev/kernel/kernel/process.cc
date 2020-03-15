@@ -104,7 +104,7 @@ ELFProgramHeader Process::GetMatchingProgramHeader(uint64_t addr) const {
   return ELFProgramHeader{};
 }
 
-Process* ProcessManager::CreateProcess(string_view file_name) {
+Process* ProcessManager::CreateProcess(std::string_view file_name) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 

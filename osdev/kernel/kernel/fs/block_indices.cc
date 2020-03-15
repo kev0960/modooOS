@@ -76,4 +76,13 @@ BlockIndices BlockIndices::CreateBlockIndiceFromOffset(size_t offset) {
   return BlockIndices(block_index, current_depth);
 }
 
+void BlockIndices::Print() const {
+  kprintf("Block index : ");
+  for (size_t i = 0; i <= current_depth_; i ++) {
+    kprintf("%x ", block_index_.at(i));
+  }
+  kprintf("\n");
+}
+
+
 }  // namespace Kernel

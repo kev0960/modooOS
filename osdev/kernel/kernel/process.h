@@ -79,7 +79,7 @@ class ProcessManager {
     return process_manager;
   }
 
-  Process* CreateProcess(string_view file_name);
+  Process* CreateProcess(std::string_view file_name);
 
  private:
   ProcessManager() {}

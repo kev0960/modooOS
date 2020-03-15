@@ -181,6 +181,8 @@ void WriteOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
 
   outb(device->command, /* Write Sectors */ 0x30);
 
+  Delay400ns(device);
+
   bool poll_status = Poll(device);
   if (!poll_status) {
     kprintf("Write fail :( \n");

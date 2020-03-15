@@ -471,13 +471,15 @@ class Ext2FileSystem {
   }
 
   // Read the file at the path.
-  size_t ReadFile(string_view path, uint8_t* buf, size_t num_read,
+  size_t ReadFile(std::string_view path, uint8_t* buf, size_t num_read,
                   size_t offset = 0);
   // Write to the file at the path.
-  void WriteFile(string_view path, uint8_t* buf, size_t num_write,
+  void WriteFile(std::string_view path, uint8_t* buf, size_t num_write,
                  size_t offset = 0);
   // Get file info.
-  FileInfo Stat(string_view path);
+  FileInfo Stat(std::string_view path);
+
+  bool CreateFile(std::string_view path, bool is_directory);
 
  private:
   struct BitmapInfo {
@@ -493,8 +495,9 @@ class Ext2FileSystem {
                 size_t offset = 0);
   void WriteFile(size_t inode_num, uint8_t* buf, size_t num_write,
                  size_t offset = 0);
+
   std::vector<Ext2Directory> ParseDirectory(Ext2Inode* dir);
-  int GetInodeNumberFromPath(string_view path);
+  int GetInodeNumberFromPath(std::string_view path);
 
   // Get empty block. returns the block number.
   size_t GetEmptyBlock();
@@ -505,6 +508,8 @@ class Ext2FileSystem {
   void MarkEmptyInodeAsUsed(size_t inode_num);
 
   void ExpandFileSize(size_t inode_num, size_t expanded_file_size);
+
+  size_t GetEndOfDirectoryEntry(Ext2Inode* dir_inode);
 
   Ext2SuperBlock super_block_;
   Ext2Inode root_inode_;

@@ -40,7 +40,7 @@ class KernelBasicString {
     str_.push_back(0);
   }
 
-  KernelBasicString(const basic_string_view<CharT>& view) {
+  KernelBasicString(const std::basic_string_view<CharT>& view) {
     str_.reserve(view.size());
 
     for (size_t i = 0; i < view.size(); i++) {
@@ -103,7 +103,7 @@ class KernelBasicString {
     return true;
   }
 
-  bool operator==(basic_string_view<CharT> s) const {
+  bool operator==(std::basic_string_view<CharT> s) const {
     if (size() != s.size()) {
       return false;
     }

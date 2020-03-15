@@ -5,6 +5,8 @@
 #include "types.h"
 
 namespace Kernel {
+namespace std {
+
 template <typename CharT>
 class basic_string_view {
  public:
@@ -42,6 +44,19 @@ class basic_string_view {
     return npos;
   }
 
+  constexpr size_t find_last_of(CharT c) const noexcept {
+    size_t i = size_ - 1;
+    while (true) {
+      if (str_[i] == c) {
+        return i;
+      } else if (i == 0) {
+        break;
+      }
+      i--;
+    }
+    return npos;
+  }
+
   constexpr size_t find_first_of(CharT c, size_t pos, size_t count) const
       noexcept {
     size_t i = pos;
@@ -75,5 +90,7 @@ class basic_string_view {
 };
 
 using string_view = basic_string_view<char>;
+
+}  // namespace std
 }  // namespace Kernel
 #endif
