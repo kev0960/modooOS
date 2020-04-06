@@ -5,12 +5,12 @@ SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wex
 CXXFLAGS = $(SHARED_FLAGS)
 ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 
-VPATH = ./kernel:./boot:./std:./test:./kernel/fs
+VPATH = ./kernel:./boot:./std:./test:./kernel/fs:./kernel/sys
 OBJDIR = ./obj
 
 OBJS := boot.o interrupt_handler.o
 OBJS += kmain.o string_util.o string.o kernel_math.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o process.o elf.o syscall.o block_iterator.o block_indices.o
-OBJS += kernel_test.o
+OBJS += kernel_test.o util_test.o
 
 CRTI_OBJ = ./obj/crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)

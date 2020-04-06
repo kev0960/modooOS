@@ -1,4 +1,5 @@
 #include "../kernel/kernel_list.h"
+#include "../std/algorithm.h"
 #include "../std/bitmap.h"
 #include "../std/list.h"
 #include "../std/vector.h"
@@ -212,7 +213,7 @@ TEST(KernelVectorTest, CopyVector) {
   }
 }
 
-TEST(KenrelBitmapTest, Bitmap) {
+TEST(KernelBitmapTest, Bitmap) {
   Bitmap<64> bitmap;
   *bitmap.GetBitmap() = 0;
 
@@ -231,7 +232,7 @@ TEST(KenrelBitmapTest, Bitmap) {
   EXPECT_EQ(bitmap.GetEmptyBitIndex(), 0);
 }
 
-TEST(KenrelBitmapTest, BitmapLarge) {
+TEST(KernelBitmapTest, BitmapLarge) {
   Bitmap<256> bitmap;
   for (int i = 0; i < 4; i++) {
     bitmap.GetBitmap()[i] = 0xFFFFFFFFFFFFFFFF;
@@ -240,6 +241,34 @@ TEST(KenrelBitmapTest, BitmapLarge) {
   EXPECT_EQ(bitmap.GetEmptyBitIndex(), -1);
   bitmap.FlipBit(123);
   EXPECT_EQ(bitmap.GetEmptyBitIndex(), 123);
+}
+
+TEST(AlgorithmTest, LowerBound) {
+  std::vector<int> vec;
+  vec.push_back(1);
+  vec.push_back(3);
+  vec.push_back(4);
+  vec.push_back(7);
+  vec.push_back(8);
+  vec.push_back(11);
+  vec.push_back(13);
+
+  EXPECT_EQ(*std::lower_bound(vec.begin(), vec.end(), 5), 7);
+  EXPECT_EQ(*std::lower_bound(vec.begin(), vec.end(), 8), 8);
+}
+
+TEST(AlgorithmTest, UpperBound) {
+  std::vector<int> vec;
+  vec.push_back(1);
+  vec.push_back(3);
+  vec.push_back(4);
+  vec.push_back(7);
+  vec.push_back(8);
+  vec.push_back(11);
+  vec.push_back(13);
+
+  EXPECT_EQ(*std::upper_bound(vec.begin(), vec.end(), 5), 7);
+  EXPECT_EQ(*std::upper_bound(vec.begin(), vec.end(), 8), 11);
 }
 
 }  // namespace kernel_test

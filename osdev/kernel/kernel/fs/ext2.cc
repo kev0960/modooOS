@@ -11,8 +11,10 @@
 namespace Kernel {
 namespace {
 
-constexpr uint8_t kFileTypeRegularFile = 1;
-constexpr uint8_t kFileTypeDir = 2;
+constexpr uint8_t kDirFileTypeRegularFile = 1;
+constexpr uint8_t kDirFileTypeDir = 2;
+constexpr uint16_t kInodeFileTypeRegularFile = 0x8000;
+constexpr uint16_t kInodeFileTypeDir = 0x4000;
 constexpr uint32_t kRootInodeNumber = 2;
 
 void ParseInodeMode(uint16_t mode) {
@@ -417,7 +419,7 @@ size_t Ext2FileSystem::GetEmptyInode() {
 }
 
 void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
-  inode_num --;
+  inode_num--;
   size_t inode_group_index = inode_num / super_block_.inodes_per_group;
   BitmapInfo& inode_info = inode_bitmap[inode_group_index];
   inode_info.bitmap.FlipBit(inode_num % super_block_.inodes_per_group);
@@ -486,9 +488,9 @@ bool Ext2FileSystem::CreateFile(std::string_view path, bool is_directory) {
   kprintf("New file indoe : %d %d %d", new_file_inode, dir_entry_size,
           file_name.size());
   if (is_directory) {
-    SetAndAdvance(dir_data, kFileTypeDir);
+    SetAndAdvance(dir_data, kDirFileTypeDir);
   } else {
-    SetAndAdvance(dir_data, kFileTypeRegularFile);
+    SetAndAdvance(dir_data, kDirFileTypeRegularFile);
   }
 
   // Now copy the filename.
@@ -496,12 +498,18 @@ bool Ext2FileSystem::CreateFile(std::string_view path, bool is_directory) {
     dir_data[i] = file_name[i];
   }
 
-  kprintf("Parent indoe size : %d \n", parent_inode.size);
   WriteFile(parent_inode_num, saved_dir_data, dir_entry_size,
             GetEndOfDirectoryEntry(&parent_inode));
-  kprintf("file name size : %d %d \n", file_name.size(), new_file_inode);
-  PrintDirectory(saved_dir_data, dir_entry_size);
 
+  Ext2Inode new_inode = ReadInode(new_file_inode);
+  new_inode.size = 0;
+  if (is_directory) {
+    new_inode.mode = kInodeFileTypeDir;
+  } else {
+    new_inode.mode = kInodeFileTypeRegularFile;
+  }
+
+  WriteInode(new_file_inode, new_inode);
   if (parent_inode_num == kRootInodeNumber) {
     Ext2Inode root_inode = ReadInode(kRootInodeNumber);
     root_dir_ = ParseDirectory(&root_inode);

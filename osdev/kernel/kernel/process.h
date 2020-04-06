@@ -2,6 +2,7 @@
 #define PROCESS_H
 
 #include "../std/string_view.h"
+#include "./fs/filesystem.h"
 #include "elf.h"
 #include "kernel_list.h"
 #include "kthread.h"
@@ -70,6 +71,9 @@ class Process : public KernelThread {
   std::vector<ELFProgramHeader> program_headers_;
 
   KernelString file_name_;
+
+  // List of opened files.
+  std::vector<File> fds_;
 };
 
 class ProcessManager {

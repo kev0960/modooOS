@@ -32,6 +32,9 @@ void PITimer::InstallPITimer() const {
   outb(PIT_1, divisor >> 8);    // High 1 byte
 }
 
+void PITimer::Sleep() {
+}
+
 PITimer pic_timer;
 
 }  // namespace Kernel

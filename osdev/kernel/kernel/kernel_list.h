@@ -19,7 +19,6 @@ class KernelListElement {
 
   void PushFront() { stack_list_->push_front(this); }
   void PushBack() { stack_list_->push_back(this); }
-
   void Detach() {
     if (prev) {
       prev->next = next;

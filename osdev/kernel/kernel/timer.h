@@ -1,8 +1,10 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include "../std/vector.h"
 #include "interrupt.h"
 #include "io.h"
+#include "kthread.h"
 
 // PIT Data channels.
 #define PIT_1 0x40
@@ -26,9 +28,22 @@ class PITimer {
 
   uint64_t GetClock() const { return timer_tick_lower_; }
 
+  void Sleep();
+
  private:
   uint64_t timer_tick_lower_;
+
+  // Just ignore upper tick :p. At tick per 0.01 seconds, we will need
+  // 1844674407370955.16 seconds to hit this upper tick. This is roughly 58
+  // million years!
   uint64_t timer_tick_upper_;
+
+  struct SemaAndEndTime {
+    uint64_t timer_tick;
+    Semaphore sema;
+  };
+
+  std::vector<SemaAndEndTime> waiting_threads_;
 };
 
 extern PITimer pic_timer;

@@ -47,6 +47,11 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   user_regs_.cs = 0x23;       // User Code segment
   user_regs_.ss = 0x1b;       // User Stack segment.
   user_regs_.rflags = 0x200;  // Interrupt is enabled.
+
+  // Initialize file descriptors.
+  fds_.push_back(File(File::STDIN));
+  fds_.push_back(File(File::STDOUT));
+  fds_.push_back(File(File::STDERR));
 }
 
 Process::Process(Process* parent)

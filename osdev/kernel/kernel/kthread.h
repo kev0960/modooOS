@@ -18,6 +18,8 @@ struct SavedRegisters {
   InterruptHandlerSavedRegs regs;
 } __attribute__((packed));
 
+class Semaphore;
+
 class KernelThread {
  public:
   enum ThreadStatus { THREAD_RUN, THREAD_SLEEP, THREAD_TERMINATE };

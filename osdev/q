@@ -1,0 +1,13 @@
+Inode: 2   Type: directory    Mode:  0755   Flags: 0x0
+Generation: 0    Version: 0x00000000
+User:     0   Group:     0   Size: 1024
+File ACL: 0
+Links: 3   Blockcount: 2
+Fragment:  Address: 0    Number: 0    Size: 0
+ctime: 0x5e6f2881 -- Mon Mar 16 00:19:29 2020
+atime: 0x5e6f2881 -- Mon Mar 16 00:19:29 2020
+mtime: 0x5e6f2881 -- Mon Mar 16 00:19:29 2020
+BLOCKS:
+(0):332
+TOTAL: 1
+

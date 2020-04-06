@@ -19,6 +19,7 @@ class VectorIterator {
 
   explicit VectorIterator(T* elem) : current_(elem) {}
   VectorIterator(const VectorIterator& itr) : current_(itr.current_) {}
+  VectorIterator(VectorIterator&& itr) : current_(itr.current_) {}
 
   VectorIterator& operator++() {
     current_++;
@@ -54,6 +55,11 @@ class VectorIterator {
 
   VectorIterator operator=(const VectorIterator& itr) {
     current_ = itr.current_;
+    return *this;
+  }
+
+  difference_type operator-(const VectorIterator& itr) {
+    return current_ - itr.current_;
   }
 
   bool operator==(VectorIterator iter) { return current_ == iter.current_; }

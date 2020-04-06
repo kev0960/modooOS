@@ -50,6 +50,45 @@ constexpr InputIt find_if(InputIt first, InputIt last, UnaryPredicate p) {
   return last;
 }
 
+template <typename ForwardIt, typename T>
+constexpr ForwardIt lower_bound(ForwardIt first, ForwardIt last,
+                                const T& value) {
+  ForwardIt it = first;
+  typename ForwardIt::difference_type step, count = last - first;
+
+  while (count > 0) {
+    it = first;
+    step = count / 2;
+    it += step;
+    if (*it < value) {
+      first = ++it;
+      count -= step + 1;
+    } else
+      count = step;
+  }
+  return first;
+}
+
+template <typename ForwardIt, typename T>
+constexpr ForwardIt upper_bound(ForwardIt first, ForwardIt last,
+                                const T& value) {
+  ForwardIt it = first;
+  typename ForwardIt::difference_type count, step;
+  count = last - first;
+
+  while (count > 0) {
+    it = first;
+    step = count / 2;
+    it += step;
+    if (!(value < *it)) {
+      first = ++it;
+      count -= step + 1;
+    } else
+      count = step;
+  }
+  return first;
+}
+
 }  // namespace std
 }  // namespace Kernel
 
