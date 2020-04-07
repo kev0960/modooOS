@@ -3,6 +3,7 @@
 
 #include "../boot/kernel_paging.h"
 #include "../std/types.h"
+#include "kthread.h"
 
 #define KERNEL_HEAP_MEMORY_START_OFFSET 0x1000000  // 16 MB
 
@@ -22,7 +23,8 @@ class KernelMemoryManager {
                                                MEMORY_ALGIN_OFFSET)),
         heap_memory_limit_(ONE_GB - KERNEL_HEAP_MEMORY_START_OFFSET -
                            MEMORY_ALGIN_OFFSET),
-        current_heap_size_(8 /* Added initial offset*/) {
+        current_heap_size_(8 /* Added initial offset*/),
+        heap_lock_(1) {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       free_list_[i] = 0;
     }
@@ -46,6 +48,9 @@ class KernelMemoryManager {
   void Reset();
   bool SanityCheck();
   void DumpMemory();
+
+  void Lock();
+  void UnLock();
 
  private:
   uint8_t* SplitMemory(uint8_t* addr, uint32_t split_size, int bucket_index);
@@ -90,6 +95,9 @@ class KernelMemoryManager {
   // Buckets for 2^3, 2^4, ..., 2^18 bytes, total of 16 buckets.
   // Each bucket contains the offset to the available memory chunk.
   uint32_t free_list_[NUM_BUCKETS];
+
+  // Lock for heap memory alloc.
+  Semaphore heap_lock_;
 };
 
 extern KernelMemoryManager kernel_memory_manager;

@@ -1,6 +1,8 @@
 #ifndef KTHREAD_H
 #define KTHREAD_H
 
+#include "../std/printf.h"
+#include "../std/utility.h"
 #include "interrupt.h"
 #include "kernel_list.h"
 
@@ -26,6 +28,8 @@ class KernelThread {
 
  public:
   using EntryFuncType = void (*)();
+
+  static bool kInitThreadDone;
 
   // If need_stack is true, then rsp will be used as a RSP.
   KernelThread(EntryFuncType entry_function, bool need_stack = true);
@@ -88,6 +92,13 @@ class KernelThread {
 class Semaphore {
  public:
   Semaphore(int cnt) : cnt_(cnt) {}
+
+  // Semaphore is not copiable.
+  Semaphore(const Semaphore&) = delete;
+
+  Semaphore(Semaphore&& sema) : waiters_(std::move(sema.waiters_)) {
+    cnt_ = sema.cnt_;
+  }
 
   // If we are using semaphore inside of the interrupt handler, then we should
   // set without_lock as true.

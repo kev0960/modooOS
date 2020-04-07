@@ -68,10 +68,11 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   KernelThread* next_thread = next_thread_element->Get();
 
   /*
-  kprintf("Schedule!(%d) -> (%d) %lx %lx\n", current_thread->Id(), next_thread->Id(),
-          current_thread->GetSavedKernelRegs()->rflags,
-          current_thread->GetKernelStackTop());
-          */
+  kprintf("Schedule!(%d) -> (%d) %lx \n", current_thread->Id(),
+          next_thread->Id(), next_thread->GetSavedKernelRegs()->rip);
+      current_thread->GetSavedKernelRegs()->rflags,
+      current_thread->GetKernelStackTop());
+      */
   // If the target thread is a user process (i.e we are jumping into the user
   // space), we have to set the interrupt frame's RSP as User's RSP (user_rsp)
   // instead of the kernel rsp.

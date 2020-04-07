@@ -54,6 +54,8 @@ class ThreadIdManager {
   IrqLock lock_;
 };
 
+bool KernelThread::kInitThreadDone = false;
+
 KernelThread* KernelThread::CurrentThread() {
   KernelThread* current_thread;
 
@@ -69,6 +71,9 @@ KernelThread* KernelThread::CurrentThread() {
 void KernelThread::InitThread() {
   KernelThread* init_thread = new KernelThread(nullptr, false);
   SetCurrentThread(init_thread);
+
+  kInitThreadDone = true;
+  kprintf("Init thread done");
 }
 
 void KernelThread::SetCurrentThread(KernelThread* thread) {

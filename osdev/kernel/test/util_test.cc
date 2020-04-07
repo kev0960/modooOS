@@ -213,6 +213,70 @@ TEST(KernelVectorTest, CopyVector) {
   }
 }
 
+static int C_copy_call = 0;
+static int C_num_destroy = 0;
+
+struct C {
+  C(int d) : d(d) {}
+  C(const C& c) : d(c.d) { C_copy_call++; }
+  C(C&& c) : d(c.d) {}
+  ~C() { C_num_destroy++; }
+
+  int d;
+};
+
+TEST(KernelVectorTest, EraseTest) {
+  std::vector<C> vec;
+  vec.push_back(C(0));
+  vec.push_back(C(1));
+  vec.push_back(C(2));
+  vec.push_back(C(3));
+  vec.push_back(C(4));
+
+  C_num_destroy = 0;
+  auto itr = vec.erase(vec.begin() + 2);
+  EXPECT_EQ((*itr).d, 3);
+  EXPECT_EQ(C_num_destroy, 1);
+  EXPECT_EQ(C_copy_call, 0);
+
+  std::vector<C> vec2;
+  vec2.push_back(C(0));
+  itr = vec2.erase(vec2.begin());
+
+  EXPECT_EQ(vec2.size(), 0u);
+  EXPECT_TRUE(itr == vec2.end());
+}
+
+bool VecEqual(std::vector<int>& v, int* arr) {
+  for (auto itr = v.begin(); itr != v.end(); ++itr) {
+    if (*itr != arr[itr - v.begin()]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+TEST(KernelVectorTest, EraseTestAll) {
+  std::vector<int> vec;
+  vec.push_back(0);
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+
+  vec.erase(vec.begin());
+
+  int arr[] = {1, 2, 3};
+  EXPECT_TRUE(VecEqual(vec, arr));
+
+  vec.erase(vec.begin() + 2);
+  int arr2[] = {1, 2};
+  EXPECT_TRUE(VecEqual(vec, arr2));
+
+  vec.push_back(4);
+  int arr3[] = {1, 2, 4};
+  EXPECT_TRUE(VecEqual(vec, arr3));
+}
+
 TEST(KernelBitmapTest, Bitmap) {
   Bitmap<64> bitmap;
   *bitmap.GetBitmap() = 0;

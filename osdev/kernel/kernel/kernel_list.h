@@ -116,6 +116,18 @@ class KernelList {
  public:
   KernelList() : head_(nullptr), tail_(nullptr) {}
 
+  // Copy construct is not available.
+  KernelList(const KernelList&) = delete;
+  KernelList(KernelList&& list) {
+    head_ = list.head_;
+    tail_ = list.tail_;
+    size_ = list.size_;
+
+    list.head_ = nullptr;
+    list.tail_ = nullptr;
+    list.size_ = 0;
+  }
+
   bool empty() const { return head_ == nullptr; }
   size_t size() const { return size_; }
 
@@ -233,6 +245,6 @@ class KernelList {
 
   int size_ = 0;
 };
-}
+}  // namespace Kernel
 
 #endif

@@ -58,13 +58,25 @@ class VectorIterator {
     return *this;
   }
 
+  VectorIterator operator+(int i) {
+    VectorIterator iter = *this;
+    iter += i;
+    return iter;
+  }
+
   difference_type operator-(const VectorIterator& itr) {
     return current_ - itr.current_;
   }
 
-  bool operator==(VectorIterator iter) { return current_ == iter.current_; }
-  bool operator!=(VectorIterator iter) { return current_ != iter.current_; }
+  constexpr bool operator==(VectorIterator iter) {
+    return current_ == iter.current_;
+  }
+  constexpr bool operator!=(VectorIterator iter) {
+    return current_ != iter.current_;
+  }
+
   reference operator*() { return *current_; }
+  pointer operator->() { return current_; }
 
  private:
   T* current_;
@@ -180,6 +192,23 @@ class vector {
   void pop_back() {
     alloc_::destroy(allocator_, &data_[size_ - 1]);
     size_--;
+  }
+
+  iterator erase(iterator pos) {
+    if (pos == end()) {
+      return end();
+    }
+
+    typename iterator::difference_type loc = pos - begin();
+    alloc_::destroy(allocator_, &data_[loc]);
+
+    // Now pull everything behind loc.
+    for (size_t i = loc; i < size_ - 1; i++) {
+      alloc_::construct(allocator_, &data_[i], std::move(data_[i + 1]));
+    }
+
+    size_--;
+    return begin() + loc;
   }
 
   iterator begin() const { return iterator(data_); }

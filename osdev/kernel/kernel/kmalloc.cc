@@ -470,6 +470,18 @@ void* KernelMemoryManager::AlignedAlloc(size_t alignment, size_t bytes) {
   return reinterpret_cast<void*>(aligned_addr);
 }
 
+void KernelMemoryManager::Lock() {
+  if (KernelThread::kInitThreadDone) {
+    heap_lock_.Down();
+  }
+}
+
+void KernelMemoryManager::UnLock() {
+  if (KernelThread::kInitThreadDone) {
+    heap_lock_.Up();
+  }
+}
+
 void* kmalloc(size_t bytes) {
   if (bytes == 0) {
     return nullptr;
@@ -479,9 +491,13 @@ void* kmalloc(size_t bytes) {
     bytes = 8;
   }
 
+  kernel_memory_manager.Lock();
   int bucket_index = GetBucketIndex(bytes);
-  return reinterpret_cast<void*>(
+  void* mem = reinterpret_cast<void*>(
       kernel_memory_manager.GetMemoryFromBucket(bucket_index, bytes));
+  kernel_memory_manager.UnLock();
+
+  return mem;
 }
 
 void* kcalloc(size_t bytes) {
@@ -496,10 +512,14 @@ void kfree(void* ptr) {
   // Move addr to point start of the chunk.
   uint8_t* addr = reinterpret_cast<uint8_t*>(ptr);
   addr -= 4;
+
+  kernel_memory_manager.Lock();
   kernel_memory_manager.FreeOccupiedChunk(addr);
+  kernel_memory_manager.UnLock();
 }
 
 void* kaligned_alloc(size_t alignment, size_t bytes) {
+  // No need to guard here (it internally calls kmalloc!)
   return kernel_memory_manager.AlignedAlloc(alignment, bytes);
 }
 
