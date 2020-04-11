@@ -160,6 +160,7 @@ class vector {
   const T& at(size_t index) const { return data_[index]; }
   size_t size() const { return size_; }
   size_t capacity() const { return alloc_size_; }
+  bool empty() const { return size_ == 0; }
 
   void reserve(size_t sz) {
     if (sz < alloc_size_) {

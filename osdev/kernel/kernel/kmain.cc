@@ -90,12 +90,12 @@ void KernelMain() {
   Kernel::KernelThread thread3(Sleep3);
   Kernel::KernelThread thread4(Sleep4);
 
+  /*
   thread1.Start();
   thread2.Start();
   thread3.Start();
   thread4.Start();
 
-  /*
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
