@@ -37,4 +37,4 @@ total_num = 1000
 arr = [i for i in range(total_num)]
 arr = arr + arr
 np.random.shuffle(arr)
-print(arr)
+print("{", arr, "}")

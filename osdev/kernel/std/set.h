@@ -10,26 +10,38 @@ namespace std {
 
 template <typename Node>
 class SetIterator {
+ public:
   using value_type = typename Node::KeyType;
   using pointer = typename Node::KeyType*;
   using reference = typename Node::KeyType&;
+  using const_reference = const typename Node::KeyType&;
 
+  SetIterator(const SetIterator& itr) : stack_(itr.stack_) {}
+  SetIterator(SetIterator&& itr) : stack_(std::move(itr.stack_)) {}
   SetIterator(const std::vector<Node*>& stack) : stack_(stack) {}
 
-  SetIterator& operator++() {
-    // Go up if it does not have any child.
-    // But if it is coming from right, we have to continue.
-    if (CurrentNode()->NumChild() == 0) {
-      Node* current = CurrentNode();
-      while (stack_.empty()) {
-        stack_.pop_back();
-        Node* parent = CurrentNode();
+  SetIterator& operator=(const SetIterator& itr) {
+    stack_ = itr.stack_;
+    return *this;
+  }
 
+  SetIterator& operator++() {
+    // Go up if it does not have any right element.
+    // If it is coming from right, we have to continue.
+    if (CurrentNode()->Right() == nullptr) {
+      Node* current = CurrentNode();
+      while (true) {
+        stack_.pop_back();
+        if (stack_.empty()) {
+          break;
+        }
+
+        Node* parent = CurrentNode();
         if (parent->Left() == current) {
           break;
         }
       }
-    } else if (CurrentNode()->Right() != nullptr) {
+    } else {
       // Now find the next successor.
       Node* current = CurrentNode()->Right();
       while (current != nullptr) {
@@ -37,9 +49,36 @@ class SetIterator {
         current = current->Left();
       }
     }
+
+    return *this;
   }
 
-  reference operator*() { return CurrentNode()->GetKey(); }
+  bool operator==(const SetIterator& itr) const {
+    if (stack_.size() != itr.stack_.size()) {
+      return false;
+    }
+
+    for (size_t i = 0; i < stack_.size(); i++) {
+      if (stack_.at(i) != itr.stack_.at(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool operator!=(const SetIterator& itr) const { return !(operator==(itr)); }
+  const_reference operator*() { return CurrentNode()->GetKey(); }
+
+  pair<Node*, Node*> CurrentAndParent() const {
+    if (stack_.size() == 0) {
+      return pair<Node*, Node*>(nullptr, nullptr);
+    } else if (stack_.size() == 1) {
+      return pair<Node*, Node*>(stack_.at(0), nullptr);
+    } else {
+      return pair<Node*, Node*>(stack_.at(stack_.size() - 1),
+                                stack_.at(stack_.size() - 2));
+    }
+  }
 
  private:
   // Current stack. (Assuming that we visit nodes in DFS).
@@ -51,9 +90,25 @@ class SetIterator {
 template <typename T, typename Allocator = std::allocator<BinaryTreeNode<T>>>
 class set {
  public:
+  using iterator = SetIterator<BinaryTreeNode<T>>;
+
   set() : num_elements_(0) {}
 
-  size_t count(const T& t) {
+  iterator begin() const {
+    auto* current = tree_.Root();
+
+    std::vector<BinaryTreeNode<T>*> stack;
+    while (current != nullptr) {
+      stack.push_back(current);
+      current = current->Left();
+    }
+
+    return SetIterator<BinaryTreeNode<T>>(std::move(stack));
+  }
+
+  iterator end() const { return iterator(std::vector<BinaryTreeNode<T>*>()); }
+
+  size_t count(const T& t) const {
     auto current_and_parent = tree_.SearchNode(t);
     return current_and_parent.first == nullptr ? 0 : 1;
   }
@@ -72,8 +127,25 @@ class set {
     num_elements_++;
   }
 
-  void erase(const T& t) {
+  // Reurns the number of erased elements.
+  size_t erase(const T& t) {
     auto* node = tree_.DeleteNode(t);
+    if (node == nullptr) {
+      return 0;
+    }
+
+    // Now we have to destroy it.
+    alloc_::destroy(allocator_, node);
+    alloc_::deallocate(allocator_, node, sizeof(BinaryTreeNode<T>));
+
+    num_elements_--;
+
+    return 1;
+  }
+
+  void erase(iterator pos) {
+    auto [current, parent] = pos.CurrentAndParent();
+    auto* node = tree_.DeleteNode(current, parent);
     if (node == nullptr) {
       return;
     }
@@ -87,7 +159,12 @@ class set {
 
   void Print() { tree_.PrintTree(); }
 
-  ~set() {}
+  ~set() {
+    // TODO This is very naive implementation :(
+    while (num_elements_ > 0) {
+      erase(begin());
+    }
+  }
 
  private:
   BinaryTree<BinaryTreeNode<T>> tree_;

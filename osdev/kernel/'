@@ -85,6 +85,12 @@ class BinaryTreeNode {
     }
   }
 
+  ~BinaryTreeNode() {
+    if (left_ != nullptr || right_ != nullptr) {
+      kprintf("wtf?");
+    }
+  }
+
  private:
   KeyType key_;
 
@@ -123,10 +129,12 @@ class BinaryTree {
     }
   }
 
-  Node* DeleteNode(Node* current, Node* parent) {
+  Node* DeleteNode(const typename Node::KeyType& key) {
     if (root_ == nullptr) {
       return nullptr;
     }
+
+    auto [current, parent] = SearchNode(key);
     if (current == nullptr) {
       return nullptr;
     }
@@ -163,15 +171,6 @@ class BinaryTree {
     }
 
     return current;
-  }
-
-  Node* DeleteNode(const typename Node::KeyType& key) {
-    if (root_ == nullptr) {
-      return nullptr;
-    }
-
-    auto [current, parent] = SearchNode(key);
-    return DeleteNode(current, parent);
   }
 
   // Returns found node and its parent.
