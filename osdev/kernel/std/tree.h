@@ -3,6 +3,7 @@
 
 #include "printf.h"
 #include "utility.h"
+#include "vector.h"
 
 namespace Kernel {
 namespace std {
@@ -18,6 +19,11 @@ class BinaryTreeNode {
       : key_(std::move(key)), left_(nullptr), right_(nullptr) {}
 
   const KeyType& GetKey() const { return key_; }
+
+  // Changing the key can be dangerous.
+  // DONT USE WHEN YOU DON'T KNOW WHAT YOU ARE DOING
+  KeyType* MutableKey() { return &key_; }
+
   BinaryTreeNode* Left() const { return left_; }
   BinaryTreeNode* Right() const { return right_; }
 
@@ -197,6 +203,26 @@ class BinaryTree {
     }
 
     return make_pair(current, parent);
+  }
+
+  vector<Node*> FindPath(const typename Node::KeyType& key) const {
+    vector<Node*> path;
+
+    Node* current = root_;
+    while (current != nullptr) {
+      path.push_back(current);
+      if (current->GetKey() < key) {
+        current = current->Right();
+      } else if (current->GetKey() > key) {
+        current = current->Left();
+      } else {
+        // Found the key!
+        return path;
+      }
+    }
+
+    // Return an empty vector if the path is not found.
+    return vector<Node*>{};
   }
 
   Node* FindLeftModeNodeFrom(Node* node) const {

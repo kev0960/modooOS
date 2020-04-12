@@ -13,6 +13,7 @@ class SetIterator {
  public:
   using value_type = typename Node::KeyType;
   using pointer = typename Node::KeyType*;
+  using const_pointer = const typename Node::KeyType*;
   using reference = typename Node::KeyType&;
   using const_reference = const typename Node::KeyType&;
 
@@ -67,7 +68,10 @@ class SetIterator {
   }
 
   bool operator!=(const SetIterator& itr) const { return !(operator==(itr)); }
-  const_reference operator*() { return CurrentNode()->GetKey(); }
+  const_reference operator*() const { return CurrentNode()->GetKey(); }
+  reference operator*() { return *CurrentNode()->MutableKey(); }
+  const_pointer operator->() const { return &CurrentNode()->GetKey(); }
+  pointer operator->() { return CurrentNode()->MutableKey(); }
 
   pair<Node*, Node*> CurrentAndParent() const {
     if (stack_.size() == 0) {
@@ -91,6 +95,7 @@ template <typename T, typename Allocator = std::allocator<BinaryTreeNode<T>>>
 class set {
  public:
   using iterator = SetIterator<BinaryTreeNode<T>>;
+  using const_iterator = const SetIterator<BinaryTreeNode<T>>;
 
   set() : num_elements_(0) {}
 
@@ -156,6 +161,9 @@ class set {
 
     num_elements_--;
   }
+
+  const_iterator find(const T& t) const { return iterator(tree_.FindPath(t)); }
+  iterator find(const T& t) { return iterator(tree_.FindPath(t)); }
 
   void Print() { tree_.PrintTree(); }
 

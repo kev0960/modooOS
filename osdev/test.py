@@ -33,8 +33,8 @@ print(np.sum(alloc))
 print(total)
 '''
 
-total_num = 1000
+total_num =500 
 arr = [i for i in range(total_num)]
-arr = arr + arr
+arr = arr + arr + arr
 np.random.shuffle(arr)
 print("{", arr, "}")
