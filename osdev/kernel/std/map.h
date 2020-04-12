@@ -98,6 +98,10 @@ class map {
   iterator begin() const { return key_val_.begin(); }
   iterator end() const { return key_val_.end(); }
 
+  size_t size() const { return key_val_.size(); }
+
+  void Print() { key_val_.Print(); }
+
  private:
   std::set<KeyVal<const Key, Value>> key_val_;
 };

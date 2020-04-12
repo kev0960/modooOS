@@ -162,6 +162,8 @@ class set {
     num_elements_--;
   }
 
+  size_t size() const { return num_elements_; }
+
   const_iterator find(const T& t) const { return iterator(tree_.FindPath(t)); }
   iterator find(const T& t) { return iterator(tree_.FindPath(t)); }
 

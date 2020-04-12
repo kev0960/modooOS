@@ -388,6 +388,40 @@ void MapSanityCheck(std::map<int, int>& m, int* state, int num) {
   }
 }
 
+TEST(MapTest, MapIteratorTest) {
+  std::map<int, int> m;
+  const int num = 10;
+  int data[] = {9, 4, 7, 0, 6, 3, 1, 0, 8, 6, 9, 9, 2, 5, 1,
+                8, 1, 6, 5, 7, 4, 3, 2, 7, 8, 3, 4, 5, 0, 2};
+  int state[num] = {0};
+
+  for (int i = 0; i < 3 * num; i++) {
+    if (state[data[i]] == 0) {
+      m[data[i]] = data[i] + 1;
+    } else if (state[data[i]] == 1) {
+      m[data[i]] *= 2;
+    } else if (state[data[i]] == 2) {
+      m[data[i]] += 2;
+    }
+
+    state[data[i]]++;
+  }
+
+  int i = 0;
+  for (auto itr = m.begin(); itr != m.end(); ++itr, ++i) {
+    EXPECT_EQ(itr->first, i);
+    EXPECT_EQ(itr->second, (i + 1) * 2 + 2);
+
+    itr->second++;
+  }
+
+  i = 0;
+  for (auto itr = m.begin(); itr != m.end(); ++itr, ++i) {
+    EXPECT_EQ(itr->first, i);
+    EXPECT_EQ(itr->second, (i + 1) * 2 + 3);
+  }
+}
+
 TEST(MapTest, RandomMapTestSmall) {
   std::map<int, int> m;
 
@@ -397,7 +431,7 @@ TEST(MapTest, RandomMapTestSmall) {
                 8, 1, 6, 5, 7, 4, 3, 2, 7, 8, 3, 4, 5, 0, 2};
   int state[num] = {0};
 
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < 3 * num; i++) {
     if (state[data[i]] == 0) {
       m[data[i]] = data[i] + 1;
     } else if (state[data[i]] == 1) {
@@ -435,7 +469,7 @@ TEST(MapTest, RandomMapTestMedium) {
       66, 9,  71, 7,  74, 80, 56, 35, 72, 33, 93, 22};
   int state[num] = {0};
 
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < 3 * num; i++) {
     if (state[data[i]] == 0) {
       m[data[i]] = data[i] + 1;
     } else if (state[data[i]] == 1) {
@@ -565,7 +599,7 @@ TEST(MapTest, RandomMapTestLarge) {
 
   int state[num] = {0};
 
-  for (int i = 0; i < num; i++) {
+  for (int i = 0; i < 3 * num; i++) {
     if (state[data[i]] == 0) {
       m[data[i]] = data[i] + 1;
     } else if (state[data[i]] == 1) {
@@ -577,5 +611,6 @@ TEST(MapTest, RandomMapTestLarge) {
     MapSanityCheck(m, state, num);
   }
 }
+
 }  // namespace kernel_test
 }  // namespace Kernel

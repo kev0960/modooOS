@@ -166,8 +166,6 @@ Ext2FileSystem::Ext2FileSystem() {
   kprintf(" size : %d %d\n", info.file_size, info.inode);
   uint8_t* file = (uint8_t*)kmalloc(1000);
   ReadFile("/a.txt/", file, 1000, 0);
-  */
-  // kprintf("%s \n", file);
   CreateFile("/zz.txt", false);
 
   char data[10] = {"hello"};
@@ -175,6 +173,7 @@ Ext2FileSystem::Ext2FileSystem() {
 
   auto info = Stat("/zz.txt/");
   kprintf(" size : %d %d\n", info.file_size, info.inode);
+  */
 }
 
 size_t Ext2FileSystem::ReadFile(std::string_view path, uint8_t* buf,

@@ -21,29 +21,29 @@ extern "C" void __cxa_atexit(void) {}
 void Idle() { asm volatile("hlt"); }
 void Sleep1() {
   while (true) {
-    Kernel::pic_timer.Sleep(100);
-    Kernel::vga_output << "Hi (1) [" << Kernel::pic_timer.GetClock() << "]";
+    Kernel::pic_timer.Sleep(50);
+    Kernel::vga_output << "Hi (1) ";
   }
 }
 
 void Sleep2() {
   while (true) {
     Kernel::pic_timer.Sleep(300);
-    Kernel::vga_output << "Hi (2) [" << Kernel::pic_timer.GetClock() << "]";
+    Kernel::vga_output << "Hi (2) ";
   }
 }
 
 void Sleep3() {
   while (true) {
     Kernel::pic_timer.Sleep(1000);
-    Kernel::vga_output << "Hi (3) [" << Kernel::pic_timer.GetClock() << "]";
+    Kernel::vga_output << "Hi (3) ";
   }
 }
 
 void Sleep4() {
   while (true) {
     Kernel::pic_timer.Sleep(100);
-    Kernel::vga_output << "Hi (4) [" << Kernel::pic_timer.GetClock() << "]";
+    Kernel::vga_output << "Hi (4) ";
   }
 }
 void KernelMain() {
@@ -90,12 +90,12 @@ void KernelMain() {
   Kernel::KernelThread thread3(Sleep3);
   Kernel::KernelThread thread4(Sleep4);
 
-  /*
   thread1.Start();
   thread2.Start();
   thread3.Start();
   thread4.Start();
 
+  /*
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();

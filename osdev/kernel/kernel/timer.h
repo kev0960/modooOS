@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "../std/vector.h"
+#include "../std/map.h"
 #include "interrupt.h"
 #include "io.h"
 #include "kthread.h"
@@ -41,19 +41,23 @@ class PITimer {
   struct SemaAndEndTime {
     uint64_t timer_tick;
     Semaphore sema;
+    bool on;
 
-    SemaAndEndTime(uint64_t timer_tick) : timer_tick(timer_tick), sema(0) {}
+    SemaAndEndTime(uint64_t timer_tick)
+        : timer_tick(timer_tick), sema(0), on(false) {}
   };
 
-  std::vector<SemaAndEndTime*>& WaitingThreads() { return waiting_threads_; }
+  std::map<size_t, SemaAndEndTime*>& WaitingThreads() {
+    return waiting_threads_;
+  }
 
  private:
   // At tick per 0.01 seconds, we will need 1844674407370955.16 seconds to make
   // this overflow. This is roughly 58 million years!
   uint64_t timer_tick_;
 
-  // TODO make this list as sorted.
-  std::vector<SemaAndEndTime*> waiting_threads_;
+  // size_t : Thread id.
+  std::map<size_t, SemaAndEndTime*> waiting_threads_;
   Semaphore waiting_thread_sema_;
 };
 
