@@ -54,7 +54,6 @@ void HandleWaitingThreads() {
     auto& waiting_threads = pic_timer.WaitingThreads();
 
     pic_timer.WaitingThreadSema().Down();
-    kprintf("%d ", waiting_threads.size());
     while (true) {
       bool is_changed = false;
       for (auto itr = waiting_threads.begin(); itr != waiting_threads.end();

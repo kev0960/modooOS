@@ -84,7 +84,9 @@ void KernelMain() {
   kprintf("Syscall handler setup is done! \n");
 
   Kernel::pic_timer.RegisterAlarmClock();
+  kprintf("Timer handler is registered \n");
 
+  /*
   Kernel::KernelThread thread1(Sleep1);
   Kernel::KernelThread thread2(Sleep2);
   Kernel::KernelThread thread3(Sleep3);
@@ -94,8 +96,8 @@ void KernelMain() {
   thread2.Start();
   thread3.Start();
   thread4.Start();
+  */
 
-  /*
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
@@ -107,7 +109,6 @@ void KernelMain() {
   process3->Start();
   process4->Start();
   UNUSED(process);
-  */
   while (1) {
   }
 }

@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "../std/printf.h"
+#include "./sys/sys_write.h"
 #include "cpp_macro.h"
 #include "cpu.h"
 #include "kthread.h"
@@ -100,7 +101,8 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
       SysExit(arg1);
       break;
     case SYS_WRITE:
-      return SysWrite(arg1, reinterpret_cast<const char*>(arg2), arg3);
+      return SysWriteHandler::GetSysWriteHandler().SysWrite(
+          arg1, reinterpret_cast<uint8_t*>(arg2), arg3);
   }
 
   UNUSED(syscall_num);

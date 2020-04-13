@@ -1,4 +1,6 @@
-typedef unsigned long long size_t;
+#include "sha1.h"
+
+typedef uint64_t size_t;
 
 size_t strlen(const char* s) {
   size_t sz = 0;
@@ -33,23 +35,7 @@ void write(const char* s) {
 
 int main() {
   for (int i = 0; i < 10; i++) {
-    write("Hello World!\n");
+    write("Hello World this is printed from the process!\n");
   }
-  /*
-  asm volatile(
-      "push %%rbx\n"
-      "push %%r12\n"
-      "mov $7, %%r9 \n"
-      "mov $6, %%r8 \n"
-      "mov $5, %%r10\n"
-      "mov $4, %%rdx \n"
-      "mov $3, %%rsi\n"
-      "mov $2, %%rdi\n"
-      "mov $1, %%rax \n"
-      "syscall\n"
-      "pop %%r12\n"
-      "pop %%rbx\n" ::
-          : "rax");
-          */
   return 0;
 }
