@@ -1,6 +1,7 @@
 #include "../test/kernel_test.h"
 #include "./fs/ata.h"
 #include "./fs/ext2.h"
+#include "acpi.h"
 #include "cpu.h"
 #include "descriptor_table.h"
 #include "interrupt.h"
@@ -86,6 +87,11 @@ void KernelMain() {
   Kernel::pic_timer.RegisterAlarmClock();
   kprintf("Timer handler is registered \n");
 
+  Kernel::ACPIManager::GetACPIManager().DetectRSDP();
+  Kernel::ACPIManager::GetACPIManager().ParseRSDT();
+  Kernel::ACPIManager::GetACPIManager().ListTables();
+  Kernel::ACPIManager::GetACPIManager().ParseMADT();
+
   /*
   Kernel::KernelThread thread1(Sleep1);
   Kernel::KernelThread thread2(Sleep2);
@@ -96,7 +102,6 @@ void KernelMain() {
   thread2.Start();
   thread3.Start();
   thread4.Start();
-  */
 
   auto& process_manager = Kernel::ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
@@ -109,6 +114,7 @@ void KernelMain() {
   process3->Start();
   process4->Start();
   UNUSED(process);
+  */
   while (1) {
   }
 }

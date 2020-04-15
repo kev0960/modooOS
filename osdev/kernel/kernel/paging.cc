@@ -442,6 +442,14 @@ void PageTableManager::AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
       (1 << order) * FourKB, /*is_kernel=*/false, physical_frame);
 }
 
+void PageTableManager::AllocateKernelPage(uint64_t kernel_vm_addr,
+                                          uint64_t size,
+                                          uint64_t physical_addr) {
+  page_table_.AllocateTable(kernel_pml4e_base_phys_addr_, kernel_vm_addr, size,
+                            /*is_kernel=*/true,
+                            /*physical=*/physical_addr);
+}
+
 void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                                         InterruptHandlerSavedRegs* regs) {
   uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();

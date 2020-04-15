@@ -10,6 +10,8 @@ namespace Kernel {
 void* memcpy(void* dest, void* src, size_t count);
 void* memset(void* dest, int ch, size_t count);
 
+int strncmp(const char* lhs, const char* rhs, size_t count);
+
 // Very simple vector based kernel string. This is not efficient but very easy
 // to implement.
 template <typename CharT>

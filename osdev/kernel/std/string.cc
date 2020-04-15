@@ -22,5 +22,15 @@ void* memset(void* dest, int ch, size_t count) {
   return d;
 }
 
+int strncmp(const char* lhs, const char* rhs, size_t count) {
+  for (size_t i = 0; i < count; i++) {
+    if (lhs[i] == rhs[i]) {
+      continue;
+    }
+    return lhs[i] - rhs[i];
+  }
+  return 0;
+}
+
 }  // namespace Kernel
 

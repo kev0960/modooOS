@@ -102,6 +102,8 @@ class PageTable {
 
 class PageTableManager {
  public:
+  static constexpr uint64_t kKernelMemorySize = (1 << 30);
+
   static PageTableManager& GetPageTableManager() {
     static PageTableManager page_table_manager;
     return page_table_manager;
@@ -131,6 +133,9 @@ class PageTableManager {
   void CopyUserPageTable(uint64_t* from_pml4_base_addr,
                          uint64_t* to_pml4_base_addr);
 
+  void AllocateKernelPage(uint64_t kernel_vm_addr, uint64_t size,
+                          uint64_t physical_addr);
+
  private:
   PageTableManager() {
     // Create PML4E Table for the kernel.
@@ -138,7 +143,7 @@ class PageTableManager {
 
     // Map kernel VM to physical memory starting 0.
     page_table_.AllocateTable(kernel_pml4e_base_phys_addr_, kKernelVMStart,
-                              /*size=*/(1 << 30), /*is_kernel=*/true,
+                              kKernelMemorySize, /*is_kernel=*/true,
                               /*physical=*/0);
   }
 
