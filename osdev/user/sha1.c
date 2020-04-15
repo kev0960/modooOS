@@ -242,31 +242,14 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context) {
   memset(context, '\0', sizeof(*context));
   memset(&finalcount, '\0', sizeof(finalcount));
 }
-/* ================ end of sha1.c ================ */
 
-#if 0
-#define BUFSIZE 4096
+void SHA1(char* hash_out, const char* str, uint32_t len) {
+  SHA1_CTX ctx;
+  unsigned int ii;
 
-int
-main(int argc, char **argv)
-{
-    SHA1_CTX ctx;
-    unsigned char hash[20], buf[BUFSIZE];
-    int i;
-
-    for(i=0;i<BUFSIZE;i++)
-        buf[i] = i;
-
-    SHA1Init(&ctx);
-    for(i=0;i<1000;i++)
-        SHA1Update(&ctx, buf, BUFSIZE);
-    SHA1Final(hash, &ctx);
-
-    printf("SHA1=");
-    for(i=0;i<20;i++)
-        printf("%02x", hash[i]);
-    printf("\n");
-    return 0;
+  SHA1Init(&ctx);
+  for (ii = 0; ii < len; ii += 1)
+    SHA1Update(&ctx, (const unsigned char*)str + ii, 1);
+  SHA1Final((unsigned char*)hash_out, &ctx);
+  hash_out[20] = '\0';
 }
-
-#endif

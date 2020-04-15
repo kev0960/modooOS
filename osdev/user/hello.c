@@ -34,6 +34,7 @@ void write(const char* s) {
 }
 
 int main() {
+  //const char* s = "abc";
   for (int i = 0; i < 10; i++) {
     write("Hello World this is printed from the process!\n");
   }
