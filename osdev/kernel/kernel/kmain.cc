@@ -2,6 +2,7 @@
 #include "./fs/ata.h"
 #include "./fs/ext2.h"
 #include "acpi.h"
+#include "apic.h"
 #include "cpu.h"
 #include "descriptor_table.h"
 #include "interrupt.h"
@@ -91,6 +92,8 @@ void KernelMain() {
   Kernel::ACPIManager::GetACPIManager().ParseRSDT();
   Kernel::ACPIManager::GetACPIManager().ListTables();
   Kernel::ACPIManager::GetACPIManager().ParseMADT();
+
+  Kernel::APICManager::GetAPICManager().InitLocalAPIC();
 
   /*
   Kernel::KernelThread thread1(Sleep1);

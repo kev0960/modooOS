@@ -5,7 +5,7 @@
 
 namespace Kernel {
 
-static constexpr uint64_t kKernelOffset = 0xffffffff80000000ULL;
+static constexpr uint64_t kKernelOffset = 0xffffffff'80000000ULL;
 
 template <typename T, typename U>
 constexpr U PhysToKernelVirtual(T phys_addr) {
