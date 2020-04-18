@@ -73,12 +73,12 @@ void KernelThread::InitThread() {
   SetCurrentThread(init_thread);
 
   kInitThreadDone = true;
-  kprintf("Init thread done");
 }
 
 void KernelThread::SetCurrentThread(KernelThread* thread) {
   auto current_thread_addr = reinterpret_cast<uint64_t>(&thread->self);
-  SetMSR(kFSBaseMSR, current_thread_addr, current_thread_addr >> 32);
+  CPURegsAccessProvider::SetMSR(kFSBaseMSR, current_thread_addr,
+                                current_thread_addr >> 32);
 }
 
 KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)

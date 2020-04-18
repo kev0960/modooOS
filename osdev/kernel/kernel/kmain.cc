@@ -4,6 +4,7 @@
 #include "acpi.h"
 #include "apic.h"
 #include "cpu.h"
+#include "cpu_context.h"
 #include "descriptor_table.h"
 #include "interrupt.h"
 #include "kthread.h"
@@ -18,6 +19,7 @@
 Kernel::VGAOutput<> Kernel::vga_output{};
 
 extern "C" void KernelMain(void);
+extern "C" void KernelMainForAP(uint32_t, uint32_t);
 extern "C" void __cxa_atexit(void) {}
 
 void Idle() { asm volatile("hlt"); }
@@ -64,6 +66,11 @@ void KernelMain() {
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
 
+  Kernel::CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
+  kprintf(
+      "asdf : %lx \n",
+      Kernel::CPUContextManager::GetCPUContextManager().GetCPUContext()->self);
+
   // Create an identity mapping of kernel VM memory.
   // (0xFFFFFFFF 80000000 ~ maps to 0x0 ~).
   auto& page_table_manager = Kernel::PageTableManager::GetPageTableManager();
@@ -91,7 +98,6 @@ void KernelMain() {
 
   Kernel::ACPIManager::GetACPIManager().DetectRSDP();
   Kernel::ACPIManager::GetACPIManager().ParseRSDT();
-  Kernel::ACPIManager::GetACPIManager().ListTables();
   Kernel::ACPIManager::GetACPIManager().ParseMADT();
 
   Kernel::APICManager::GetAPICManager().InitLocalAPIC();
@@ -120,5 +126,33 @@ void KernelMain() {
   UNUSED(process);
   */
   while (1) {
+  }
+}
+
+void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
+  Kernel::IDTManager idt_manager{};
+  idt_manager.InitializeIDTForCPUException();
+  idt_manager.InitializeIDTForIRQ();
+  idt_manager.InitializeCustomInterrupt();
+  idt_manager.LoadIDT();
+  // Kernel::vga_output << "IDT setup is done for AP! \n";
+
+  auto& gdt_table_manager = Kernel::GDTTableManager::GetGDTTableManager();
+  gdt_table_manager.SetUpGDTTables();
+  // Kernel::vga_output << "Resetting GDT is done! \n";
+
+  Kernel::KernelThread::InitThread();
+  // Kernel::vga_output << "Init kThread is done! \n";
+
+  Kernel::CPUContext* context = reinterpret_cast<Kernel::CPUContext*>(
+      ((uint64_t)cpu_context_hi << 32) | cpu_context_lo);
+  kprintf(">>>> cpu id : %d <<<< \n", context->cpu_id);
+  context->ap_boot_done = true;
+
+  auto& cpu_context_manager = Kernel::CPUContextManager::GetCPUContextManager();
+  cpu_context_manager.SetCPUContext(context);
+
+  while (1) {
+    //kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }

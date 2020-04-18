@@ -2,6 +2,7 @@
 #define APIC_H
 
 #include "../std/types.h"
+#include "cpu_context.h"
 
 namespace Kernel {
 
@@ -16,7 +17,8 @@ class APICManager {
   uint32_t ReadRegister(size_t offset);
   void SetRegister(size_t offset, uint32_t val);
 
-  void SendWakeUp(size_t apic_id);
+  void SendWakeUpAllCores();
+  CPUContext* CreateCPUSpecificInfo(uint32_t cpu_id);
 
   APICManager(const APICManager&) = delete;
   APICManager& operator=(const APICManager&) = delete;

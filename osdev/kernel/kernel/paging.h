@@ -72,6 +72,11 @@ class PageTable {
   void DeallocatePages(uint64_t* pml4e_base_addr_phys, uint64_t vm_start_addr,
                        size_t bytes);
 
+  // This is for low memory (< 1MB). MUST BE DEALLOCATED AFTER USE.
+  // USE AT YOUR OWN DISCRETION!
+  void CreateIdentityForKernel(uint64_t* pml4e_base_addr_phys,
+                               uint64_t phys_start_addr, size_t bytes);
+
  private:
   void SetPML4E(uint64_t start_addr, uint64_t size, uint64_t* pml4e_base_addr,
                 bool is_kernel, uint64_t physical_addr_start);
@@ -135,6 +140,14 @@ class PageTableManager {
 
   void AllocateKernelPage(uint64_t kernel_vm_addr, uint64_t size,
                           uint64_t physical_addr);
+
+  // This is for low memory (< 1MB). MUST BE DEALLOCATED AFTER USE.
+  // USE AT YOUR OWN DISCRETION!
+  void CreateIdentityForKernel(uint64_t phys_start_addr, size_t bytes) {
+    ASSERT(phys_start_addr <= 0x10000);
+    page_table_.CreateIdentityForKernel(kernel_pml4e_base_phys_addr_,
+                                        phys_start_addr, bytes);
+  }
 
  private:
   PageTableManager() {

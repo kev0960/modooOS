@@ -1,10 +1,13 @@
 #include "apic.h"
 
+#include "../boot/kernel_paging.h"
 #include "../std/printf.h"
+#include "acpi.h"
 #include "cpu.h"
 #include "kmalloc.h"
 #include "paging.h"
 #include "timer.h"
+#include "vm.h"
 
 namespace Kernel {
 namespace {
@@ -52,7 +55,7 @@ void APICManager::InitLocalAPIC() {
   // Enable spurious vector.
   SetRegister(0x30, 0x1FF);
 
-  SendWakeUp(1);
+  SendWakeUpAllCores();
 }
 
 uint32_t APICManager::ReadRegister(size_t offset) {
@@ -70,8 +73,8 @@ void APICManager::SetRegister(size_t offset, uint32_t val) {
   ReadRegister(offset);
 }
 
-void APICManager::SendWakeUp(size_t apic_id) {
-  SetRegister(kICRHighOffset, apic_id << 24);
+void APICManager::SendWakeUpAllCores() {
+  SetRegister(kICRHighOffset, 0);
 
   /*
   uint32_t kStartUp = 0b110 << 8;
@@ -80,12 +83,67 @@ void APICManager::SendWakeUp(size_t apic_id) {
   uint32_t kLevelSensitive = 1 << 15;
   uint32_t kBroadcastExceptMe = 0b11 << 18;
 */
+
+  // Broadcast INIT message to every APs.
   SetRegister(kICRLowOffset, 0xC4500);
   pic_timer.Sleep(100);
 
-  kprintf("Broadcast INIT is done \n");
-  SetRegister(kICRLowOffset, 0xC4602);
-  kprintf("Broadcast SIPI is done \n");
+  // Vector is 2. That means, AP will start executing code at 0x2000.
+  // We set the boot_ap.S to locate at 0x2000 through linker script.
+  // Also, we are providing CPU specific information through the pointer to
+  // the CPUContext* at 0x199B (right above starting code).
+  //
+  // Also, we have to temporarily identically map virtual address 0x2000 to
+  // physical address 0x2000. This is because right after AP initiates paging,
+  // it will try to execute the next command, which is not at kernel virtual
+  // memory address. This will cause a PF if not mapped.
+  // Note: 0x2000 ~ 0x2FFF (For codes)
+  //       0x3000 ~ 0x3FFF (GDT is set up there :)
+  PageTableManager::GetPageTableManager().CreateIdentityForKernel(0x2000,
+                                                                  0x2000);
+  for (uint32_t id : ACPIManager::GetACPIManager().GetCoreAPICIds()) {
+    if (id == 0) {
+      // No need to wake up BSP.
+      continue;
+    }
+
+    CPUContext* context = CreateCPUSpecificInfo(id);
+    uint32_t context_phys_addr =
+        KernelVirtualToPhys<CPUContext*, uint64_t>(context);
+    uint32_t* right_above_starting =
+        PhysToKernelVirtual<uint64_t, uint32_t*>(0x199B);
+    *right_above_starting = context_phys_addr;
+
+    SetRegister(kICRHighOffset, id << 24);
+    SetRegister(kICRLowOffset, 0x04602);
+
+    // Loop until AP finishes the setup.
+    while (!context->ap_boot_done) {
+    }
+  }
+
+  kprintf("All APs are now woken up\n");
+
+  // TODO Remove identically mapped kernel page after use.
+}
+
+// Returns Virtual address.
+CPUContext* APICManager::CreateCPUSpecificInfo(uint32_t cpu_id) {
+  // First create the CPU context.
+  CPUContext* cpu_context =
+      reinterpret_cast<CPUContext*>(kmalloc(sizeof(CPUContext)));
+
+  cpu_context->pml4_addr = reinterpret_cast<uint64_t>(
+      PageTableManager::GetPageTableManager().GetKernelPml4eBaseAddr());
+  cpu_context->stack_addr =
+      KernelVirtualToPhys<void*, uint64_t>(
+          kaligned_alloc(KERNEL_BOOT_STACK_ALIGN, KERNEL_BOOT_STACK_SIZE)) +
+      KERNEL_BOOT_STACK_SIZE;
+  cpu_context->cpu_id = cpu_id;
+  cpu_context->self = reinterpret_cast<uint64_t>(cpu_context);
+  cpu_context->ap_boot_done = false;
+
+  return cpu_context;
 }
 
 }  // namespace Kernel

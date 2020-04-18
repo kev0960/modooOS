@@ -99,7 +99,7 @@ multiboot_success:
 
   lgdt gdt_ptr
 
-  # Our Code Descriptor is the second one. (+8 offset from GDT)
+  # Our Code Descriptor is the second one. (second one from GDT)
   ljmp $0x8, $_start64
 
   cli

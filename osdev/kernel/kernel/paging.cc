@@ -173,6 +173,14 @@ void PageTable::AllocateTable(uint64_t* pml4e_base_addr_phys,
            is_kernel, physical_addr_start);
 }
 
+void PageTable::CreateIdentityForKernel(uint64_t* pml4e_base_addr_phys,
+                                        uint64_t phys_start_addr,
+                                        size_t bytes) {
+  SetPML4E(phys_start_addr, bytes,
+           PhysToKernel<uint64_t*>(pml4e_base_addr_phys), /*is_kernel=*/true,
+           phys_start_addr);
+}
+
 void PageTable::SetPML4E(uint64_t start_addr, uint64_t size,
                          uint64_t* pml4e_base_addr, bool is_kernel,
                          uint64_t physical_addr_start) {

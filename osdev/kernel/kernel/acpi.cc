@@ -65,6 +65,7 @@ void ACPIManager::ParseMADT() {
         ProcessLocalAPIC p = ReadAndAdvance<ProcessLocalAPIC>(data);
         kprintf("[ProcessLocalAPIC] proc id : %d apic id : %d \n",
                 p.acpi_processor_id, p.apic_id);
+        core_apic_ids_.push_back(p.apic_id);
         break;
       }
       case 1: {

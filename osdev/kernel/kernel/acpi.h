@@ -69,12 +69,9 @@ class ACPIManager {
     }
   }
 
-  // TODO Figure out wtf is wrong when compiled without optimize "O0".
-  void __attribute__((optimize("O0"))) ParseRSDT() {
+  void ParseRSDT() {
     uint64_t header_addr =
         PhysToKernelVirtual<size_t, size_t>(desc_->rsdt_addr);
-    kprintf("header : %lx %x %x %x \n", desc_->rsdt_addr, header_addr,
-            header_addr >> 12 << 12, ((header_addr >> 12) << 12) + (1 << 12));
 
     if (header_addr >= PageTableManager::kKernelMemorySize) {
       // Well we have to allocate page for this :)
@@ -87,7 +84,6 @@ class ACPIManager {
     num_sdt_ = (header->len - sizeof(ACPISDTHeader)) / 4;
     sdts_ = reinterpret_cast<uint32_t*>(header + 1);
 
-    kprintf("Num sdt : %d || sdts_ : %x \n", num_sdt_, sdts_);
     for (size_t i = 0; i < num_sdt_; i++) {
       ACPISDTHeader* h =
           PhysToKernelVirtual<uint64_t, ACPISDTHeader*>(sdts_[i]);
@@ -115,7 +111,7 @@ class ACPIManager {
   void ParseMADT();
   void ListTables() {
     for (auto& entry : entries_) {
-      for (int i = 0; i < 4; i ++) {
+      for (int i = 0; i < 4; i++) {
         kprintf("%c", entry.header.signature[i]);
       }
       kprintf("\n");
@@ -140,6 +136,10 @@ class ACPIManager {
     return sum == 0;
   }
 
+  std::vector<uint8_t>& GetCoreAPICIds() {
+    return core_apic_ids_;
+  }
+
   ACPIManager(const ACPIManager&) = delete;
   ACPIManager& operator=(const ACPIManager&) = delete;
 
@@ -152,6 +152,7 @@ class ACPIManager {
   uint32_t num_sdt_;
 
   std::vector<ACPITableEntry> entries_;
+  std::vector<uint8_t> core_apic_ids_;
 };
 }  // namespace Kernel
 
