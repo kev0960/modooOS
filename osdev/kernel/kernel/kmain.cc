@@ -72,12 +72,13 @@ void KernelMain() {
   Kernel::vga_output << "Init Paging is done! \n";
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
+  /*
   auto& ata_driver = Kernel::ATADriver::GetATADriver();
   (void)(ata_driver);
 
   auto& ext2 = Kernel::Ext2FileSystem::GetExt2FileSystem();
   (void)(ext2);
-
+  */
   kprintf("Filesystem setup is done! \n");
 
   auto& syscall_manager = Kernel::SyscallManager::GetSyscallManager();

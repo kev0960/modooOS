@@ -2,6 +2,21 @@ ENTRY(_start)
 
 SECTIONS
 {
+  . = 0x2000;
+  .boot_ap_text : {
+    ./obj/boot_ap.o (.text)
+  }
+  .boot_ap_ro_data : {
+    ./obj/boot_ap.o (.ro_data)
+  }
+  .boot_ap_data : {
+    ./obj/boot_ap.o (.data)
+  }
+  .boot_ap_bass : {
+    ./obj/boot_ap.o (.bss)
+    ./obj/boot_ap.o (COMMON)
+  }
+
   . = 4M;
   _kernel_physical_start = .;
 

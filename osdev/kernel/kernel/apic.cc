@@ -81,10 +81,10 @@ void APICManager::SendWakeUp(size_t apic_id) {
   uint32_t kBroadcastExceptMe = 0b11 << 18;
 */
   SetRegister(kICRLowOffset, 0xC4500);
-  pic_timer.Sleep(1);
+  pic_timer.Sleep(100);
 
   kprintf("Broadcast INIT is done \n");
-  SetRegister(kICRLowOffset, 0xC4600);
+  SetRegister(kICRLowOffset, 0xC4602);
   kprintf("Broadcast SIPI is done \n");
 }
 
