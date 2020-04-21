@@ -109,6 +109,9 @@ class ACPIManager {
   }
 
   void ParseMADT();
+
+  void EnableACPI();
+
   void ListTables() {
     for (auto& entry : entries_) {
       for (int i = 0; i < 4; i++) {

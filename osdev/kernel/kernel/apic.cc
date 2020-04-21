@@ -17,9 +17,27 @@ constexpr uint32_t kAPICEnable = 0x800;
 constexpr uint32_t kAPICSetBSP = 0x100;
 constexpr size_t FourKB = 4 * (1 << 10);
 
+constexpr uint32_t kEndOfInterruptOffset = 0xB0;
 constexpr uint32_t kICRHighOffset = 0x310;
 constexpr uint32_t kICRLowOffset = 0x300;
+
 }  // namespace
+
+void APICManager::InitLocalAPICForAPs() {
+  uint32_t lo, hi;
+  GetMSR(kAPICBaseAddrRegMSR, &lo, &hi);
+
+  uint64_t apic_base_addr =
+      (static_cast<uint64_t>(hi) << 32) | (lo >> 12 << 12);
+  kprintf("base : %lx \n", apic_base_addr);
+  lo = (apic_base_addr | kAPICEnable);
+
+  hi = apic_base_addr >> 32;
+  SetMSR(kAPICBaseAddrRegMSR, lo, hi);
+  // Enable spurious vector.
+  SetRegister(0xF0, 0x1FF);
+  kprintf("Enabled? : %x \n", ReadRegister(0x20));
+}
 
 void APICManager::InitLocalAPIC() {
   uint32_t lo, hi;
@@ -53,7 +71,7 @@ void APICManager::InitLocalAPIC() {
   kprintf("versino : %x \n", ReadRegister(0x30));
 
   // Enable spurious vector.
-  SetRegister(0x30, 0x1FF);
+  SetRegister(0xF0, 0x1FF);
 
   SendWakeUpAllCores();
 }
@@ -93,7 +111,7 @@ void APICManager::SendWakeUpAllCores() {
   // Also, we are providing CPU specific information through the pointer to
   // the CPUContext* at 0x199B (right above starting code).
   //
-  // Also, we have to temporarily identically map virtual address 0x2000 to
+  // Note that we have to temporarily identically map virtual address 0x2000 to
   // physical address 0x2000. This is because right after AP initiates paging,
   // it will try to execute the next command, which is not at kernel virtual
   // memory address. This will cause a PF if not mapped.
@@ -123,6 +141,7 @@ void APICManager::SendWakeUpAllCores() {
   }
 
   kprintf("All APs are now woken up\n");
+  is_multicore_enabled_ = true;
 
   // TODO Remove identically mapped kernel page after use.
 }
@@ -145,5 +164,7 @@ CPUContext* APICManager::CreateCPUSpecificInfo(uint32_t cpu_id) {
 
   return cpu_context;
 }
+
+void APICManager::SetEndOfInterrupt() { SetRegister(kEndOfInterruptOffset, 0); }
 
 }  // namespace Kernel

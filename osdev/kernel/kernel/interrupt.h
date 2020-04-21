@@ -38,6 +38,8 @@ class IDTManager {
   void InitializeIDTForIRQ();
   void InitializeCustomInterrupt();
   void LoadIDT();
+
+  void DisablePIC();
 };
 
 struct CPUInterruptHandlerArgs {

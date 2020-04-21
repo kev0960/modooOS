@@ -17,6 +17,7 @@
 #include "vga_output.h"
 
 Kernel::VGAOutput<> Kernel::vga_output{};
+Kernel::SpinLock spin_lock;
 
 extern "C" void KernelMain(void);
 extern "C" void KernelMainForAP(uint32_t, uint32_t);
@@ -63,13 +64,13 @@ void KernelMain() {
   gdt_table_manager.SetUpGDTTables();
   Kernel::vga_output << "Resetting GDT is done! \n";
 
-  Kernel::KernelThread::InitThread();
-  Kernel::vga_output << "Init kThread is done! \n";
-
   Kernel::CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
   kprintf(
       "asdf : %lx \n",
       Kernel::CPUContextManager::GetCPUContextManager().GetCPUContext()->self);
+
+  Kernel::KernelThread::InitThread();
+  Kernel::vga_output << "Init kThread is done! \n";
 
   // Create an identity mapping of kernel VM memory.
   // (0xFFFFFFFF 80000000 ~ maps to 0x0 ~).
@@ -98,10 +99,13 @@ void KernelMain() {
 
   Kernel::ACPIManager::GetACPIManager().DetectRSDP();
   Kernel::ACPIManager::GetACPIManager().ParseRSDT();
+  Kernel::ACPIManager::GetACPIManager().ListTables();
   Kernel::ACPIManager::GetACPIManager().ParseMADT();
+  Kernel::ACPIManager::GetACPIManager().EnableACPI();
 
   Kernel::APICManager::GetAPICManager().InitLocalAPIC();
-
+  idt_manager.DisablePIC();
+  Kernel::pic_timer.StartAPICTimer();
   /*
   Kernel::KernelThread thread1(Sleep1);
   Kernel::KernelThread thread2(Sleep2);
@@ -125,34 +129,40 @@ void KernelMain() {
   process4->Start();
   UNUSED(process);
   */
+  // auto& cpu_context_manager =
+  // Kernel::CPUContextManager::GetCPUContextManager();
   while (1) {
   }
 }
 
 void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   Kernel::IDTManager idt_manager{};
-  idt_manager.InitializeIDTForCPUException();
-  idt_manager.InitializeIDTForIRQ();
-  idt_manager.InitializeCustomInterrupt();
   idt_manager.LoadIDT();
   // Kernel::vga_output << "IDT setup is done for AP! \n";
 
   auto& gdt_table_manager = Kernel::GDTTableManager::GetGDTTableManager();
   gdt_table_manager.SetUpGDTTables();
   // Kernel::vga_output << "Resetting GDT is done! \n";
-
   Kernel::KernelThread::InitThread();
   // Kernel::vga_output << "Init kThread is done! \n";
 
   Kernel::CPUContext* context = reinterpret_cast<Kernel::CPUContext*>(
       ((uint64_t)cpu_context_hi << 32) | cpu_context_lo);
   kprintf(">>>> cpu id : %d <<<< \n", context->cpu_id);
+  Kernel::APICManager::GetAPICManager().InitLocalAPICForAPs();
   context->ap_boot_done = true;
 
   auto& cpu_context_manager = Kernel::CPUContextManager::GetCPUContextManager();
   cpu_context_manager.SetCPUContext(context);
 
+  volatile int k = 0;
+  Kernel::pic_timer.StartAPICTimer();
   while (1) {
-    //kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
+    spin_lock.lock();
+    // kprintf("Thread : %d \n", cpu_context_manager.GetCPUContext()->cpu_id);
+    spin_lock.unlock();
+    for (k = 0; k < 10000000; k++) {
+    }
+    // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }

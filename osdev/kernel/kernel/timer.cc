@@ -1,5 +1,6 @@
 #include "timer.h"
 #include "../std/stdint.h"
+#include "apic.h"
 #include "cpu.h"
 #include "kernel_context.h"
 #include "kthread.h"
@@ -7,11 +8,23 @@
 #include "scheduler.h"
 
 namespace Kernel {
+namespace {
+
+constexpr uint32_t kTimerLocalVectorTable = 0x320;
+constexpr uint32_t kTimerInitialCount = 0x380;
+
+}  // namespace
+
 PITimer::PITimer() : timer_tick_(0), waiting_thread_sema_(1) {}
 
 void PITimer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
                                     InterruptHandlerSavedRegs* regs) {
   timer_tick_++;
+
+  kprintf("hi!");
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    APICManager::GetAPICManager().SetEndOfInterrupt();
+  }
 
   // This one should be the last.
   if (timer_tick_ % 50 == 0) {
@@ -85,6 +98,12 @@ void PITimer::RegisterAlarmClock() {
   alarm_clock->Start();
 
   // This thread will never terminate :p
+}
+
+void PITimer::StartAPICTimer() {
+  auto& m = APICManager::GetAPICManager();
+  m.SetRegister(kTimerInitialCount, 0xFFFFFFFF);
+  m.SetRegister(kTimerLocalVectorTable, (1 << 17) | 0x20);
 }
 
 PITimer pic_timer;

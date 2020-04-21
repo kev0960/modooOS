@@ -14,6 +14,7 @@ class APICManager {
   }
 
   void InitLocalAPIC();
+  void InitLocalAPICForAPs();
   uint32_t ReadRegister(size_t offset);
   void SetRegister(size_t offset, uint32_t val);
 
@@ -23,10 +24,15 @@ class APICManager {
   APICManager(const APICManager&) = delete;
   APICManager& operator=(const APICManager&) = delete;
 
+  bool IsMulticoreEnabled() const { return is_multicore_enabled_; }
+
+  void SetEndOfInterrupt();
+
  private:
   APICManager() = default;
 
   uint64_t* apic_reg_addr_;
+  bool is_multicore_enabled_ = false;
 };
 
 }  // namespace Kernel

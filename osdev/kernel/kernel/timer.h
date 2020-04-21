@@ -51,6 +51,8 @@ class PITimer {
     return waiting_threads_;
   }
 
+  void StartAPICTimer();
+
  private:
   // At tick per 0.01 seconds, we will need 1844674407370955.16 seconds to make
   // this overflow. This is roughly 58 million years!

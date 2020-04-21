@@ -1,4 +1,5 @@
 #include "acpi.h"
+#include "io.h"
 
 namespace Kernel {
 namespace {
@@ -97,6 +98,39 @@ void ACPIManager::ParseMADT() {
         break;
       }
     }
+  }
+}
+
+struct FADT {
+  uint32_t firmware_ctrl;
+  uint32_t dsdt;
+  uint8_t reserved;
+  uint8_t preferred_power_management_profile;
+  uint16_t sci_intr;
+  uint32_t smi_cmd_port;
+  uint8_t acpi_enable;
+  uint8_t acpi_disable;
+  uint8_t s4_bios_req;
+  uint8_t pstate_cntrl;
+  uint32_t pm1a_event_block;
+  uint32_t pm1b_event_block;
+  uint32_t pm1a_control_block;
+} __attribute__((packed));
+
+void ACPIManager::EnableACPI() {
+  auto* entry = GetEntry("FACP");
+  kprintf("entry : %lx ", entry);
+
+  uint8_t* data = entry->data;
+  FADT fadt = ReadAndAdvance<FADT>(data);
+  kprintf("smi_cmd_port : %d \n", fadt.smi_cmd_port);
+  kprintf("acpi_enable : %x \n", fadt.acpi_enable);
+  kprintf("acpi_disable: %x \n", fadt.acpi_disable);
+  kprintf("cntrl block : %x \n", fadt.pm1a_control_block);
+
+  outb(fadt.smi_cmd_port, fadt.acpi_enable);
+
+  while ((inw(fadt.pm1a_control_block) & 1) == 0) {
   }
 }
 
