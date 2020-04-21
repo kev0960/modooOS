@@ -1,9 +1,11 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
+#include "../std/list.h"
+#include "../std/vector.h"
+#include "cpu_context.h"
 #include "interrupt.h"
 #include "kthread.h"
-#include "../std/list.h"
 
 namespace Kernel {
 
@@ -16,7 +18,9 @@ class KernelThreadScheduler {
   }
 
   static KernelList<KernelThread*>& GetKernelThreadList() {
-    return GetKernelThreadScheduler().kernel_thread_list_;
+    uint32_t cpu_id =
+        CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id;
+    return GetKernelThreadScheduler().kernel_thread_list_[cpu_id];
   }
 
   KernelThreadScheduler(const KernelThreadScheduler&) = delete;
@@ -26,13 +30,16 @@ class KernelThreadScheduler {
                                InterruptHandlerSavedRegs* regs);
   void Yield();
 
+  // Each core will have its own kernel thread list.
+  void SetCoreCount(int num_core);
+
  private:
   KernelThreadScheduler() = default;
   KernelListElement<KernelThread*>* PopNextThreadToRun();
 
   // Scheduling queue.
   // NOTE that currently running thread (on CPU) is NOT on the queue.
-  KernelList<KernelThread*> kernel_thread_list_;
+  std::vector<KernelList<KernelThread*>> kernel_thread_list_;
 };
 
 extern "C" void YieldInInterruptHandlerCaller(

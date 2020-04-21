@@ -22,14 +22,14 @@ void CopyCPUInteruptHandlerArgs(T* to, U* from) {
 }  // namespace
 
 KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
-  if (!kernel_thread_list_.size()) {
+  if (!GetKernelThreadList().size()) {
     return nullptr;
   }
 
   // Pop the current thread and run.
-  while (kernel_thread_list_.size()) {
+  while (GetKernelThreadList().size()) {
     KernelListElement<KernelThread*>* next_thread_element =
-        kernel_thread_list_.pop_front();
+        GetKernelThreadList().pop_front();
     if (next_thread_element->Get()->IsRunnable()) {
       return next_thread_element;
     }
@@ -39,7 +39,6 @@ KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
   return nullptr;
 }
 
-// static int cnt = 0;
 void KernelThreadScheduler::YieldInInterruptHandler(
     CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
   auto* next_thread_element = PopNextThreadToRun();
@@ -51,7 +50,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 
   if (current_thread->IsRunnable()) {
     // Move the current thread to run at the back of the queue.
-    kernel_thread_list_.push_back(current_thread->GetKenrelListElem());
+    GetKernelThreadList().push_back(current_thread->GetKenrelListElem());
   }
 
   SavedRegisters* current_thread_regs = nullptr;
@@ -106,6 +105,13 @@ void KernelThreadScheduler::Yield() {
   // kprintf(" y(%d) ", KernelThread::CurrentThread()->Id());
   asm volatile("int $0x30\n");
   // kprintf("Yield done! %d ", KernelThread::CurrentThread()->Id());
+}
+
+void KernelThreadScheduler::SetCoreCount(int num_core) {
+  kernel_thread_list_.reserve(num_core);
+  for (int i = 0; i < num_core; i++) {
+    kernel_thread_list_.push_back(KernelList<KernelThread*>());
+  }
 }
 
 }  // namespace Kernel

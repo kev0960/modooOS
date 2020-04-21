@@ -8,6 +8,7 @@
 #include "descriptor_table.h"
 #include "interrupt.h"
 #include "kthread.h"
+#include "scheduler.h"
 #include "paging.h"
 #include "printf.h"
 #include "process.h"
@@ -69,15 +70,23 @@ void KernelMain() {
       "asdf : %lx \n",
       Kernel::CPUContextManager::GetCPUContextManager().GetCPUContext()->self);
 
-  Kernel::KernelThread::InitThread();
-  Kernel::vga_output << "Init kThread is done! \n";
-
   // Create an identity mapping of kernel VM memory.
   // (0xFFFFFFFF 80000000 ~ maps to 0x0 ~).
   auto& page_table_manager = Kernel::PageTableManager::GetPageTableManager();
   page_table_manager.SetCR3<Kernel::CPURegsAccessProvider>(
       page_table_manager.GetKernelPml4eBaseAddr());
   Kernel::vga_output << "Init Paging is done! \n";
+
+  Kernel::ACPIManager::GetACPIManager().DetectRSDP();
+  Kernel::ACPIManager::GetACPIManager().ParseRSDT();
+  Kernel::ACPIManager::GetACPIManager().ListTables();
+  Kernel::ACPIManager::GetACPIManager().ParseMADT();
+  Kernel::KernelThreadScheduler::GetKernelThreadScheduler().SetCoreCount(
+          Kernel::ACPIManager::GetACPIManager().GetCoreAPICIds().size());
+
+  Kernel::KernelThread::InitThread();
+  Kernel::vga_output << "Init kThread is done! \n";
+
   Kernel::kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   /*
@@ -97,10 +106,6 @@ void KernelMain() {
   Kernel::pic_timer.RegisterAlarmClock();
   kprintf("Timer handler is registered \n");
 
-  Kernel::ACPIManager::GetACPIManager().DetectRSDP();
-  Kernel::ACPIManager::GetACPIManager().ParseRSDT();
-  Kernel::ACPIManager::GetACPIManager().ListTables();
-  Kernel::ACPIManager::GetACPIManager().ParseMADT();
   Kernel::ACPIManager::GetACPIManager().EnableACPI();
 
   Kernel::APICManager::GetAPICManager().InitLocalAPIC();
@@ -143,18 +148,18 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   auto& gdt_table_manager = Kernel::GDTTableManager::GetGDTTableManager();
   gdt_table_manager.SetUpGDTTables();
   // Kernel::vga_output << "Resetting GDT is done! \n";
-  Kernel::KernelThread::InitThread();
   // Kernel::vga_output << "Init kThread is done! \n";
 
   Kernel::CPUContext* context = reinterpret_cast<Kernel::CPUContext*>(
       ((uint64_t)cpu_context_hi << 32) | cpu_context_lo);
   kprintf(">>>> cpu id : %d <<<< \n", context->cpu_id);
   Kernel::APICManager::GetAPICManager().InitLocalAPICForAPs();
-  context->ap_boot_done = true;
 
   auto& cpu_context_manager = Kernel::CPUContextManager::GetCPUContextManager();
   cpu_context_manager.SetCPUContext(context);
 
+  Kernel::KernelThread::InitThread();
+  context->ap_boot_done = true;
   volatile int k = 0;
   Kernel::pic_timer.StartAPICTimer();
   while (1) {
