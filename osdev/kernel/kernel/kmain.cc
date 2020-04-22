@@ -8,10 +8,10 @@
 #include "descriptor_table.h"
 #include "interrupt.h"
 #include "kthread.h"
-#include "scheduler.h"
 #include "paging.h"
 #include "printf.h"
 #include "process.h"
+#include "scheduler.h"
 #include "sync.h"
 #include "syscall.h"
 #include "timer.h"
@@ -27,7 +27,7 @@ extern "C" void __cxa_atexit(void) {}
 void Idle() { asm volatile("hlt"); }
 void Sleep1() {
   while (true) {
-    Kernel::pic_timer.Sleep(50);
+    Kernel::pic_timer.Sleep(100);
     Kernel::vga_output << "Hi (1) ";
   }
 }
@@ -82,7 +82,7 @@ void KernelMain() {
   Kernel::ACPIManager::GetACPIManager().ListTables();
   Kernel::ACPIManager::GetACPIManager().ParseMADT();
   Kernel::KernelThreadScheduler::GetKernelThreadScheduler().SetCoreCount(
-          Kernel::ACPIManager::GetACPIManager().GetCoreAPICIds().size());
+      Kernel::ACPIManager::GetACPIManager().GetCoreAPICIds().size());
 
   Kernel::KernelThread::InitThread();
   Kernel::vga_output << "Init kThread is done! \n";
@@ -160,8 +160,19 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
 
   Kernel::KernelThread::InitThread();
   context->ap_boot_done = true;
-  volatile int k = 0;
+
   Kernel::pic_timer.StartAPICTimer();
+
+  if (context->cpu_id > 8) {
+    Kernel::KernelThread thread2(Sleep2);
+    thread2.Start();
+    thread2.Join();
+  }
+  Kernel::KernelThread thread1(Sleep1);
+  thread1.Start();
+  thread1.Join();
+
+  volatile int k = 0;
   while (1) {
     spin_lock.lock();
     // kprintf("Thread : %d \n", cpu_context_manager.GetCPUContext()->cpu_id);

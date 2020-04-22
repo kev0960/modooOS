@@ -60,7 +60,7 @@ TimerInterruptHandler:
   // Set InterruptHandlerSavedRegs to rax.
   movq %rsp, %rsi
   lea 0x78(%rsp), %rdi
-  callq PITimerCaller
+  callq TimerCaller
 
   mov $0x20, %eax
   out %al, $0x20

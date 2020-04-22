@@ -16,15 +16,15 @@
 
 namespace Kernel {
 
-class PITimer {
+class Timer {
  public:
-  PITimer();
+  Timer();
 
   void TimerInterruptHandler(CPUInterruptHandlerArgs* args,
                              InterruptHandlerSavedRegs* regs);
 
   // Install PIT.
-  void InstallPITimer() const;
+  void InstallTimer() const;
 
   uint64_t GetClock() const { return timer_tick_; }
 
@@ -63,11 +63,18 @@ class PITimer {
   Semaphore waiting_thread_sema_;
 };
 
-extern PITimer pic_timer;
+// Class that manages timers. There should be one timer at each core.
+class TimerManager {
+ public:
+  Timer& GetTimer();
+};
+
+
+extern Timer pic_timer;
 
 }  // namespace Kernel
 
 // This function will be called in assembly based timer interrupt handler.
-extern "C" void PITimerCaller(Kernel::CPUInterruptHandlerArgs* args,
-                              Kernel::InterruptHandlerSavedRegs* regs);
+extern "C" void TimerCaller(Kernel::CPUInterruptHandlerArgs* args,
+                            Kernel::InterruptHandlerSavedRegs* regs);
 #endif

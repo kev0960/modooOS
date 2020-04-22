@@ -15,13 +15,12 @@ constexpr uint32_t kTimerInitialCount = 0x380;
 
 }  // namespace
 
-PITimer::PITimer() : timer_tick_(0), waiting_thread_sema_(1) {}
+Timer::Timer() : timer_tick_(0), waiting_thread_sema_(1) {}
 
-void PITimer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
-                                    InterruptHandlerSavedRegs* regs) {
+void Timer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
+                                  InterruptHandlerSavedRegs* regs) {
   timer_tick_++;
 
-  kprintf("hi!");
   if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
     APICManager::GetAPICManager().SetEndOfInterrupt();
   }
@@ -33,7 +32,7 @@ void PITimer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
   }
 }
 
-void PITimer::InstallPITimer() const {
+void Timer::InstallTimer() const {
   const uint16_t divisor = 1193180 / PITIMER_HZ;
 
   outb(PIT_CONTROL, 0x36);
@@ -41,7 +40,7 @@ void PITimer::InstallPITimer() const {
   outb(PIT_1, divisor >> 8);    // High 1 byte
 }
 
-void PITimer::Sleep(uint64_t num_tick) {
+void Timer::Sleep(uint64_t num_tick) {
   SemaAndEndTime* sema_and_time = nullptr;
 
   waiting_thread_sema_.Down();
@@ -71,13 +70,12 @@ void HandleWaitingThreads() {
       bool is_changed = false;
       for (auto itr = waiting_threads.begin(); itr != waiting_threads.end();
            ++itr) {
-        PITimer::SemaAndEndTime* sema_and_time = itr->second;
+        Timer::SemaAndEndTime* sema_and_time = itr->second;
         if (sema_and_time->timer_tick <= pic_timer.GetClock() &&
             !sema_and_time->on) {
           sema_and_time->on = true;
           sema_and_time->sema.Up();
 
-          // delete sema_and_time;
           is_changed = true;
           break;
         }
@@ -93,25 +91,25 @@ void HandleWaitingThreads() {
   }
 }
 
-void PITimer::RegisterAlarmClock() {
+void Timer::RegisterAlarmClock() {
   KernelThread* alarm_clock = new KernelThread(HandleWaitingThreads);
   alarm_clock->Start();
 
   // This thread will never terminate :p
 }
 
-void PITimer::StartAPICTimer() {
+void Timer::StartAPICTimer() {
   auto& m = APICManager::GetAPICManager();
-  m.SetRegister(kTimerInitialCount, 0xFFFFFFFF);
+  m.SetRegister(kTimerInitialCount, 0xFFFFF);
   m.SetRegister(kTimerLocalVectorTable, (1 << 17) | 0x20);
 }
 
-PITimer pic_timer;
+Timer pic_timer;
 
 }  // namespace Kernel
 
-extern "C" void PITimerCaller(Kernel::CPUInterruptHandlerArgs* args,
-                              Kernel::InterruptHandlerSavedRegs* regs) {
+extern "C" void TimerCaller(Kernel::CPUInterruptHandlerArgs* args,
+                            Kernel::InterruptHandlerSavedRegs* regs) {
   Kernel::pic_timer.TimerInterruptHandler(args, regs);
 }
 
