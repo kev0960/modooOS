@@ -18,7 +18,7 @@ namespace Kernel {
 
 class Timer {
  public:
-  Timer();
+  Timer(int timer_id);
 
   void TimerInterruptHandler(CPUInterruptHandlerArgs* args,
                              InterruptHandlerSavedRegs* regs);
@@ -52,6 +52,7 @@ class Timer {
   }
 
   void StartAPICTimer();
+  int GetTimerId() const { return timer_id_; }
 
  private:
   // At tick per 0.01 seconds, we will need 1844674407370955.16 seconds to make
@@ -61,16 +62,37 @@ class Timer {
   // size_t : Thread id.
   std::map<size_t, SemaAndEndTime*> waiting_threads_;
   Semaphore waiting_thread_sema_;
+
+  int timer_id_;
 };
 
 // Class that manages timers. There should be one timer at each core.
 class TimerManager {
  public:
+  static TimerManager& GetTimerManager() {
+    static TimerManager m;
+    return m;
+  }
+
+  static Timer& GetCurrentTimer() { return GetTimerManager().GetTimer(); }
+
   Timer& GetTimer();
+
+  // Install PIC based timer. Must be installed when running at single core.
+  // After booting other cores, we must disable and start using APIC timers.
+  void InstallPICTimer();
+
+  // MUST be called at BSP once.
+  void InstallAPICTimer(int num_cores);
+
+  void StartAPICTimer();
+  void RegisterAlarmClock();
+
+ private:
+  TimerManager();
+
+  std::vector<Timer> timers_;
 };
-
-
-extern Timer pic_timer;
 
 }  // namespace Kernel
 

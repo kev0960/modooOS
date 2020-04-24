@@ -32,7 +32,7 @@ class APICManager {
   APICManager() = default;
 
   uint64_t* apic_reg_addr_;
-  bool is_multicore_enabled_ = false;
+  volatile bool is_multicore_enabled_ = false;
 };
 
 }  // namespace Kernel

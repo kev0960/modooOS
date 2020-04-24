@@ -227,12 +227,11 @@ void IDTManager::LoadIDT() {
   // Load IDT to CPU.
   idt_ptr.limit = sizeof(IDTEntry) * 256 - 1;
   idt_ptr.base_addr = reinterpret_cast<uint64_t>(idt_entries);
-  kprintf("IDT Entries : %lx\n", idt_entries);
   asm volatile("lidt %0" ::"m"(idt_ptr) :);
   asm volatile("sti");
 }
 void IDTManager::InitializeIDTForIRQ() {
-  pic_timer.InstallTimer();
+  TimerManager::GetTimerManager().InstallPICTimer();
 
   InstallIDTEntry(TimerInterruptHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);

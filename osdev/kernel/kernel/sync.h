@@ -1,10 +1,10 @@
 #ifndef SYNC_H
 #define SYNC_H
 
+#include "../std/types.h"
 #include "cpu.h"
 #include "kthread.h"
 #include "printf.h"
-#include "../std/types.h"
 
 namespace Kernel {
 namespace std {
@@ -63,15 +63,10 @@ class SpinLock : public Lock {
  public:
   void lock() override {
     while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
-      KernelThread::CurrentThread()->lock_wait_cnt++;
     }
-    lock_holder_ = KernelThread::CurrentThread();
   }
 
-  void unlock() override {
-    lock_holder_ = nullptr;
-    __atomic_clear(&acquired, __ATOMIC_RELEASE);
-  }
+  void unlock() override { __atomic_clear(&acquired, __ATOMIC_RELEASE); }
 
   bool try_lock() override {
     bool expected = false;
@@ -79,7 +74,29 @@ class SpinLock : public Lock {
                                        __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
   }
 
-  KernelThread* lock_holder_;
+ private:
+  bool acquired = false;
+};
+
+// This spinlock can be used even when the spinlock needs to be acuqired inside
+// of the interrupt handler.
+class SpinLockNoLockInIntr : public Lock {
+ public:
+  void lock() override {
+    if (!CPURegsAccessProvider::IsInterruptEnabled()) {
+      return;
+    }
+    while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
+    }
+  }
+
+  void unlock() override { __atomic_clear(&acquired, __ATOMIC_RELEASE); }
+
+  bool try_lock() override {
+    bool expected = false;
+    return __atomic_compare_exchange_n(&acquired, &expected, true, false,
+                                       __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
+  }
 
  private:
   bool acquired = false;

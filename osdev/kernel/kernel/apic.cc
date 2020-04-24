@@ -29,14 +29,12 @@ void APICManager::InitLocalAPICForAPs() {
 
   uint64_t apic_base_addr =
       (static_cast<uint64_t>(hi) << 32) | (lo >> 12 << 12);
-  kprintf("base : %lx \n", apic_base_addr);
   lo = (apic_base_addr | kAPICEnable);
 
   hi = apic_base_addr >> 32;
   SetMSR(kAPICBaseAddrRegMSR, lo, hi);
   // Enable spurious vector.
   SetRegister(0xF0, 0x1FF);
-  kprintf("Enabled? : %x \n", ReadRegister(0x20));
 }
 
 void APICManager::InitLocalAPIC() {
@@ -46,7 +44,6 @@ void APICManager::InitLocalAPIC() {
   bool is_bsp = lo & 0x100;
   uint64_t apic_base_addr =
       (static_cast<uint64_t>(hi) << 32) | (lo >> 12 << 12);
-  kprintf("base : %lx ", apic_base_addr);
 
   // Get the 4KB memory space (aligned at page boundary);
   apic_reg_addr_ = reinterpret_cast<uint64_t*>(kaligned_alloc(FourKB, FourKB));
@@ -104,7 +101,7 @@ void APICManager::SendWakeUpAllCores() {
 
   // Broadcast INIT message to every APs.
   SetRegister(kICRLowOffset, 0xC4500);
-  pic_timer.Sleep(100);
+  TimerManager::GetCurrentTimer().Sleep(100);
 
   // Vector is 2. That means, AP will start executing code at 0x2000.
   // We set the boot_ap.S to locate at 0x2000 through linker script.
@@ -125,6 +122,7 @@ void APICManager::SendWakeUpAllCores() {
       continue;
     }
 
+    kprintf("Wake up core %d \n", id);
     CPUContext* context = CreateCPUSpecificInfo(id);
     uint32_t context_phys_addr =
         KernelVirtualToPhys<CPUContext*, uint64_t>(context);

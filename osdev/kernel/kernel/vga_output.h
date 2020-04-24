@@ -49,6 +49,9 @@ class VGAOutput {
     }
   }
 
+  void PrintLock() { spin_lock_.lock(); }
+  void PrintUnlock() { spin_lock_.unlock(); }
+
   void PrintString(std::string_view s, VGAColor color = White) {
     while (!s.empty()) {
       auto len = min(num_cols_ - current_col_, s.size());
@@ -93,7 +96,9 @@ class VGAOutput {
   }
 
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(std::string_view s) {
+    PrintLock();
     PrintString(s);
+    PrintUnlock();
     return (*this);
   }
 
@@ -102,15 +107,25 @@ class VGAOutput {
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(Int s) {
     char temp[20];
     ntoa(temp, 20, s, 16);
+    PrintLock();
     PrintString(temp);
+    PrintUnlock();
 
     return (*this);
   }
 
   VGAOutput<NUM_ROWS, NUM_COLS>& operator<<(char c) {
     std::string_view s(&c, 1);
+    PrintLock();
     PrintString(s);
+    PrintUnlock();
+
     return (*this);
+  }
+
+  void PutCharWithoutLock(char c) {
+    std::string_view s(&c, 1);
+    PrintString(s);
   }
 
   const size_t num_rows_;
@@ -157,6 +172,9 @@ class VGAOutput {
       current_row_++;
     }
   }
+
+ private:
+  SpinLockNoLockInIntr spin_lock_;
 };
 
 extern VGAOutput<> vga_output;

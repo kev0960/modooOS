@@ -147,12 +147,14 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
   KeyInfo key_info = ScanCodeToASCII(scan_code);
   auto& key_press_info = key_press_list_[key_info.key];
 
+  auto& timer = TimerManager::GetTimerManager().GetTimer();
+
   if (key_info.action == KEY_DOWN) {
     if (key_press_info.time_down == 0) {
-      key_press_info.time_down = pic_timer.GetClock();
+      key_press_info.time_down = timer.GetClock();
     } else {
       uint64_t first_key_pressed_time = key_press_info.time_down;
-      if (pic_timer.GetClock() - first_key_pressed_time < 40) {
+      if (timer.GetClock() - first_key_pressed_time < 40) {
         return;
       }
     }
