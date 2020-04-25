@@ -4,6 +4,7 @@
 #include "../boot/kernel_paging.h"
 #include "../std/types.h"
 #include "kthread.h"
+#include "sync.h"
 
 #define KERNEL_HEAP_MEMORY_START_OFFSET 0x1000000  // 16 MB
 
@@ -98,6 +99,9 @@ class KernelMemoryManager {
 
   // Lock for heap memory alloc.
   Semaphore heap_lock_;
+
+  // Another lock that should be used when multicore is enabled.
+  MultiCoreSpinLock multi_core_lock_;
 };
 
 extern KernelMemoryManager kernel_memory_manager;

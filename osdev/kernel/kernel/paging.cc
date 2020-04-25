@@ -462,6 +462,8 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                                         InterruptHandlerSavedRegs* regs) {
   uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();
 
+  kprintf("PF[%lx][%lx]!!", fault_addr, args->rip);
+  while(1);
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
 

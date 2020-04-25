@@ -33,7 +33,7 @@ void Sleep1() {
     auto cpu_id = Kernel::CPUContextManager::GetCPUContextManager()
                       .GetCPUContext()
                       ->cpu_id;
-    kprintf("Hi (%d) ", cpu_id);
+    kprintf("%d", cpu_id);
   }
 }
 
@@ -82,7 +82,6 @@ void KernelMain() {
   // Initialize Interrupts.
   IDTManager idt_manager{};
   idt_manager.InitializeIDTForCPUException();
-  idt_manager.InitializeIDTForIRQ();
   idt_manager.InitializeCustomInterrupt();
   idt_manager.LoadIDT();
   Kernel::vga_output << "IDT setup is done! \n";
@@ -92,6 +91,7 @@ void KernelMain() {
   Kernel::vga_output << "Resetting GDT is done! \n";
 
   CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
+  idt_manager.InitializeIDTForIRQ();
 
   // Create an identity mapping of kernel VM memory.
   // (0xFFFFFFFF 80000000 ~ maps to 0x0 ~).
@@ -173,7 +173,6 @@ void KernelMain() {
 }
 
 void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
-  kprintf("hi! %x\n", cpu_context_hi);
   IDTManager idt_manager{};
   idt_manager.LoadIDT();
   // Kernel::vga_output << "IDT setup is done for AP! \n";
@@ -193,6 +192,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
 
   context->ap_boot_done = true;
 
+  //kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
   KernelThread::InitThread();
   auto& timer_manager = TimerManager::GetTimerManager();
 

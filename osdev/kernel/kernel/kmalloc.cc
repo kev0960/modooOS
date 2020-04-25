@@ -1,6 +1,8 @@
 #include "kmalloc.h"
+
 #include "../std/printf.h"
 #include "../std/string.h"
+#include "apic.h"
 #include "kernel_math.h"
 #include "kernel_util.h"
 
@@ -471,13 +473,17 @@ void* KernelMemoryManager::AlignedAlloc(size_t alignment, size_t bytes) {
 }
 
 void KernelMemoryManager::Lock() {
-  if (KernelThread::kInitThreadDone) {
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    multi_core_lock_.lock();
+  } else if (KernelThread::kInitThreadDone) {
     heap_lock_.Down();
   }
 }
 
 void KernelMemoryManager::UnLock() {
-  if (KernelThread::kInitThreadDone) {
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    multi_core_lock_.unlock();
+  } else if (KernelThread::kInitThreadDone) {
     heap_lock_.Up();
   }
 }

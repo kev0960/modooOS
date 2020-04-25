@@ -3,6 +3,7 @@
 #include "../boot/kernel_paging.h"
 #include "../std/printf.h"
 #include "acpi.h"
+#include "interrupt.h"
 #include "cpu.h"
 #include "kmalloc.h"
 #include "paging.h"
@@ -89,6 +90,14 @@ void APICManager::SetRegister(size_t offset, uint32_t val) {
 }
 
 void APICManager::SendWakeUpAllCores() {
+  std::vector<CPUContext*> context_per_ap;
+  for (uint32_t id : ACPIManager::GetACPIManager().GetCoreAPICIds()) {
+    if (id == 0) {
+      continue;
+    }
+    context_per_ap.push_back(CreateCPUSpecificInfo(id));
+  }
+
   SetRegister(kICRHighOffset, 0);
 
   /*
@@ -116,14 +125,10 @@ void APICManager::SendWakeUpAllCores() {
   //       0x3000 ~ 0x3FFF (GDT is set up there :)
   PageTableManager::GetPageTableManager().CreateIdentityForKernel(0x2000,
                                                                   0x2000);
-  for (uint32_t id : ACPIManager::GetACPIManager().GetCoreAPICIds()) {
-    if (id == 0) {
-      // No need to wake up BSP.
-      continue;
-    }
+  for (CPUContext* context : context_per_ap) {
+    uint32_t id = context->cpu_id;
 
-    kprintf("Wake up core %d \n", id);
-    CPUContext* context = CreateCPUSpecificInfo(id);
+    //kprintf("Wake up core %d \n", id);
     uint32_t context_phys_addr =
         KernelVirtualToPhys<CPUContext*, uint64_t>(context);
     uint32_t* right_above_starting =
@@ -133,6 +138,7 @@ void APICManager::SendWakeUpAllCores() {
     SetRegister(kICRHighOffset, id << 24);
     SetRegister(kICRLowOffset, 0x04602);
 
+    TimerManager::GetCurrentTimer().Sleep(100);
     // Loop until AP finishes the setup.
     while (!context->ap_boot_done) {
     }

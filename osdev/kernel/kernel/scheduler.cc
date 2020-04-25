@@ -22,6 +22,10 @@ void CopyCPUInteruptHandlerArgs(T* to, U* from) {
 }  // namespace
 
 KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
+  if (kernel_thread_list_.size() == 0) {
+    return nullptr;
+  }
+
   if (!GetKernelThreadList().size()) {
     return nullptr;
   }

@@ -4,7 +4,6 @@
 #include "../std/types.h"
 #include "cpu.h"
 #include "kthread.h"
-#include "printf.h"
 
 namespace Kernel {
 namespace std {
@@ -32,9 +31,6 @@ class Lock {
 // IRQ based lock. It disables the entire interrupt so that it can run
 // exclusively.
 class IrqLock : public Lock {
-  // Interrupt flag position.
-  const static uint64_t INT_FLAG = 0x200;
-
  public:
   void lock() override {
     // Disable current interrupt.
@@ -61,18 +57,9 @@ class IrqLock : public Lock {
 // Simple spin lock. It spins until it can acquire.
 class SpinLock : public Lock {
  public:
-  void lock() override {
-    while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
-    }
-  }
-
-  void unlock() override { __atomic_clear(&acquired, __ATOMIC_RELEASE); }
-
-  bool try_lock() override {
-    bool expected = false;
-    return __atomic_compare_exchange_n(&acquired, &expected, true, false,
-                                       __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
-  }
+  void lock() override;
+  void unlock() override;
+  bool try_lock() override;
 
  private:
   bool acquired = false;
@@ -82,21 +69,20 @@ class SpinLock : public Lock {
 // of the interrupt handler.
 class SpinLockNoLockInIntr : public Lock {
  public:
-  void lock() override {
-    if (!CPURegsAccessProvider::IsInterruptEnabled()) {
-      return;
-    }
-    while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
-    }
-  }
+  void lock() override;
+  void unlock() override;
+  bool try_lock() override;
 
-  void unlock() override { __atomic_clear(&acquired, __ATOMIC_RELEASE); }
+ private:
+  bool acquired = false;
+};
 
-  bool try_lock() override {
-    bool expected = false;
-    return __atomic_compare_exchange_n(&acquired, &expected, true, false,
-                                       __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
-  }
+class MultiCoreSpinLock : public Lock {
+ public:
+  static const int kMaxSpinCnt = 1000;
+  void lock() override;
+  void unlock() override;
+  bool try_lock() override;
 
  private:
   bool acquired = false;
