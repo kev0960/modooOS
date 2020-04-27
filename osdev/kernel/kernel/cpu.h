@@ -107,6 +107,10 @@ struct CPURegsAccessProvider {
         "movq %%rax, %%cr3" ::"r"(cr3)
         : "%rax");
   }
+
+  static inline void InvalidatePage(uint64_t addr) {
+    asm volatile("invlpg (%0)" ::"r"(addr) : "memory");
+  }
 };
 
 }  // namespace Kernel

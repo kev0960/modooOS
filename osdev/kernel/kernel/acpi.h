@@ -69,35 +69,7 @@ class ACPIManager {
     }
   }
 
-  void ParseRSDT() {
-    uint64_t header_addr =
-        PhysToKernelVirtual<size_t, size_t>(desc_->rsdt_addr);
-
-    if (header_addr >= PageTableManager::kKernelMemorySize) {
-      // Well we have to allocate page for this :)
-      PageTableManager::GetPageTableManager().AllocateKernelPage(
-          (header_addr >> 12) << 12, (1 << 12), (desc_->rsdt_addr >> 12) << 12);
-    }
-    ACPISDTHeader* header = reinterpret_cast<ACPISDTHeader*>(header_addr);
-    ASSERT(VerifyHeaderChecksum(header));
-
-    num_sdt_ = (header->len - sizeof(ACPISDTHeader)) / 4;
-    sdts_ = reinterpret_cast<uint32_t*>(header + 1);
-
-    for (size_t i = 0; i < num_sdt_; i++) {
-      ACPISDTHeader* h =
-          PhysToKernelVirtual<uint64_t, ACPISDTHeader*>(sdts_[i]);
-      ASSERT(VerifyHeaderChecksum(h));
-
-      ACPITableEntry entry;
-      entry.header = *h;
-      entry.data = (uint8_t*)kmalloc(h->len - sizeof(ACPISDTHeader));
-      for (size_t j = 0; j < h->len - sizeof(ACPISDTHeader); j++) {
-        entry.data[j] = reinterpret_cast<uint8_t*>(h + 1)[j];
-      }
-      entries_.push_back(entry);
-    }
-  }
+  void ParseRSDT();
 
   ACPITableEntry* GetEntry(const char* entry_name) {
     for (auto& entry : entries_) {
@@ -139,9 +111,7 @@ class ACPIManager {
     return sum == 0;
   }
 
-  std::vector<uint8_t>& GetCoreAPICIds() {
-    return core_apic_ids_;
-  }
+  std::vector<uint8_t>& GetCoreAPICIds() { return core_apic_ids_; }
 
   ACPIManager(const ACPIManager&) = delete;
   ACPIManager& operator=(const ACPIManager&) = delete;

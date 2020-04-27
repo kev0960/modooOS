@@ -57,6 +57,9 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
     vga_output << " [" << kCPUExceptionErrorMessages[int_num] << "]";
   }
   vga_output << "\n";
+  while (1)
+    ;
+
   vga_output << "at : " << KernelThread::CurrentThread()->Id();
   vga_output << " cs : " << args->cs << "\n";
   vga_output << " rip : " << args->rip << "\n";
@@ -178,21 +181,15 @@ __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
 __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
-  EndOfIRQForSlave();
-  EndOfIRQ();
-
   kATADiskCommandSema.Up();
-}
-
-/*
-__attribute__((interrupt)) void ATAHandler2(CPUInterruptHandlerArgs* args) {
-  UNUSED(args);
 
   EndOfIRQForSlave();
   EndOfIRQ();
 
-  kATADiskCommandSema.Up(true);
-}*/
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    APICManager::GetAPICManager().SetEndOfInterrupt();
+  }
+}
 
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);

@@ -69,10 +69,6 @@ void HandleWaitingThreads() {
     auto& timer = TimerManager::GetTimerManager().GetTimer();
     auto& waiting_threads = timer.WaitingThreads();
 
-    int cpu_id = Kernel::CPUContextManager::GetCPUContextManager()
-                     .GetCPUContext()
-                     ->cpu_id;
-    kprintf("", cpu_id);
     timer.WaitingThreadSema().Down();
     while (true) {
       bool is_changed = false;
@@ -160,7 +156,7 @@ extern "C" void TimerCaller(Kernel::CPUInterruptHandlerArgs* args,
   int cpu_id =
       Kernel::CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id;
   if (cpu_id == 0) {
-    //kprintf("[%d] ", cpu_id);
+    // kprintf("[%d] ", cpu_id);
   }
   timer.TimerInterruptHandler(args, regs);
 }
