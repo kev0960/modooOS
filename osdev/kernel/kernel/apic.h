@@ -28,10 +28,21 @@ class APICManager {
 
   void SetEndOfInterrupt();
 
+  void InitIOAPIC();
+  uint32_t ReadIOAPICReg(uint8_t reg_num);
+  void SetIOAPICReg(uint8_t reg_num, uint32_t data);
+
+  // Redirect #irq to cpu_id.
+  void RedirectIRQs(uint8_t irq, uint8_t cpu_id);
+
  private:
   APICManager() = default;
 
   uint64_t* apic_reg_addr_;
+
+  // Kernel mapped ioapic base address.
+  uint64_t ioapic_addr_;
+
   volatile bool is_multicore_enabled_ = false;
 };
 

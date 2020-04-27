@@ -1,6 +1,8 @@
 #include "interrupt.h"
+
 #include "../std/types.h"
 #include "./fs/ata.h"
+#include "apic.h"
 #include "cpp_macro.h"
 #include "io.h"
 #include "keyboard.h"
@@ -142,7 +144,7 @@ void InstallIDTEntry(void (*handler)(), IDTType type_attr, size_t int_num) {
   outb(port, value);
 }
 
-    [[maybe_unused]] void IRQClearMask(uint8_t irq_line) {
+[[maybe_unused]] void IRQClearMask(uint8_t irq_line) {
   uint16_t port;
   uint8_t value;
 
@@ -167,6 +169,10 @@ __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
   uint8_t scan_code = inb(0x60);
   ps2_keyboard.MainKeyboardHandler(scan_code);
   EndOfIRQ();
+
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    APICManager::GetAPICManager().SetEndOfInterrupt();
+  }
 }
 
 __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {

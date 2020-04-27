@@ -1,5 +1,6 @@
 #include "keyboard.h"
-#include "char_util.h"
+
+#include "../std/char_util.h"
 #include "timer.h"
 #include "vga_output.h"
 

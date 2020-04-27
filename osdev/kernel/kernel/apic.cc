@@ -3,8 +3,8 @@
 #include "../boot/kernel_paging.h"
 #include "../std/printf.h"
 #include "acpi.h"
-#include "interrupt.h"
 #include "cpu.h"
+#include "interrupt.h"
 #include "kmalloc.h"
 #include "paging.h"
 #include "timer.h"
@@ -21,6 +21,8 @@ constexpr size_t FourKB = 4 * (1 << 10);
 constexpr uint32_t kEndOfInterruptOffset = 0xB0;
 constexpr uint32_t kICRHighOffset = 0x310;
 constexpr uint32_t kICRLowOffset = 0x300;
+
+constexpr uint32_t kIOAPICInterruptMask = (1 << 16);
 
 }  // namespace
 
@@ -56,8 +58,6 @@ void APICManager::InitLocalAPIC() {
   PageTableManager::GetPageTableManager().AllocateKernelPage(
       (uint64_t)apic_reg_addr_, FourKB, apic_base_addr);
 
-  kprintf("apic reg addr : %lx \n", apic_reg_addr_);
-
   lo = (apic_base_addr | kAPICEnable);
   if (is_bsp) {
     lo |= kAPICSetBSP;
@@ -65,8 +65,6 @@ void APICManager::InitLocalAPIC() {
 
   hi = apic_base_addr >> 32;
   SetMSR(kAPICBaseAddrRegMSR, lo, hi);
-
-  kprintf("versino : %x \n", ReadRegister(0x30));
 
   // Enable spurious vector.
   SetRegister(0xF0, 0x1FF);
@@ -128,7 +126,7 @@ void APICManager::SendWakeUpAllCores() {
   for (CPUContext* context : context_per_ap) {
     uint32_t id = context->cpu_id;
 
-    //kprintf("Wake up core %d \n", id);
+    // kprintf("Wake up core %d \n", id);
     uint32_t context_phys_addr =
         KernelVirtualToPhys<CPUContext*, uint64_t>(context);
     uint32_t* right_above_starting =
@@ -170,5 +168,57 @@ CPUContext* APICManager::CreateCPUSpecificInfo(uint32_t cpu_id) {
 }
 
 void APICManager::SetEndOfInterrupt() { SetRegister(kEndOfInterruptOffset, 0); }
+
+void APICManager::InitIOAPIC() {
+  static const uint64_t kIOAPICBase = 0xFEC00000;
+
+  // Get the 4KB memory space (aligned at page boundary);
+  ioapic_addr_ = reinterpret_cast<uint64_t>(kaligned_alloc(FourKB, FourKB));
+
+  kprintf("ioapic base : %lx", kIOAPICBase);
+  PageTableManager::GetPageTableManager().AllocateKernelPage(
+      (uint64_t)ioapic_addr_, FourKB, kIOAPICBase);
+
+  kprintf("IOAPIC num : %x \n", ReadIOAPICReg(0));
+
+  uint32_t ioapic_ver = ReadIOAPICReg(1);
+  kprintf("IOAPIC num redir entry : %x %x\n", ioapic_ver,
+          (ioapic_ver >> 16) + 1);
+
+  // Now disable irq ioapics.
+  for (int i = 0; i < 16; i++) {
+    SetIOAPICReg(0x10 + 2 * i, (i + 0x20) | kIOAPICInterruptMask);
+    SetIOAPICReg(0x10 + 2 * i + 1, 0);
+  }
+}
+
+uint32_t APICManager::ReadIOAPICReg(uint8_t reg_num) {
+  // First select the register to use by setting IOREGSEL.
+  *(uint32_t*)ioapic_addr_ = reg_num;
+
+  // reg_num MUST be set before reading IOWIN. Hence, we put a full memory
+  // barrier here.
+  asm volatile("mfence" ::: "memory");
+
+  // Now read the data from IOWIN.
+  return *(uint32_t*)(ioapic_addr_ + 0x10);
+}
+
+void APICManager::SetIOAPICReg(uint8_t reg_num, uint32_t data) {
+  // First select the register to use by setting IOREGSEL.
+  *(uint32_t*)ioapic_addr_ = reg_num;
+
+  asm volatile("mfence" ::: "memory");
+
+  // Now set the data from IOWIN.
+  *(uint32_t*)(ioapic_addr_ + 0x10) = data;
+}
+
+void APICManager::RedirectIRQs(uint8_t irq, uint8_t cpu_id) {
+  SetIOAPICReg(0x10 + 2 * irq, 0x20 + irq);
+  SetIOAPICReg(0x10 + 2 * irq + 1, (cpu_id << 24));
+
+  kprintf("Redirect %d --> cpu_id %d \n", irq, cpu_id);
+}
 
 }  // namespace Kernel

@@ -159,8 +159,8 @@ extern "C" void TimerCaller(Kernel::CPUInterruptHandlerArgs* args,
   auto& timer = Kernel::TimerManager::GetTimerManager().GetTimer();
   int cpu_id =
       Kernel::CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id;
-  if (cpu_id >= 1) {
-    // kprintf("[%d] ", cpu_id);
+  if (cpu_id == 0) {
+    //kprintf("[%d] ", cpu_id);
   }
   timer.TimerInterruptHandler(args, regs);
 }

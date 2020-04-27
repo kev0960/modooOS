@@ -71,8 +71,8 @@ void ACPIManager::ParseMADT() {
       }
       case 1: {
         IOAPIC p = ReadAndAdvance<IOAPIC>(data);
-        kprintf("[IOAPIC] ioapic id : %d o apic addr id : %x \n", p.io_apic_id,
-                p.io_apic_addr);
+        kprintf("[IOAPIC] ioapic id : %d o apic addr id : %x %x\n", p.io_apic_id,
+                p.io_apic_addr, p.global_sys_intr_base);
         break;
       }
       case 2: {
@@ -123,10 +123,6 @@ void ACPIManager::EnableACPI() {
 
   uint8_t* data = entry->data;
   FADT fadt = ReadAndAdvance<FADT>(data);
-  kprintf("smi_cmd_port : %d \n", fadt.smi_cmd_port);
-  kprintf("acpi_enable : %x \n", fadt.acpi_enable);
-  kprintf("acpi_disable: %x \n", fadt.acpi_disable);
-  kprintf("cntrl block : %x \n", fadt.pm1a_control_block);
 
   outb(fadt.smi_cmd_port, fadt.acpi_enable);
 

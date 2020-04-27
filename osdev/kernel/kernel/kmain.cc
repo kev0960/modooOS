@@ -33,7 +33,7 @@ void Sleep1() {
     auto cpu_id = Kernel::CPUContextManager::GetCPUContextManager()
                       .GetCPUContext()
                       ->cpu_id;
-    kprintf("%d", cpu_id);
+    kprintf("", cpu_id);
   }
 }
 
@@ -139,7 +139,9 @@ void KernelMain() {
 
   ACPIManager::GetACPIManager().EnableACPI();
 
-  APICManager::GetAPICManager().InitLocalAPIC();
+  auto& apic_manager = APICManager::GetAPICManager();
+  apic_manager.InitLocalAPIC();
+
   idt_manager.DisablePIC();
   timer_manager.StartAPICTimer();
 
@@ -168,6 +170,10 @@ void KernelMain() {
   */
   // auto& cpu_context_manager =
   // CPUContextManager::GetCPUContextManager();
+
+  apic_manager.InitIOAPIC();
+  apic_manager.RedirectIRQs(0x1, 0);
+
   while (1) {
   }
 }
@@ -192,7 +198,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
 
   context->ap_boot_done = true;
 
-  //kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
+  // kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
   KernelThread::InitThread();
   auto& timer_manager = TimerManager::GetTimerManager();
 
@@ -214,7 +220,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   */
   KernelThread thread1(Sleep1);
   thread1.Start();
-  //thread1.Join();
+  // thread1.Join();
 
   volatile uint64_t k = 0;
   while (1) {
