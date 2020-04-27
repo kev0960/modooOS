@@ -1,4 +1,5 @@
 #include "paging.h"
+
 #include "../std/algorithm.h"
 #include "../std/printf.h"
 #include "../std/utility.h"
@@ -14,6 +15,8 @@
 
 namespace Kernel {
 namespace {
+
+// static bool enable_log = false;
 
 constexpr uint64_t kKernelVirtualOffset = 0xFFFFFFFF'80000000LL;
 constexpr uint64_t FourKB = 0x1000;
@@ -37,7 +40,7 @@ bool IsPresent(uint64_t entry) { return entry & 1; }
 
 void SetReadWrite(uint64_t* entry) { (*entry) |= 0x2; }
 
-void SetSupervisor(uint64_t* entry) { (*entry) |= 0x4; }
+void SetUserAccessible(uint64_t* entry) { (*entry) |= 0x4; }
 
 void SetBaseAddress(uint64_t base_addr, uint64_t* entry) {
   ASSERT(base_addr % FourKB == 0);
@@ -105,7 +108,7 @@ void SetEntry(uint64_t page_dir_pointer_addr, bool present, bool rw,
   // allowed. If cleared to 0, then only restricted to supervisor level
   // (CPL=0,1,2)
   if (!is_kernel) {
-    SetSupervisor(entry);
+    SetUserAccessible(entry);
   }
 
   // Note page_dir_pointer_addr is assumed to be 4KB aligned.
@@ -208,6 +211,11 @@ void PageTable::SetPML4E(uint64_t start_addr, uint64_t size,
       }
     }
 
+    // If setting user mode page, then thise page should be marked as User.
+    if (!is_kernel) {
+      SetUserAccessible(&pml4e_base_addr[offset]);
+    }
+
     uint64_t* pdpt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pml4e_base_addr[offset]));
     int delta = offset - offset_start;
@@ -244,6 +252,12 @@ void PageTable::SetPDPT(uint64_t start_addr, uint64_t end_addr,
       SetEntry(KernelToPhys<uint64_t>(pdt_base_addr), /*present=*/true,
                /*rw=*/true, /*super=*/is_kernel, &pdpe_base_addr[offset]);
     }
+
+    // If setting user mode page, then thise page should be marked as User.
+    if (!is_kernel) {
+      SetUserAccessible(&pdpe_base_addr[offset]);
+    }
+
     uint64_t* pdt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pdpe_base_addr[offset]));
     int delta = offset - offset_start;
@@ -275,6 +289,12 @@ void PageTable::SetPDT(uint64_t start_addr, uint64_t end_addr,
       SetEntry(KernelToPhys<uint64_t>(pt_base_addr), /*present=*/true,
                /*rw=*/true, /*super=*/is_kernel, &pdt_base_addr[offset]);
     }
+
+    // If setting user mode page, then thise page should be marked as User.
+    if (!is_kernel) {
+      SetUserAccessible(&pdt_base_addr[offset]);
+    }
+
     uint64_t* pt_base_addr =
         PhysToKernel<uint64_t*>(GetBaseAddress(pdt_base_addr[offset]));
     int delta = offset - offset_start;
@@ -462,8 +482,6 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                                         InterruptHandlerSavedRegs* regs) {
   uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();
 
-  kprintf("PF[%lx][%lx]!!", fault_addr, args->rip);
-  while(1);
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
 
@@ -489,7 +507,6 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     process->TerminateInInterruptHandler(args, regs);
     return;
   }
-  kprintf("Addr info : %lx of %lx \n", address_info, fault_addr);
 
   // Otherwise, allocate the memory.
   uint64_t boundary = Get4KBBoundary(fault_addr);

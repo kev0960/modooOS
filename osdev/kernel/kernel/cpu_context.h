@@ -37,8 +37,6 @@ class CPUContextManager {
         reinterpret_cast<CPUContext*>(kmalloc(sizeof(CPUContext)));
     cpu_context->cpu_id = cpu_id;
     cpu_context->self = reinterpret_cast<uint64_t>(cpu_context);
-    kprintf("CPU Context! %lx", cpu_context->self);
-
     SetCPUContext(cpu_context);
   }
 

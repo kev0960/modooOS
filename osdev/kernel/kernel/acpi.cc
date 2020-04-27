@@ -1,4 +1,5 @@
 #include "acpi.h"
+
 #include "io.h"
 
 namespace Kernel {
@@ -10,6 +11,10 @@ T ReadAndAdvance(U& dat) {
   dat = reinterpret_cast<U>(reinterpret_cast<uint8_t*>(dat) + sizeof(T));
   return t;
 }
+
+constexpr uint64_t FourKB = (1 << 12);
+
+constexpr uint64_t GetBoundary(uint64_t addr) { return (addr >> 12) << 12; }
 
 }  // namespace
 
@@ -71,8 +76,8 @@ void ACPIManager::ParseMADT() {
       }
       case 1: {
         IOAPIC p = ReadAndAdvance<IOAPIC>(data);
-        kprintf("[IOAPIC] ioapic id : %d o apic addr id : %x %x\n", p.io_apic_id,
-                p.io_apic_addr, p.global_sys_intr_base);
+        kprintf("[IOAPIC] ioapic id : %d o apic addr id : %x %x\n",
+                p.io_apic_id, p.io_apic_addr, p.global_sys_intr_base);
         break;
       }
       case 2: {
@@ -127,6 +132,42 @@ void ACPIManager::EnableACPI() {
   outb(fadt.smi_cmd_port, fadt.acpi_enable);
 
   while ((inw(fadt.pm1a_control_block) & 1) == 0) {
+  }
+}
+
+void ACPIManager::ParseRSDT() {
+  uint64_t header_addr = PhysToKernelVirtual<size_t, size_t>(desc_->rsdt_addr);
+
+  uint64_t aligned_addr = (uint64_t)kaligned_alloc(FourKB, FourKB);
+  if (header_addr >= PageTableManager::kKernelMemorySize) {
+    // Well we have to allocate page for this :)
+    // Allocate 4KB of memory.
+    PageTableManager::GetPageTableManager().AllocateKernelPage(
+        aligned_addr, FourKB, GetBoundary(desc_->rsdt_addr));
+    header_addr =
+        aligned_addr + (desc_->rsdt_addr - GetBoundary(desc_->rsdt_addr));
+  }
+
+  ACPISDTHeader* header = reinterpret_cast<ACPISDTHeader*>(header_addr);
+  ASSERT(VerifyHeaderChecksum(header));
+
+  num_sdt_ = (header->len - sizeof(ACPISDTHeader)) / 4;
+  sdts_ = reinterpret_cast<uint32_t*>(header + 1);
+
+  for (size_t i = 0; i < num_sdt_; i++) {
+    kprintf("sdts : %lx \n", sdts_[i]);
+    ACPISDTHeader* h =
+        (ACPISDTHeader*)(aligned_addr +
+                         (sdts_[i] - GetBoundary(desc_->rsdt_addr)));
+    ASSERT(VerifyHeaderChecksum(h));
+
+    ACPITableEntry entry;
+    entry.header = *h;
+    entry.data = (uint8_t*)kmalloc(h->len - sizeof(ACPISDTHeader));
+    for (size_t j = 0; j < h->len - sizeof(ACPISDTHeader); j++) {
+      entry.data[j] = reinterpret_cast<uint8_t*>(h + 1)[j];
+    }
+    entries_.push_back(entry);
   }
 }
 

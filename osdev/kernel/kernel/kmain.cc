@@ -120,15 +120,6 @@ void KernelMain() {
 
   kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
-  /*
-  auto& ata_driver = ATADriver::GetATADriver();
-  (void)(ata_driver);
-
-  auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
-  (void)(ext2);
-  */
-  kprintf("Filesystem setup is done! \n");
-
   auto& syscall_manager = SyscallManager::GetSyscallManager();
   UNUSED(syscall_manager);
 
@@ -173,7 +164,20 @@ void KernelMain() {
 
   apic_manager.InitIOAPIC();
   apic_manager.RedirectIRQs(0x1, 0);
+  apic_manager.RedirectIRQs(0xE, 0);
+  apic_manager.RedirectIRQs(0xF, 0);
 
+  auto& ata_driver = ATADriver::GetATADriver();
+  (void)(ata_driver);
+
+  auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
+  (void)(ext2);
+
+  kprintf("Filesystem setup is done! \n");
+
+  auto& process_manager = ProcessManager::GetProcessManager();
+  auto* process = process_manager.CreateProcess("/a.out");
+  process->Start();
   while (1) {
   }
 }

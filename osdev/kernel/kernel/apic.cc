@@ -208,7 +208,9 @@ void APICManager::SetIOAPICReg(uint8_t reg_num, uint32_t data) {
   // First select the register to use by setting IOREGSEL.
   *(uint32_t*)ioapic_addr_ = reg_num;
 
-  asm volatile("mfence" ::: "memory");
+  // Just disable compiler memory reordering. (there is no store-store reorder
+  // in x86)
+  asm volatile("" ::: "memory");
 
   // Now set the data from IOWIN.
   *(uint32_t*)(ioapic_addr_ + 0x10) = data;

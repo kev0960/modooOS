@@ -38,7 +38,7 @@ bool SpinLockNoLockInIntr::try_lock() {
 
 void MultiCoreSpinLock::lock() {
   // Should not be called inside of an interrupt handler.
-  ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
+  //ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
 
   int cnt = 0;
   while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
