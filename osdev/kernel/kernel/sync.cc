@@ -1,7 +1,7 @@
 #include "sync.h"
 
-#include "scheduler.h"
 #include "../std/printf.h"
+#include "scheduler.h"
 
 namespace Kernel {
 
@@ -38,16 +38,21 @@ bool SpinLockNoLockInIntr::try_lock() {
 
 void MultiCoreSpinLock::lock() {
   // Should not be called inside of an interrupt handler.
-  //ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
+  // ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
 
   int cnt = 0;
-  while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
-    cnt++;
+  while (true) {
+    while (__atomic_load_n(&acquired, __ATOMIC_ACQUIRE)) {
+      cnt++;
 
-    // Spin for a while. If the lock is still not acquired, then just yield.
-    if (cnt >= kMaxSpinCnt) {
-      KernelThreadScheduler::GetKernelThreadScheduler().Yield();
-      cnt = 0;
+      // Spin for a while. If the lock is still not acquired, then just yield.
+      if (cnt >= kMaxSpinCnt) {
+        KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+        cnt = 0;
+      }
+    }
+    if (!__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
+      break;
     }
   }
 }

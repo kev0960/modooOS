@@ -20,7 +20,7 @@
 using namespace Kernel;
 
 Kernel::VGAOutput<> Kernel::vga_output{};
-SpinLock spin_lock;
+MultiCoreSpinLock spin_lock;
 
 extern "C" void KernelMain(void);
 extern "C" void KernelMainForAP(uint32_t, uint32_t);
@@ -175,9 +175,11 @@ void KernelMain() {
 
   kprintf("Filesystem setup is done! \n");
 
+  /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
+*/
   while (1) {
   }
 }
@@ -229,14 +231,12 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   volatile uint64_t k = 0;
   while (1) {
     spin_lock.lock();
-    /*
     kprintf("Thread : (%d) [%x] [%x]\n",
             cpu_context_manager.GetCPUContext()->cpu_id,
             APICManager::GetAPICManager().ReadRegister(0x390),
             APICManager::GetAPICManager().ReadRegister(0x80));
-            */
     spin_lock.unlock();
-    for (k = 0; k < 100000000; k++) {
+    for (k = 0; k < 1000; k++) {
     }
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
