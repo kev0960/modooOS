@@ -1,9 +1,10 @@
 #ifndef ATA_H
 #define ATA_H
 
-#include "filesystem.h"
-#include "../kthread.h"
 #include "../../std/types.h"
+#include "../kthread.h"
+#include "filesystem.h"
+#include "../sync.h"
 
 namespace Kernel {
 
@@ -76,8 +77,11 @@ class ATADriver {
     Write(reinterpret_cast<uint8_t*>(&t), sizeof(T), lba);
   }
 
+  void DiskCommandDown() { disk_command_.Down(); }
+  void DiskCommandUp() { disk_command_.Up(); }
+
  private:
-  ATADriver() : disk_access_(1) { InitATA(); }
+  ATADriver() : disk_command_(0) { InitATA(); }
   void InitATA();
 
   ATADevice primary_master_;
@@ -85,12 +89,15 @@ class ATADriver {
   ATADevice secondary_master_;
   ATADevice secondary_slave_;
 
-  // Semaphore to control Disk access.
-  Semaphore disk_access_;
-};
+  void DiskAccessDown() { disk_access_.lock(); }
+  void DiskAccessUp() { disk_access_.unlock(); }
 
-// Semaphore to send command to Disk.
-extern Semaphore kATADiskCommandSema;
+  // Semaphore to control Disk access.
+  MultiCoreSpinLock disk_access_;
+
+  // Semaphore to notify that disk command is done.
+  Semaphore disk_command_;
+};
 
 };  // namespace Kernel
 

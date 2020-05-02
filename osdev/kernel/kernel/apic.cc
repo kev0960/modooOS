@@ -68,8 +68,6 @@ void APICManager::InitLocalAPIC() {
 
   // Enable spurious vector.
   SetRegister(0xF0, 0x1FF);
-
-  SendWakeUpAllCores();
 }
 
 uint32_t APICManager::ReadRegister(size_t offset) {

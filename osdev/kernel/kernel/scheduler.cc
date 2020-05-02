@@ -1,4 +1,5 @@
 #include "scheduler.h"
+
 #include "../std/printf.h"
 #include "cpu.h"
 #include "descriptor_table.h"
@@ -45,8 +46,11 @@ KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
 
 void KernelThreadScheduler::YieldInInterruptHandler(
     CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
+  queue_locks_[CPUContextManager::GetCurrentCPUId()].lock();
+
   auto* next_thread_element = PopNextThreadToRun();
   if (next_thread_element == nullptr) {
+    queue_locks_[CPUContextManager::GetCurrentCPUId()].unlock();
     return;
   }
 
@@ -56,6 +60,8 @@ void KernelThreadScheduler::YieldInInterruptHandler(
     // Move the current thread to run at the back of the queue.
     GetKernelThreadList().push_back(current_thread->GetKenrelListElem());
   }
+
+  queue_locks_[CPUContextManager::GetCurrentCPUId()].unlock();
 
   SavedRegisters* current_thread_regs = nullptr;
   if (args->cs == kKernelCodeSegment) {
@@ -105,16 +111,29 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // stack, the handler will return where the next thread has switched.
 }
 
-void KernelThreadScheduler::Yield() {
-  // kprintf(" y(%d) ", KernelThread::CurrentThread()->Id());
-  asm volatile("int $0x30\n");
-  // kprintf("Yield done! %d ", KernelThread::CurrentThread()->Id());
+void KernelThreadScheduler::Yield() { asm volatile("int $0x30\n"); }
+
+void KernelThreadScheduler::EnqueueThread(
+    KernelListElement<KernelThread*>* elem) {
+  uint32_t cpu_id = elem->Get()->CpuId();
+
+  // Acquire lock on the scheduling queue.
+  queue_locks_[cpu_id].lock();
+
+  // Enqueue thread.
+  elem->ChangeList(&kernel_thread_list_[cpu_id]);
+  elem->PushBack();
+
+  queue_locks_[cpu_id].unlock();
 }
 
 void KernelThreadScheduler::SetCoreCount(int num_core) {
   kernel_thread_list_.reserve(num_core);
+  queue_locks_.reserve(num_core);
+
   for (int i = 0; i < num_core; i++) {
     kernel_thread_list_.push_back(KernelList<KernelThread*>());
+    queue_locks_.push_back(MultiCoreSpinLock());
   }
 }
 

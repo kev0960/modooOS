@@ -1,4 +1,5 @@
 #include "syscall.h"
+
 #include "../std/printf.h"
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
@@ -61,7 +62,9 @@ __attribute__((naked)) void SyscallHandlerAsm() {
       );
 }
 
-SyscallManager::SyscallManager() {
+SyscallManager::SyscallManager() {}
+
+void SyscallManager::InitSyscall() {
   // Enable Syscall/Sysret
   uint32_t eefr_lo, eefr_hi;
   CPURegsAccessProvider::GetMSR(kEEFR_MSR, &eefr_lo, &eefr_hi);
@@ -126,7 +129,9 @@ void SyscallManager::SysExit(uint64_t exit_num) {
 extern "C" int SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
                                     uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                     uint64_t arg5, uint64_t arg6) {
+  /*
   kprintf("%lx %lx %lx %lx %lx \n", syscall_num, arg1, arg2, arg3, arg4);
+  */
   return SyscallManager::GetSyscallManager().SyscallHandler(
       syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
 }

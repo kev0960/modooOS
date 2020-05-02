@@ -2,6 +2,7 @@
 
 #include "../std/printf.h"
 #include "./fs/ext2.h"
+#include "cpu_context.h"
 #include "elf.h"
 #include "kernel_math.h"
 #include "paging.h"
@@ -22,7 +23,6 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       parent_(parent),
       kernel_list_elem_(nullptr),
       file_name_(file_name) {
-  kprintf("Create process");
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
     Process* parent_process = static_cast<Process*>(parent);
 
@@ -34,6 +34,8 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   // We need to get a frame for the process.
   auto& page_table_manager = PageTableManager::GetPageTableManager();
   pml4e_base_phys_addr_ = page_table_manager.CreateUserPageTable();
+  kprintf("base addr : %lx %d \n", pml4e_base_phys_addr_,
+          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
 
   // Allocate the stack at 0x40000000
   // TODO the stack address is set as arbitrary large number. We need to
@@ -130,6 +132,8 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
   // TODO Optimize following code to only read elf header and program headers.
   const ELFHeader& elf_header = elf_reader.GetHeader();
 
+  kprintf("Entry : %lx [%d]\n", elf_header.e_entry,
+          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
   Process* process =
       new Process(KernelThread::CurrentThread(), file_name,
                   (KernelThread::EntryFuncType)elf_header.e_entry);

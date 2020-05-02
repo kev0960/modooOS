@@ -115,6 +115,8 @@ class UserFrameAllocator {
 
   std::vector<BuddyBlockAllocator> allocators_;
   uint64_t physical_addr_boundary_;
+
+  MultiCoreSpinLock spin_lock_;
 };
 
 }  // namespace Kernel

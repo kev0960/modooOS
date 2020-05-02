@@ -43,6 +43,8 @@ class KernelThread {
 
   SavedRegisters* GetSavedKernelRegs() { return &kernel_regs_; }
   size_t Id() const { return thread_id_; }
+  uint32_t CpuId() const { return cpu_id_; }
+
   KernelListElement<KernelThread*>* GetKenrelListElem() {
     return &kernel_list_elem_;
   }
@@ -87,6 +89,9 @@ class KernelThread {
   uint64_t kernel_stack_top_;
 
   KernelListElement<KernelThread*> kernel_list_elem_;
+
+  // CPU id where the thread belongs.
+  uint32_t cpu_id_;
 };
 
 class Semaphore {
@@ -104,8 +109,6 @@ class Semaphore {
   // set without_lock as true.
   void Up();
   void Down();
-  void DownInInterruptHandler(CPUInterruptHandlerArgs* args,
-                              InterruptHandlerSavedRegs* regs);
 
  private:
   int cnt_;

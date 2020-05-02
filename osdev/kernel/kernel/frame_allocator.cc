@@ -1,4 +1,5 @@
 #include "frame_allocator.h"
+
 #include "../std/algorithm.h"
 #include "../std/printf.h"
 #include "kernel_util.h"
@@ -380,6 +381,8 @@ void* UserFrameAllocator::AllocateFrame(int order) {
     return nullptr;
   }
 
+  std::lock_guard<MultiCoreSpinLock> m(spin_lock_);
+
   for (auto& allocator : allocators_) {
     void* addr = allocator.GetFrame(order);
     if (addr != nullptr) {
@@ -402,6 +405,7 @@ void UserFrameAllocator::FreeFrame(void* frame) {
       kSingleAllocatorSize;
   ASSERT(index < allocators_.size());
 
+  std::lock_guard<MultiCoreSpinLock> m(spin_lock_);
   allocators_[index].FreeFrame(frame);
 }
 

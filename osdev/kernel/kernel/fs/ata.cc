@@ -1,4 +1,5 @@
 #include "ata.h"
+
 #include "../../std/algorithm.h"
 #include "../../std/printf.h"
 #include "../io.h"
@@ -152,7 +153,7 @@ void ReadOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
 
   outb(device->command, /* Read Sectors */ 0x20);
 
-  kATADiskCommandSema.Down();
+  ATADriver::GetATADriver().DiskCommandDown();
 
   for (size_t i = 0; i < read_size / 2; i++) {
     reinterpret_cast<uint16_t*>(buf)[i] = inw(device->data);
@@ -202,7 +203,7 @@ void WriteOneSector(ATADevice* device, uint32_t lba, uint8_t* buf,
   Delay400ns(device);
   // TODO Is this a correct location? Seems like Read after write only works in
   // this case.
-  kATADiskCommandSema.Down();
+  ATADriver::GetATADriver().DiskCommandDown();
 }
 
 }  // namespace
@@ -228,12 +229,12 @@ void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {
 
     // Disk access must be exclusive.
     CPURegsAccessProvider::EnableInterrupt();
-    disk_access_.Down();
+    DiskAccessDown();
 
     // Even if this is called inside of the interrupt handler, external
     // interrupt should be received.
     ReadOneSector(&primary_master_, lba, buf + current_read, num_to_read);
-    disk_access_.Up();
+    DiskAccessUp();
 
     // kprintf("Read done %d ", KernelThread::CurrentThread()->Id());
     // 1 LBA = 512 bytes
@@ -252,15 +253,13 @@ void ATADriver::Write(uint8_t* buf, size_t buffer_size, size_t lba) {
     size_t num_to_write = min(512ul, buffer_size - current_write);
 
     // Disk access must be exclusive.
-    disk_access_.Down();
+    DiskAccessDown();
     WriteOneSector(&primary_master_, lba, buf + current_write, num_to_write);
-    disk_access_.Up();
+    DiskAccessUp();
 
     // 1 LBA = 512 bytes
     lba += 1;
   }
 }
-
-Semaphore kATADiskCommandSema(0);
 
 }  // namespace Kernel

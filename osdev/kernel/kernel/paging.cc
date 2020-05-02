@@ -5,6 +5,7 @@
 #include "../std/utility.h"
 #include "./fs/ext2.h"
 #include "cpu.h"
+#include "cpu_context.h"
 #include "descriptor_table.h"
 #include "frame_allocator.h"
 #include "kernel_context.h"
@@ -12,6 +13,7 @@
 #include "kmalloc.h"
 #include "kthread.h"
 #include "process.h"
+#include "vga_output.h"
 
 namespace Kernel {
 namespace {
@@ -464,6 +466,7 @@ void PageTableManager::AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
   uint64_t physical_frame = reinterpret_cast<uint64_t>(
       UserFrameAllocator::GetPhysicalFrameAllocator().AllocateFrame(order));
 
+  kprintf("physical frame : %lx \n", physical_frame);
   // Assign physical frames to the page table.
   page_table_.AllocateTable(
       user_pml4e_base_phys_addr_, reinterpret_cast<uint64_t>(user_vm_address),
@@ -485,7 +488,12 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
 
-  kprintf("#PF[%lx] at %d \n", fault_addr, current_thread->Id());
+  vga_output << "PF : " << fault_addr
+             << " id : " << CPUContextManager::GetCurrentCPUId() << "\n";
+  /*
+  kprintf("#PF[%lx] at %d cpu : %d\n", fault_addr, current_thread->Id(),
+          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
+          */
   // Kernel thread should not page fault!
   if (current_thread->IsKernelThread()) {
     kprintf("#PF in kernel thread! %lx %lx %lx\n", args->rip, args->rsp,
@@ -527,6 +535,7 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         process->GetFileName().c_str(),
         reinterpret_cast<uint8_t*>(max(header.p_vaddr, boundary)), num_read,
         file_read_start_offset);
+    kprintf("code : %lx ", *(uint64_t*)(fault_addr));
   }
 
   CPURegsAccessProvider::DisableInterrupt();

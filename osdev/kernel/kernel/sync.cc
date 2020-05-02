@@ -47,7 +47,10 @@ void MultiCoreSpinLock::lock() {
 
       // Spin for a while. If the lock is still not acquired, then just yield.
       if (cnt >= kMaxSpinCnt) {
-        KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+        // If not in the context of the interrupt handler, then yield.
+        if (CPURegsAccessProvider::IsInterruptEnabled()) {
+          KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+        }
         cnt = 0;
       }
     }

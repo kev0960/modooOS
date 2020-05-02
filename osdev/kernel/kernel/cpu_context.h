@@ -32,6 +32,10 @@ class CPUContextManager {
     CPURegsAccessProvider::SetMSR(kGSBaseMSR, self_addr, self_addr >> 32);
   }
 
+  static uint32_t GetCurrentCPUId() {
+    return GetCPUContextManager().GetCPUContext()->cpu_id;
+  }
+
   void SetCPUContext(uint32_t cpu_id) {
     CPUContext* cpu_context =
         reinterpret_cast<CPUContext*>(kmalloc(sizeof(CPUContext)));

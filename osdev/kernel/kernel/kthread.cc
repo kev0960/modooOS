@@ -1,4 +1,5 @@
 #include "kthread.h"
+
 #include "../std/printf.h"
 #include "cpu.h"
 #include "kernel_context.h"
@@ -118,6 +119,8 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 
   ASSERT(KERNEL_THREAD_SAVED_KERNEL_TOP_OFFSET ==
          OffsetOf(*this, &KernelThread::kernel_stack_top_));
+
+  cpu_id_ = CPUContextManager::GetCurrentCPUId();
 }
 
 void KernelThread::Start() {
@@ -188,8 +191,7 @@ void Semaphore::Up() {
     elem->Get()->MakeRun();
 
     // Put back it into the scheuduling queue.
-    elem->ChangeList(&KernelThreadScheduler::GetKernelThreadList());
-    elem->PushBack();
+    KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThread(elem);
   }
 
   if (need_irq_lock) {
@@ -232,39 +234,6 @@ void Semaphore::Down() {
     if (need_irq_lock) {
       lock.unlock();
     }
-  }
-}
-
-void Semaphore::DownInInterruptHandler(CPUInterruptHandlerArgs* args,
-                                       InterruptHandlerSavedRegs* regs) {
-  if (CPURegsAccessProvider::IsInterruptEnabled()) {
-    kprintf(
-        "Interrupt was enabled when calling Semaphore "
-        "DownInInterruptHandler!\n");
-    PANIC();
-  }
-
-  while (true) {
-    if (cnt_ > 0) {
-      cnt_--;
-      return;
-    }
-
-    // If there is something to switch into, then we make current thread
-    // sleep. Otherwise, do nothing.
-    if (KernelThreadScheduler::GetKernelThreadList().size() > 0) {
-      // If not able to acquire semaphore, put itself into the waiter queue.
-      // First mark it as non runnable.
-      auto* current = KernelThread::CurrentThread();
-      current->MakeSleep();
-
-      // Then move it to the waiters_ list.
-      current->GetKenrelListElem()->ChangeList(&waiters_);
-      current->GetKenrelListElem()->PushBack();
-    }
-
-    KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
-        args, regs);
   }
 }
 

@@ -26,6 +26,8 @@ class Lock {
   virtual void lock() = 0;
   virtual void unlock() = 0;
   virtual bool try_lock() = 0;
+
+  virtual ~Lock() = default;
 };
 
 // IRQ based lock. It disables the entire interrupt so that it can run

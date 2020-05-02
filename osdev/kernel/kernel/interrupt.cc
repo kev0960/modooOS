@@ -57,8 +57,6 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
     vga_output << " [" << kCPUExceptionErrorMessages[int_num] << "]";
   }
   vga_output << "\n";
-  while (1)
-    ;
 
   vga_output << "at : " << KernelThread::CurrentThread()->Id();
   vga_output << " cs : " << args->cs << "\n";
@@ -181,7 +179,7 @@ __attribute__((interrupt)) void KeyboardHandler(CPUInterruptHandlerArgs* args) {
 __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   UNUSED(args);
 
-  kATADiskCommandSema.Up();
+  ATADriver::GetATADriver().DiskCommandUp();
 
   EndOfIRQForSlave();
   EndOfIRQ();

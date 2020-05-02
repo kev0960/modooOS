@@ -26,6 +26,8 @@ extern "C" void KernelMain(void);
 extern "C" void KernelMainForAP(uint32_t, uint32_t);
 extern "C" void __cxa_atexit(void) {}
 
+volatile bool io_ready = false;
+
 void Idle() { asm volatile("hlt"); }
 void Sleep1() {
   while (true) {
@@ -121,8 +123,7 @@ void KernelMain() {
   kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 
   auto& syscall_manager = SyscallManager::GetSyscallManager();
-  UNUSED(syscall_manager);
-
+  syscall_manager.InitSyscall();
   kprintf("Syscall handler setup is done! \n");
 
   timer_manager.RegisterAlarmClock();
@@ -132,6 +133,7 @@ void KernelMain() {
 
   auto& apic_manager = APICManager::GetAPICManager();
   apic_manager.InitLocalAPIC();
+  apic_manager.SendWakeUpAllCores();
 
   idt_manager.DisablePIC();
   timer_manager.StartAPICTimer();
@@ -172,6 +174,8 @@ void KernelMain() {
 
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
   (void)(ext2);
+
+  io_ready = true;
 
   kprintf("Filesystem setup is done! \n");
 
@@ -217,6 +221,8 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   timer_manager.StartAPICTimer();
   timer_manager.RegisterAlarmClock();
 
+  while (!io_ready) {
+  }
   /*
   if (context->cpu_id > 8) {
     KernelThread thread2(Sleep2);
@@ -228,15 +234,26 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   thread1.Start();
   // thread1.Join();
 
+  auto& syscall_manager = SyscallManager::GetSyscallManager();
+  syscall_manager.InitSyscall();
+  kprintf("Syscall handler setup is done! \n");
+
+
+  kprintf("CPU ID :: %d \n",
+          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
+  auto& process_manager = ProcessManager::GetProcessManager();
+  auto* process = process_manager.CreateProcess("/a.out");
+  process->Start();
   volatile uint64_t k = 0;
   while (1) {
     spin_lock.lock();
+    /*
     kprintf("Thread : (%d) [%x] [%x]\n",
             cpu_context_manager.GetCPUContext()->cpu_id,
             APICManager::GetAPICManager().ReadRegister(0x390),
-            APICManager::GetAPICManager().ReadRegister(0x80));
+            APICManager::GetAPICManager().ReadRegister(0x80));*/
     spin_lock.unlock();
-    for (k = 0; k < 1000; k++) {
+    for (k = 0; k < 100000000; k++) {
     }
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }

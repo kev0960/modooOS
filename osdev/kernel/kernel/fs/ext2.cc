@@ -1,8 +1,10 @@
 #include "ext2.h"
+
 #include "../../std/algorithm.h"
 #include "../../std/array.h"
 #include "../../std/printf.h"
 #include "../../std/string.h"
+#include "../cpu_context.h"
 #include "../kernel_util.h"
 #include "../kmalloc.h"
 #include "ata.h"
@@ -45,7 +47,8 @@ void ParseInodeMode(uint16_t mode) {
 bool IsDirectory(const Ext2Inode& inode) { return (inode.mode & 0x4000); }
 
 [[maybe_unused]] void PrintInodeInfo(const Ext2Inode& inode) {
-  kprintf("Inode Block Info ----------- \n");
+  kprintf("Inode Block Info ----------- [cpu : %d]\n",
+          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
   kprintf("Size (%x) Created at (%x) Num blocks (%x) ", inode.size, inode.ctime,
           inode.blocks);
   ParseInodeMode(inode.mode);
@@ -434,7 +437,7 @@ FileInfo Ext2FileSystem::Stat(std::string_view path) {
   }
 
   Ext2Inode file = ReadInode(inode_num);
-  PrintInodeInfo(file);
+  //PrintInodeInfo(file);
   FileInfo info;
   info.file_size = file.size;
   info.inode = inode_num;

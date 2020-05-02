@@ -33,6 +33,9 @@ class KernelThreadScheduler {
   // Each core will have its own kernel thread list.
   void SetCoreCount(int num_core);
 
+  // Enqueue the kernel thread.
+  void EnqueueThread(KernelListElement<KernelThread*>* elem);
+
  private:
   KernelThreadScheduler() = default;
   KernelListElement<KernelThread*>* PopNextThreadToRun();
@@ -40,6 +43,9 @@ class KernelThreadScheduler {
   // Scheduling queue.
   // NOTE that currently running thread (on CPU) is NOT on the queue.
   std::vector<KernelList<KernelThread*>> kernel_thread_list_;
+
+  // Locks for the scheduling queue. MUST be obtained when modifying the queue.
+  std::vector<MultiCoreSpinLock> queue_locks_;
 };
 
 extern "C" void YieldInInterruptHandlerCaller(
