@@ -5,6 +5,7 @@
 #include "apic.h"
 #include "kernel_math.h"
 #include "kernel_util.h"
+#include "qemu_log.h"
 
 namespace Kernel {
 namespace {
@@ -329,11 +330,15 @@ void KernelMemoryManager::WeaveTwoChunksTogether(
 }
 
 void KernelMemoryManager::ShowDebugInfo() const {
-  kprintf("---------- kmalloc Debug Info ---------- \n");
-  kprintf("Current Total heap size : %d \n", current_heap_size_ - 8);
-  kprintf("---------- Free list offsets  ---------- \n");
+  QemuSerialLog::Logf("---------- kmalloc Debug Info ---------- \n");
+  QemuSerialLog::Logf("Current Total heap size : %lx \n",
+                      current_heap_size_ - 8);
+  QemuSerialLog::Logf("Current Total heap usage: %lx %lx / %lx \n",
+                      (uint64_t)current_heap_size_, (uint64_t)heap_start_,
+                      heap_memory_limit_);
+  QemuSerialLog::Logf("---------- Free list offsets  ---------- \n");
   for (int i = 0; i < NUM_BUCKETS; i++) {
-    kprintf("%10d|", free_list_[i]);
+    QemuSerialLog::Logf("%x|", free_list_[i]);
   }
 }
 
@@ -411,6 +416,8 @@ void* KernelMemoryManager::AlignedAlloc(size_t alignment, size_t bytes) {
   // Allocate bytes + alignment - 1.
   size_t memory_block =
       reinterpret_cast<size_t>(kmalloc(bytes + alignment - 1));
+
+  Lock();
   uint8_t* chunk = GetChunkStartFromMemoryBlockAddress(
       reinterpret_cast<uint8_t*>(memory_block));
   size_t alloc_size = GetChunkSize(chunk);
@@ -469,6 +476,7 @@ void* KernelMemoryManager::AlignedAlloc(size_t alignment, size_t bytes) {
     SetChunkSize(suffix, new_alloc_size);
   }
 
+  UnLock();
   return reinterpret_cast<void*>(aligned_addr);
 }
 

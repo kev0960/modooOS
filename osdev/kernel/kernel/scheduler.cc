@@ -44,8 +44,14 @@ KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
   return nullptr;
 }
 
+SpinLock sp;
 void KernelThreadScheduler::YieldInInterruptHandler(
     CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
+  // Scheduling is not enabled yet!
+  if (queue_locks_.empty() || kernel_thread_list_.empty()) {
+    return;
+  }
+
   queue_locks_[CPUContextManager::GetCurrentCPUId()].lock();
 
   auto* next_thread_element = PopNextThreadToRun();
@@ -77,8 +83,12 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   KernelThread* next_thread = next_thread_element->Get();
 
   /*
+  if (CPUContextManager::GetCurrentCPUId() == 1) {
+    sp.lock();
   kprintf("Schedule!(%d) -> (%d) %lx \n", current_thread->Id(),
-          next_thread->Id(), next_thread->GetSavedKernelRegs()->rip);
+          next_thread->Id(), CPUContextManager::GetCurrentCPUId());
+  sp.unlock();
+  }
       current_thread->GetSavedKernelRegs()->rflags,
       current_thread->GetKernelStackTop());
       */
@@ -117,6 +127,7 @@ void KernelThreadScheduler::EnqueueThread(
     KernelListElement<KernelThread*>* elem) {
   uint32_t cpu_id = elem->Get()->CpuId();
 
+  // kprintf("Enqueue %d --> %d \n", elem->Get()->Id(), cpu_id);
   // Acquire lock on the scheduling queue.
   queue_locks_[cpu_id].lock();
 

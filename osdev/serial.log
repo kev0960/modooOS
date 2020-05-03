@@ -1,0 +1,22 @@
+Allocate page : 40000000 For [CPU Id :1] 1946000 
+Allocate page : 40001000 For [CPU Id :2] 1960000 
+PF[4001aa] at Thread[6] cpu : [1] RIP:[4001aa] 
+Allocate page : 40002000 For [CPU Id :1] 1946000 
+PF[4001aa] at Thread[7] cpu : [2] RIP:[4001aa] 
+Allocate page : 40003000 For [CPU Id :2] 1960000 
+PF[401749] at Thread[6] cpu : [1] RIP:[401749] 
+Allocate page : 40004000 For [CPU Id :1] 1946000 
+PF[401749] at Thread[7] cpu : [2] RIP:[401749] 
+Allocate page : 40005000 For [CPU Id :2] 1960000 
+PF[403278] at Thread[6] cpu : [1] RIP:[4001f1] 
+Allocate page : 40006000 For [CPU Id :1] 1946000 
+PF[403278] at Thread[7] cpu : [2] RIP:[4001f1] 
+Allocate page : 40007000 For [CPU Id :2] 1960000 
+PF[402fa0] at Thread[6] cpu : [1] RIP:[402fa0] 
+Allocate page : 40008000 For [CPU Id :1] 1946000 
+PF[402fa0] at Thread[7] cpu : [2] RIP:[402fa0] 
+Allocate page : 40009000 For [CPU Id :2] 1960000 
+Syscall 2 7 [CPU:2] 
+Syscall 0 7 [CPU:2] 
+Syscall 2 6 [CPU:1] 
+Syscall 0 6 [CPU:1] 

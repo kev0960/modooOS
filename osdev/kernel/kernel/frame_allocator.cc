@@ -381,11 +381,11 @@ void* UserFrameAllocator::AllocateFrame(int order) {
     return nullptr;
   }
 
-  std::lock_guard<MultiCoreSpinLock> m(spin_lock_);
-
+  spin_lock_.lock();
   for (auto& allocator : allocators_) {
     void* addr = allocator.GetFrame(order);
     if (addr != nullptr) {
+      spin_lock_.unlock();
       return addr;
     }
   }
@@ -395,7 +395,10 @@ void* UserFrameAllocator::AllocateFrame(int order) {
       BuddyBlockAllocator(reinterpret_cast<uint8_t*>(physical_addr_boundary_)));
   physical_addr_boundary_ += kSingleAllocatorSize;
 
-  return allocators_.back().GetFrame(order);
+  auto* frame = allocators_.back().GetFrame(order);
+  spin_lock_.unlock();
+
+  return frame;
 }
 
 void UserFrameAllocator::FreeFrame(void* frame) {
@@ -405,8 +408,9 @@ void UserFrameAllocator::FreeFrame(void* frame) {
       kSingleAllocatorSize;
   ASSERT(index < allocators_.size());
 
-  std::lock_guard<MultiCoreSpinLock> m(spin_lock_);
+  spin_lock_.lock();
   allocators_[index].FreeFrame(frame);
+  spin_lock_.unlock();
 }
 
 }  // namespace Kernel

@@ -164,6 +164,21 @@ class PageTableManager {
   uint64_t* kernel_pml4e_base_phys_addr_;
 };
 
+class PageTablePrintUtil {
+ public:
+  static void PrintUserTable(uint64_t* cr3);
+
+ private:
+  // Level 3
+  static void PrintPDPE(uint64_t* pdpt_top, uint64_t start_addr);
+
+  // Level 2
+  static void PrintPDE(uint64_t* pdt_top, uint64_t start_addr);
+
+  // Level 1
+  static void PrintPT(uint64_t* pt_top, uint64_t start_addr);
+};
+
 }  // namespace Kernel
 
 extern "C" void PageFaultInterruptHandlerCaller(

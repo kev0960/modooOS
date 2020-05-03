@@ -124,14 +124,8 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 }
 
 void KernelThread::Start() {
-  kprintf("Start : %d \n", thread_id_);
-  IrqLock m_;
-
-  m_.lock();
-  // Put the thread into the scheduling queue.
-  kernel_list_elem_.PushBack();
-
-  m_.unlock();
+  KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThread(
+      &kernel_list_elem_);
 }
 
 void KernelThread::Terminate() {
@@ -139,9 +133,8 @@ void KernelThread::Terminate() {
   // queue.
 
   status_ = THREAD_TERMINATE;
-  kprintf("TErminate?? %d \n", thread_id_);
   KernelThreadScheduler::GetKernelThreadScheduler().Yield();
-  kprintf("Reached here? %d \n", thread_id_);
+  kprintf("[terminate] %d \n", thread_id_);
   PANIC();
 }
 
@@ -151,10 +144,9 @@ void KernelThread::TerminateInInterruptHandler(
   // queue.
 
   status_ = THREAD_TERMINATE;
-  kprintf("TErminate?? %d \n", thread_id_);
   KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
       args, regs);
-  kprintf("Reached here? %d \n", thread_id_);
+  kprintf("[terminate in intr] %d \n", thread_id_);
   PANIC();
 }
 

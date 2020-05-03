@@ -4,8 +4,10 @@
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
 #include "cpu.h"
+#include "cpu_context.h"
 #include "kthread.h"
 #include "process.h"
+#include "qemu_log.h"
 
 #define SET_KERNEL_THREAD_TOP_OFFSET(offset, reg) \
   SET_KERNEL_THREAD_TOP_OFFSET_(offset, reg)
@@ -96,8 +98,9 @@ void SyscallManager::InitSyscall() {
 int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
                                    uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                    uint64_t arg5, uint64_t arg6) {
-  kprintf("Syscall %d %lx \n", syscall_num,
-          KernelThread::CurrentThread()->Id());
+  QemuSerialLog::Logf("Syscall %d %d [CPU:%d] \n", syscall_num,
+                      KernelThread::CurrentThread()->Id(),
+                      CPUContextManager::GetCurrentCPUId());
 
   switch (syscall_num) {
     case SYS_EXIT:
@@ -122,7 +125,8 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
 // Terminate the process.
 void SyscallManager::SysExit(uint64_t exit_num) {
   KernelThread* current_thread = KernelThread::CurrentThread();
-  kprintf("Terminate thread : %d %d\n", exit_num, current_thread->Id());
+  UNUSED(exit_num);
+  // kprintf("Terminate thread : %d %d\n", exit_num, current_thread->Id());
   current_thread->Terminate();
 }
 

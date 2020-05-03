@@ -41,7 +41,6 @@ int main() {
     write("Hello World this is printed from the process!\n");
   }
   */
-  write("hash!\n");
   uint8_t output[20];
 
   SHA1_CTX ctx;
@@ -51,11 +50,11 @@ int main() {
   SHA1Update(&ctx, (uint8_t*)buf, 3);
   SHA1Final(output, &ctx);
 
-  char str_out[3];
+  char str_out[41];
   for (int i = 0; i < 20; i++) {
-    sprintf(str_out, "%02x", output[i]);
-    str_out[2] = '\0';
-    write(str_out);
+    sprintf(&str_out[2 * i], "%02x", output[i]);
   }
+  str_out[40] = '\0';
+  write(str_out);
   return 0;
 }

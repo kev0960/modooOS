@@ -29,7 +29,7 @@ void Timer::TimerInterruptHandler(CPUInterruptHandlerArgs* args,
   }
 
   // This one should be the last.
-  if (timer_tick_ % 20 == 0) {
+  if (timer_tick_ % 30 == 0) {
     KernelThreadScheduler::GetKernelThreadScheduler().YieldInInterruptHandler(
         args, regs);
   }

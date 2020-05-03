@@ -11,6 +11,7 @@
 #include "paging.h"
 #include "printf.h"
 #include "process.h"
+#include "qemu_log.h"
 #include "scheduler.h"
 #include "sync.h"
 #include "syscall.h"
@@ -31,11 +32,14 @@ volatile bool io_ready = false;
 void Idle() { asm volatile("hlt"); }
 void Sleep1() {
   while (true) {
-    TimerManager::GetCurrentTimer().Sleep(50);
+    TimerManager::GetCurrentTimer().Sleep(10);
     auto cpu_id = Kernel::CPUContextManager::GetCPUContextManager()
                       .GetCPUContext()
                       ->cpu_id;
-    kprintf("", cpu_id);
+    UNUSED(cpu_id);
+    spin_lock.lock();
+    kprintf("SLEEEEEEEEEP !!! %d \n", cpu_id);
+    spin_lock.unlock();
   }
 }
 
@@ -53,10 +57,21 @@ void Sleep3() {
   }
 }
 
-void Sleep4() {
+void Weird() {
   while (true) {
-    TimerManager::GetCurrentTimer().Sleep(100);
-    Kernel::vga_output << "Hi (4) ";
+    uint8_t* str = (uint8_t*)kmalloc(10);
+    Ext2FileSystem::GetExt2FileSystem().ReadFile("/a.out", str, 9);
+    str[9] = '\0';
+
+    spin_lock.lock();
+
+    Kernel::vga_output << "Hi !!!! " << CPUContextManager::GetCurrentCPUId()
+                       << " " << (int)str[0] << (int)str[1] << "\n";
+
+    spin_lock.unlock();
+
+    kfree(str);
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
 }
 
@@ -81,6 +96,8 @@ void Sleep4() {
 // Set up IOAPIC.
 // Set up filesystem.
 void KernelMain() {
+  CPURegsAccessProvider::DisableInterrupt();
+
   // Initialize Interrupts.
   IDTManager idt_manager{};
   idt_manager.InitializeIDTForCPUException();
@@ -94,6 +111,8 @@ void KernelMain() {
 
   CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
   idt_manager.InitializeIDTForIRQ();
+
+  CPURegsAccessProvider::EnableInterrupt();
 
   // Create an identity mapping of kernel VM memory.
   // (0xFFFFFFFF 80000000 ~ maps to 0x0 ~).
@@ -229,32 +248,34 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
     thread2.Start();
     thread2.Join();
   }
-  */
-  KernelThread thread1(Sleep1);
+  KernelThread thread1(Weird);
+  KernelThread thread2(Sleep1);
   thread1.Start();
+  thread2.Start();
+  */
   // thread1.Join();
 
   auto& syscall_manager = SyscallManager::GetSyscallManager();
   syscall_manager.InitSyscall();
   kprintf("Syscall handler setup is done! \n");
 
-
-  kprintf("CPU ID :: %d \n",
-          CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id);
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
-  volatile uint64_t k = 0;
+
+  // volatile uint64_t k = 0;
   while (1) {
+    void* data = kmalloc(1 << 12);
     spin_lock.lock();
     /*
+    kprintf("CPU [%d] %lx %lx \n", CPUContextManager::GetCurrentCPUId(), addr,
+            addr2);
     kprintf("Thread : (%d) [%x] [%x]\n",
             cpu_context_manager.GetCPUContext()->cpu_id,
             APICManager::GetAPICManager().ReadRegister(0x390),
             APICManager::GetAPICManager().ReadRegister(0x80));*/
     spin_lock.unlock();
-    for (k = 0; k < 100000000; k++) {
-    }
+    kfree(data);
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }

@@ -7,6 +7,7 @@
 #include "io.h"
 #include "keyboard.h"
 #include "paging.h"
+#include "qemu_log.h"
 #include "scheduler.h"
 #include "timer.h"
 #include "vga_output.h"
@@ -50,6 +51,11 @@ static const char* kCPUExceptionErrorMessages[] = {
 };
 
 void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
+  QemuSerialLog::Logf("Interrupt Frame ------------- \n");
+  QemuSerialLog::Logf("Interrupt index : %lx \n", int_num);
+  QemuSerialLog::Logf("cs : %lx; rip : %lx; rsp : %lx; \n", args->cs, args->rip,
+                      args->rsp);
+
   vga_output << "Interrupt Frame --------------------\n";
   vga_output << " Interrupt index : " << int_num;
   if (int_num < sizeof(kCPUExceptionErrorMessages) /
@@ -58,7 +64,7 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   }
   vga_output << "\n";
 
-  vga_output << "at : " << KernelThread::CurrentThread()->Id();
+  // vga_output << "at : " << KernelThread::CurrentThread()->Id();
   vga_output << " cs : " << args->cs << "\n";
   vga_output << " rip : " << args->rip << "\n";
   vga_output << " rflags : " << args->rflags << "\n";

@@ -1,12 +1,20 @@
 #include "sync.h"
 
 #include "../std/printf.h"
+#include "qemu_log.h"
 #include "scheduler.h"
 
 namespace Kernel {
 
 void SpinLock::lock() {
+  int cnt = 0;
   while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
+    cnt++;
+    if (cnt >= 10000) {
+      QemuSerialLog::Logf("[SpinLock]Contention! %lx \n",
+                          __builtin_return_address(0));
+      cnt = 0;
+    }
   }
 }
 
@@ -41,9 +49,11 @@ void MultiCoreSpinLock::lock() {
   // ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
 
   int cnt = 0;
+  int total_cnt = 0;
   while (true) {
     while (__atomic_load_n(&acquired, __ATOMIC_ACQUIRE)) {
       cnt++;
+      total_cnt++;
 
       // Spin for a while. If the lock is still not acquired, then just yield.
       if (cnt >= kMaxSpinCnt) {
@@ -52,6 +62,12 @@ void MultiCoreSpinLock::lock() {
           KernelThreadScheduler::GetKernelThreadScheduler().Yield();
         }
         cnt = 0;
+      }
+
+      if (total_cnt > 100000000) {
+        QemuSerialLog::Logf("[MulticoreSpinLock]Contention! %lx \n",
+                            __builtin_return_address(0));
+        total_cnt = 0;
       }
     }
     if (!__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {

@@ -18,9 +18,8 @@ class KernelThreadScheduler {
   }
 
   static KernelList<KernelThread*>& GetKernelThreadList() {
-    uint32_t cpu_id =
-        CPUContextManager::GetCPUContextManager().GetCPUContext()->cpu_id;
-    return GetKernelThreadScheduler().kernel_thread_list_[cpu_id];
+    return GetKernelThreadScheduler()
+        .kernel_thread_list_[CPUContextManager::GetCurrentCPUId()];
   }
 
   KernelThreadScheduler(const KernelThreadScheduler&) = delete;

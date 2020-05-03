@@ -217,8 +217,6 @@ void APICManager::SetIOAPICReg(uint8_t reg_num, uint32_t data) {
 void APICManager::RedirectIRQs(uint8_t irq, uint8_t cpu_id) {
   SetIOAPICReg(0x10 + 2 * irq, 0x20 + irq);
   SetIOAPICReg(0x10 + 2 * irq + 1, (cpu_id << 24));
-
-  kprintf("Redirect %d --> cpu_id %d \n", irq, cpu_id);
 }
 
 }  // namespace Kernel

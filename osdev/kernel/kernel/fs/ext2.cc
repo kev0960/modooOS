@@ -4,6 +4,7 @@
 #include "../../std/array.h"
 #include "../../std/printf.h"
 #include "../../std/string.h"
+#include "../apic.h"
 #include "../cpu_context.h"
 #include "../kernel_util.h"
 #include "../kmalloc.h"
@@ -181,6 +182,14 @@ Ext2FileSystem::Ext2FileSystem() {
 
 size_t Ext2FileSystem::ReadFile(std::string_view path, uint8_t* buf,
                                 size_t num_read, size_t offset) {
+  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
+
+  // Now direct ATA irqs to the core which called ReadFile.
+  APICManager::GetAPICManager().RedirectIRQs(
+      0xE, CPUContextManager::GetCurrentCPUId());
+  APICManager::GetAPICManager().RedirectIRQs(
+      0xF, CPUContextManager::GetCurrentCPUId());
+
   int inode_num = GetInodeNumberFromPath(path);
   if (inode_num == -1) {
     kprintf("File is not found!\n");
@@ -267,13 +276,17 @@ void Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
 
 void Ext2FileSystem::WriteFile(std::string_view path, uint8_t* buf,
                                size_t num_write, size_t offset) {
+  fs_lock_.lock();
+
   size_t inode_num = GetInodeNumberFromPath(path);
   kprintf("Write file : %d %s\n", inode_num, path);
   if (inode_num == size_t(-1)) {
+    fs_lock_.unlock();
     return;
   }
 
   WriteFile(inode_num, buf, num_write, offset);
+  fs_lock_.unlock();
 }
 
 void Ext2FileSystem::WriteFile(size_t inode_num, uint8_t* buf, size_t num_write,
@@ -430,6 +443,8 @@ void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
 }
 
 FileInfo Ext2FileSystem::Stat(std::string_view path) {
+  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
+
   int inode_num = GetInodeNumberFromPath(path);
   if (inode_num == -1) {
     kprintf("File is not found \n");
@@ -437,7 +452,7 @@ FileInfo Ext2FileSystem::Stat(std::string_view path) {
   }
 
   Ext2Inode file = ReadInode(inode_num);
-  //PrintInodeInfo(file);
+  // PrintInodeInfo(file);
   FileInfo info;
   info.file_size = file.size;
   info.inode = inode_num;
