@@ -26,8 +26,8 @@ bool IsPowerOfTwo(uint32_t x) { return (x & (x - 1)) == 0; }
 int GetBucketIndexOfFreeChunk(uint32_t bytes) {
   int power = RoundDownNearestPowerOfTwoLog(bytes);
   if (power <= 2) {
-    kprintf("kmalloc : Cannot create bucket with too small memory %d \n",
-            bytes);
+    QemuSerialLog::Logf(
+        "kmalloc : Cannot create bucket with too small memory %d \n", bytes);
     return -1;
   } else if (3 <= power && power < 3 + NUM_BUCKETS) {
     return power - 3;

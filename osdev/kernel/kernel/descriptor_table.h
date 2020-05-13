@@ -2,6 +2,7 @@
 #define DESCRIPTOR_TABLE
 
 #include "../std/types.h"
+#include "../std/vector.h"
 #include "cpu.h"
 
 namespace Kernel {
@@ -35,8 +36,8 @@ class GDTTableManager {
  private:
   GDTTableManager() = default;
 
-  GDTEntryPtr gdt_entry_ptr_;
-  GDTEntry gdt_entries_[kNumGDTEntryDefined];
+  std::vector<GDTEntry*> descriptors_per_core_;
+  std::vector<GDTEntryPtr*> gdt_tables_;
 };
 
 struct TaskSegmentDescriptor {
@@ -88,21 +89,15 @@ class TaskStateSegmentManager {
   }
 
   void SetUpTaskStateSegments();
-  TSS* GetTSS() { return &tss_; }
-
-  void SetRSP0(uint64_t rsp) {
-    // tss_.rsp0_low = rsp;
-    // tss_.rsp0_high = rsp >> 32;
-    tss_.arr[1] = rsp;
-    tss_.arr[2] = rsp >> 32;
-  }
+  TSS* GetTSS();
+  void SetRSP0(uint64_t rsp);
 
   void LoadTR();
 
  private:
   TaskStateSegmentManager() = default;
 
-  TSS tss_;
+  std::vector<TSS*> tss_;
 };
 
 constexpr static uint16_t kKernelCodeSegment = 0x8;

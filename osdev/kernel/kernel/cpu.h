@@ -83,6 +83,15 @@ struct CPURegsAccessProvider {
   static inline void EnableInterrupt() { asm volatile("sti"); }
   static inline void DisableInterrupt() { asm volatile("cli" ::: "memory"); }
 
+  static inline uint64_t ReadRSP() {
+    uint64_t rsp;
+    asm volatile(
+        "mov %%rsp, %%rax\n"
+        "mov %%rax, %0"
+        : "=m"(rsp)::"%rax");
+    return rsp;
+  }
+
   static inline uint64_t ReadCR0() {
     uint64_t cr0;
     asm volatile(

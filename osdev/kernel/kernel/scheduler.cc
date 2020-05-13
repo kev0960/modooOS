@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "descriptor_table.h"
 #include "process.h"
+#include "qemu_log.h"
 #include "timer.h"
 #include "vga_output.h"
 
@@ -82,6 +83,14 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
 
+  /*
+  int cpu_id = CPUContextManager::GetCurrentCPUId();
+  if (cpu_id != 0) {
+    QemuSerialLog::Logf("[CPU %d] Schedule!(%d) -> (%d) %lx \n",
+                        CPUContextManager::GetCurrentCPUId(),
+                        current_thread->Id(), next_thread->Id(),
+                        CPUContextManager::GetCurrentCPUId());
+  }*/
   /*
   if (CPUContextManager::GetCurrentCPUId() == 1) {
     sp.lock();

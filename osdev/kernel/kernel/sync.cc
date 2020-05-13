@@ -1,18 +1,32 @@
 #include "sync.h"
 
 #include "../std/printf.h"
+#include "../std/string.h"
 #include "qemu_log.h"
 #include "scheduler.h"
 
 namespace Kernel {
+
+Lock::Lock() { lock_name_ = nullptr; }
+Lock::Lock(const char* lock_name) {
+  size_t len = strlen(lock_name);
+  lock_name_ = (char*)kmalloc(len + 1);
+
+  memcpy((void*)lock_name_, (void*)lock_name, len + 1);
+}
 
 void SpinLock::lock() {
   int cnt = 0;
   while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
     cnt++;
     if (cnt >= 10000) {
-      QemuSerialLog::Logf("[SpinLock]Contention! %lx \n",
-                          __builtin_return_address(0));
+      if (lock_name_ != nullptr) {
+        QemuSerialLog::Logf("[SpinLock %s] Contention! %lx \n", lock_name_,
+                            __builtin_return_address(0));
+      } else {
+        QemuSerialLog::Logf("[SpinLock] Contention! %lx \n",
+                            __builtin_return_address(0));
+      }
       cnt = 0;
     }
   }
@@ -65,8 +79,13 @@ void MultiCoreSpinLock::lock() {
       }
 
       if (total_cnt > 100000000) {
-        QemuSerialLog::Logf("[MulticoreSpinLock]Contention! %lx \n",
-                            __builtin_return_address(0));
+        if (lock_name_ == nullptr) {
+          QemuSerialLog::Logf("[MulticoreSpinLock] Contention! %lx \n",
+                              __builtin_return_address(0));
+        } else {
+          QemuSerialLog::Logf("[MulticoreSpinLock %s] Contention! %lx \n",
+                              lock_name_, __builtin_return_address(0));
+        }
         total_cnt = 0;
       }
     }

@@ -23,11 +23,16 @@ class lock_guard {
 
 class Lock {
  public:
+  Lock();
+  Lock(const char* lock_name);
+
   virtual void lock() = 0;
   virtual void unlock() = 0;
   virtual bool try_lock() = 0;
 
   virtual ~Lock() = default;
+
+  const char* lock_name_;
 };
 
 // IRQ based lock. It disables the entire interrupt so that it can run
@@ -59,6 +64,9 @@ class IrqLock : public Lock {
 // Simple spin lock. It spins until it can acquire.
 class SpinLock : public Lock {
  public:
+  SpinLock() : Lock() {}
+  SpinLock(const char* lock_name) : Lock(lock_name) {}
+
   void lock() override;
   void unlock() override;
   bool try_lock() override;
@@ -82,6 +90,10 @@ class SpinLockNoLockInIntr : public Lock {
 class MultiCoreSpinLock : public Lock {
  public:
   static const int kMaxSpinCnt = 1000;
+
+  MultiCoreSpinLock(const char* lock_name) : Lock(lock_name) {}
+  MultiCoreSpinLock() : Lock() {}
+
   void lock() override;
   void unlock() override;
   bool try_lock() override;

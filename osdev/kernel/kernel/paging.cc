@@ -471,8 +471,9 @@ void PageTableManager::AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
   // Get physical frame.
   uint64_t physical_frame = reinterpret_cast<uint64_t>(
       UserFrameAllocator::GetPhysicalFrameAllocator().AllocateFrame(order));
-  QemuSerialLog::Logf("Allocate page : %lx For [CPU Id :%d] %lx \n",
-                      physical_frame, CPUContextManager::GetCurrentCPUId(),
+  QemuSerialLog::Logf("Allocate page : %lx (vm: %lx) For [CPU Id :%d] %lx \n",
+                      physical_frame, user_vm_address,
+                      CPUContextManager::GetCurrentCPUId(),
                       user_pml4e_base_phys_addr_);
   // kprintf("physical frame : %lx \n", physical_frame);
   // Assign physical frames to the page table.
@@ -489,17 +490,20 @@ void PageTableManager::AllocateKernelPage(uint64_t kernel_vm_addr,
                             /*physical=*/physical_addr);
 }
 
-SpinLock spl;
 void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
                                         InterruptHandlerSavedRegs* regs) {
   uint64_t fault_addr = CPURegsAccessProvider::ReadCR2();
 
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
+  Process* process = static_cast<Process*>(current_thread);
 
-  QemuSerialLog::Logf("PF[%lx] at Thread[%d] cpu : [%d] RIP:[%lx] \n",
-                      fault_addr, current_thread->Id(),
-                      CPUContextManager::GetCurrentCPUId(), args->rip);
+  QemuSerialLog::Logf(
+      "PF[%lx] at Thread[%d] cpu : [%d] RIP:[%lx] RSP [%lx] Kernel RSP[%lx] "
+      "Top[%lx]\n",
+      fault_addr, current_thread->Id(), CPUContextManager::GetCurrentCPUId(),
+      args->rip, args->rsp, CPURegsAccessProvider::ReadRSP(),
+      current_thread->GetKernelStackTop());
 
   // Kernel thread should not page fault!
   if (current_thread->IsKernelThread()) {
@@ -508,7 +512,6 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     PANIC();
   }
 
-  Process* process = static_cast<Process*>(current_thread);
   process->SetInKernel();
 
   auto* process_regs = process->GetSavedUserRegs();
@@ -517,10 +520,9 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 
   auto address_info = process->GetAddressInfo(fault_addr);
   if (address_info == ProcessAddressInfo::NOT_VALID_ADDR) {
-    if (fault_addr == 0) {
-      PageTablePrintUtil::PrintUserTable(
-          PhysToKernel<uint64_t*>(process->GetPageTableBaseAddress()));
-    }
+    PageTablePrintUtil::PrintUserTable(
+        PhysToKernel<uint64_t*>(process->GetPageTableBaseAddress()));
+
     QemuSerialLog::Logf("Terminate! %lx [CPU : %d] addr : %lx\n", fault_addr,
                         CPUContextManager::GetCurrentCPUId(), fault_addr);
     // Terminate this process if the fault address is not allowed.
@@ -551,6 +553,9 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         file_read_start_offset);
   }
 
+  QemuSerialLog::Logf("[CPU %d] Going back to [rip : %lx] [rsp : %lx] \n",
+                      CPUContextManager::GetCurrentCPUId(), args->rip,
+                      args->rsp);
   CPURegsAccessProvider::DisableInterrupt();
 
   // Done handling.
@@ -570,11 +575,17 @@ void PageTableManager::CopyUserPageTable(uint64_t* from_pml4_base_addr,
 void PageTablePrintUtil::PrintUserTable(uint64_t* cr3) {
   int cpu_id = CPUContextManager::GetCurrentCPUId();
   for (uint64_t i = 0; i < 512; i++) {
-    if (IsPresent(cr3[i]) && IsUserAccessible(cr3[i])) {
-      QemuSerialLog::Logf("[%d] PML4 (%lx) ~ (%lx) : [%lx] \n", cpu_id,
-                          (i << 39), ((i + 1) << 39) - 1,
-                          GetBaseAddress(cr3[i]));
-      PrintPDPE(PhysToKernel<uint64_t*>(GetBaseAddress(cr3[i])), i << 39);
+    if (IsPresent(cr3[i])) {
+      if (IsUserAccessible(cr3[i])) {
+        QemuSerialLog::Logf("[%d] PML4 [U] (%lx) ~ (%lx) : [%lx] \n", cpu_id,
+                            (i << 39), ((i + 1) << 39) - 1,
+                            GetBaseAddress(cr3[i]));
+        PrintPDPE(PhysToKernel<uint64_t*>(GetBaseAddress(cr3[i])), i << 39);
+      } else {
+        QemuSerialLog::Logf("[%d] PML4 [S] (%lx) ~ (%lx) : [%lx] \n", cpu_id,
+                            (i << 39), ((i + 1) << 39) - 1,
+                            GetBaseAddress(cr3[i]));
+      }
     }
   }
 }

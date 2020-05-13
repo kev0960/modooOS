@@ -78,12 +78,12 @@ void Weird() {
 // ----------------------------------
 // Kernel Init Orders (for BSP core).
 // ----------------------------------
+// Set CPU Context for BSP.
 // Install IDT.
 //   - Install PIC Timer.
 //     This will enable scheduling (though no scheduling will happen because the
 //     thread queue would be empty).
 // Set GDTR and TSS.
-// Set CPU Context for BSP.
 // Set Page table.
 // Parse ACPI table.
 //   - Get the information about other cores.
@@ -98,6 +98,8 @@ void Weird() {
 void KernelMain() {
   CPURegsAccessProvider::DisableInterrupt();
 
+  CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
+
   // Initialize Interrupts.
   IDTManager idt_manager{};
   idt_manager.InitializeIDTForCPUException();
@@ -109,7 +111,6 @@ void KernelMain() {
   gdt_table_manager.SetUpGDTTables();
   Kernel::vga_output << "Resetting GDT is done! \n";
 
-  CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
   idt_manager.InitializeIDTForIRQ();
 
   CPURegsAccessProvider::EnableInterrupt();
@@ -123,7 +124,7 @@ void KernelMain() {
 
   ACPIManager::GetACPIManager().DetectRSDP();
   ACPIManager::GetACPIManager().ParseRSDT();
-  ACPIManager::GetACPIManager().ListTables();
+  // ACPIManager::GetACPIManager().ListTables();
   ACPIManager::GetACPIManager().ParseMADT();
 
   int num_cores = ACPIManager::GetACPIManager().GetCoreAPICIds().size();
@@ -208,26 +209,24 @@ void KernelMain() {
 }
 
 void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
-  IDTManager idt_manager{};
-  idt_manager.LoadIDT();
-  // Kernel::vga_output << "IDT setup is done for AP! \n";
-
-  auto& gdt_table_manager = GDTTableManager::GetGDTTableManager();
-  gdt_table_manager.SetUpGDTTables();
-  // Kernel::vga_output << "Resetting GDT is done! \n";
-  // Kernel::vga_output << "Init kThread is done! \n";
-
   CPUContext* context = reinterpret_cast<CPUContext*>(
       ((uint64_t)cpu_context_hi << 32) | cpu_context_lo);
-  kprintf(">>>> cpu id : %d <<<< \n", context->cpu_id);
-  APICManager::GetAPICManager().InitLocalAPICForAPs();
-
   auto& cpu_context_manager = CPUContextManager::GetCPUContextManager();
   cpu_context_manager.SetCPUContext(context);
 
-  context->ap_boot_done = true;
+  CPURegsAccessProvider::DisableInterrupt();
+  IDTManager idt_manager{};
+  idt_manager.LoadIDT();
+  CPURegsAccessProvider::EnableInterrupt();
 
-  // kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
+  auto& gdt_table_manager = GDTTableManager::GetGDTTableManager();
+  gdt_table_manager.SetUpGDTTables();
+
+  APICManager::GetAPICManager().InitLocalAPICForAPs();
+
+  context->ap_boot_done = true;
+  kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
+
   KernelThread::InitThread();
   auto& timer_manager = TimerManager::GetTimerManager();
 

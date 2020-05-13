@@ -1,5 +1,5 @@
 CC=~/opt/cross/bin/x86_64-elf-g++
-SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
+SHARED_FLAGS = -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
                -Werror -I ./std -MMD -mno-red-zone -mcmodel=kernel -fno-pie -mgeneral-regs-only \
 							 -fno-threadsafe-statics -fno-rtti -fno-exceptions -std=c++17 -fno-builtin
 CXXFLAGS = $(SHARED_FLAGS)

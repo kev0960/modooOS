@@ -53,8 +53,10 @@ static const char* kCPUExceptionErrorMessages[] = {
 void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   QemuSerialLog::Logf("Interrupt Frame ------------- \n");
   QemuSerialLog::Logf("Interrupt index : %lx \n", int_num);
-  QemuSerialLog::Logf("cs : %lx; rip : %lx; rsp : %lx; \n", args->cs, args->rip,
-                      args->rsp);
+  QemuSerialLog::Logf(
+      "[CPU %d] cs : %lx; rip : %lx; rsp : %lx; rflags : %lx; ss : %lx\n",
+      CPUContextManager::GetCurrentCPUId(), args->cs, args->rip, args->rsp,
+      args->rflags, args->ss);
 
   vga_output << "Interrupt Frame --------------------\n";
   vga_output << " Interrupt index : " << int_num;

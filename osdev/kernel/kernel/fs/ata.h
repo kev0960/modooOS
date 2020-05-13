@@ -3,8 +3,8 @@
 
 #include "../../std/types.h"
 #include "../kthread.h"
-#include "filesystem.h"
 #include "../sync.h"
+#include "filesystem.h"
 
 namespace Kernel {
 
@@ -81,7 +81,7 @@ class ATADriver {
   void DiskCommandUp() { disk_command_.Up(); }
 
  private:
-  ATADriver() : disk_command_(0) { InitATA(); }
+  ATADriver() : disk_access_("ATALock"), disk_command_(0) { InitATA(); }
   void InitATA();
 
   ATADevice primary_master_;

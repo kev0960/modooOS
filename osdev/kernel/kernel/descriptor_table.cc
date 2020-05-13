@@ -1,5 +1,7 @@
 #include "descriptor_table.h"
+
 #include "../std/printf.h"
+#include "cpu_context.h"
 
 namespace Kernel {
 namespace {
@@ -33,8 +35,15 @@ void SetTSSDescripter(TaskSegmentDescriptor* entry, uint64_t base_addr,
 }  // namespace
 
 void GDTTableManager::SetUpGDTTables() {
+  ASSERT(gdt_tables_.size() == CPUContextManager::GetCurrentCPUId());
+
+  GDTEntry* current_entries = reinterpret_cast<GDTEntry*>(
+      kmalloc(sizeof(GDTEntry) * kNumGDTEntryDefined));
+
+  descriptors_per_core_.push_back(current_entries);
+
   // Null Data Segment
-  SetUpGDTTableEntry(&gdt_entries_[0], 0, 0, 0, 0);
+  SetUpGDTTableEntry(&current_entries[0], 0, 0, 0, 0);
 
   // Kernel Code Segment
   // access bit : P DPL 1 1 C R A
@@ -42,36 +51,46 @@ void GDTTableManager::SetUpGDTTables() {
   // granularity: G D L AVL
   //              1 0 1  0
   // (Note D must be 0 when L = 1)
-  SetUpGDTTableEntry(&gdt_entries_[1], 0, 0xFFFFFFFF,
+  SetUpGDTTableEntry(&current_entries[1], 0, 0xFFFFFFFF,
                      /* access */ 0b10011010,
                      /* granularity */ 0b10100000);
   // Kernel Data Segment
-  SetUpGDTTableEntry(&gdt_entries_[2], 0, 0xFFFFFFFF,
+  SetUpGDTTableEntry(&current_entries[2], 0, 0xFFFFFFFF,
                      /* access */ 0b10010010,
                      /* granularity */ 0b10100000);
 
   // User Data Segment
-  SetUpGDTTableEntry(&gdt_entries_[3], 0, 0xFFFFFFFF,
+  SetUpGDTTableEntry(&current_entries[3], 0, 0xFFFFFFFF,
                      /* access */ 0b11110010,
                      /* granularity */ 0b10100000);
 
   // User Code Segment (DPL --> 11)
-  SetUpGDTTableEntry(&gdt_entries_[4], 0, 0xFFFFFFFF,
+  SetUpGDTTableEntry(&current_entries[4], 0, 0xFFFFFFFF,
                      /* access */ 0b11111010,
                      /* granularity */ 0b10100000);
 
   auto& task_state_segment_manager =
       TaskStateSegmentManager::GetTaskStateSegmentManager();
 
-  SetTSSDescripter(reinterpret_cast<TaskSegmentDescriptor*>(&gdt_entries_[5]),
-                   (uint64_t)task_state_segment_manager.GetTSS(), sizeof(TSS),
-                   /*access=*/0b10001001,
-                   /*granularity=*/0b10100000);
+  // Create TSS.
+  task_state_segment_manager.SetUpTaskStateSegments();
 
-  gdt_entry_ptr_.limit = sizeof(GDTEntry) * kNumGDTEntryDefined - 1;
-  gdt_entry_ptr_.gdt_table = reinterpret_cast<uint64_t>(gdt_entries_);
+  SetTSSDescripter(
+      reinterpret_cast<TaskSegmentDescriptor*>(&current_entries[5]),
+      (uint64_t)task_state_segment_manager.GetTSS(), sizeof(TSS),
+      /*access=*/0b10001001,
+      /*granularity=*/0b10100000);
 
-  asm volatile("lgdt %0" ::"m"(gdt_entry_ptr_) :);
+  gdt_tables_.push_back(
+      reinterpret_cast<GDTEntryPtr*>(kmalloc(sizeof(GDTEntryPtr))));
+
+  GDTEntryPtr* gdt_entry_ptr = gdt_tables_.back();
+  gdt_entry_ptr->limit = sizeof(GDTEntry) * kNumGDTEntryDefined - 1;
+  gdt_entry_ptr->gdt_table = reinterpret_cast<uint64_t>(current_entries);
+
+  asm volatile("lgdt %0" ::"m"(*gdt_entry_ptr) :);
+
+  asm volatile ("" : : : "memory");
   task_state_segment_manager.LoadTR();
 }
 
@@ -81,6 +100,25 @@ void TaskStateSegmentManager::LoadTR() {
       "movw $0x28, %%ax\n"
       "ltr %%ax" ::
           : "%ax");
+}
+
+void TaskStateSegmentManager::SetUpTaskStateSegments() {
+  ASSERT(tss_.size() == CPUContextManager::GetCurrentCPUId());
+
+  tss_.push_back(reinterpret_cast<TSS*>(kmalloc(sizeof(TSS))));
+}
+
+TSS* TaskStateSegmentManager::GetTSS() {
+  ASSERT(tss_.size() > CPUContextManager::GetCurrentCPUId());
+  return tss_[CPUContextManager::GetCurrentCPUId()];
+}
+
+void TaskStateSegmentManager::SetRSP0(uint64_t rsp) {
+  TSS* current_tss = GetTSS();
+  // tss_.rsp0_low = rsp;
+  // tss_.rsp0_high = rsp >> 32;
+  current_tss->arr[1] = rsp;
+  current_tss->arr[2] = rsp >> 32;
 }
 
 }  // namespace Kernel

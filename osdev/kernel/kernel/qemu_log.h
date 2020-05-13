@@ -41,7 +41,7 @@ class QemuSerialLog {
     return lg;
   }
 
-  QemuSerialLog() = default;
+  QemuSerialLog() : sp_("QemuLogLock") {}
 
   SpinLock sp_;
 };

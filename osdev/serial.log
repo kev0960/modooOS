@@ -1,22 +1,265 @@
-Allocate page : 40000000 For [CPU Id :1] 1946000 
-Allocate page : 40001000 For [CPU Id :2] 1960000 
-PF[4001aa] at Thread[6] cpu : [1] RIP:[4001aa] 
-Allocate page : 40002000 For [CPU Id :1] 1946000 
-PF[4001aa] at Thread[7] cpu : [2] RIP:[4001aa] 
-Allocate page : 40003000 For [CPU Id :2] 1960000 
-PF[401749] at Thread[6] cpu : [1] RIP:[401749] 
-Allocate page : 40004000 For [CPU Id :1] 1946000 
-PF[401749] at Thread[7] cpu : [2] RIP:[401749] 
-Allocate page : 40005000 For [CPU Id :2] 1960000 
-PF[403278] at Thread[6] cpu : [1] RIP:[4001f1] 
-Allocate page : 40006000 For [CPU Id :1] 1946000 
-PF[403278] at Thread[7] cpu : [2] RIP:[4001f1] 
-Allocate page : 40007000 For [CPU Id :2] 1960000 
-PF[402fa0] at Thread[6] cpu : [1] RIP:[402fa0] 
-Allocate page : 40008000 For [CPU Id :1] 1946000 
-PF[402fa0] at Thread[7] cpu : [2] RIP:[402fa0] 
-Allocate page : 40009000 For [CPU Id :2] 1960000 
-Syscall 2 7 [CPU:2] 
-Syscall 0 7 [CPU:2] 
-Syscall 2 6 [CPU:1] 
-Syscall 0 6 [CPU:1] 
+Allocate page : 40000000 (vm: 3ffff000) For [CPU Id :2] 19a2000 
+Allocate page : 40001000 (vm: 3ffff000) For [CPU Id :6] 199a000 
+PF[4001cb] at Thread[16] cpu : [2] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff819a0f08] Top[ffffffff819a1110]
+Allocate page : 40002000 (vm: 400000) For [CPU Id :2] 19a2000 
+Allocate page : 40003000 (vm: 3ffff000) For [CPU Id :7] 19ca000 
+PF[4001cb] at Thread[18] cpu : [7] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff819c9278] Top[ffffffff819c9480]
+PF[4001cb] at Thread[17] cpu : [6] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff81999c78] Top[ffffffff81999e88]
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 40005000 (vm: 400000) For [CPU Id :6] 199a000 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 40004000 (vm: 400000) For [CPU Id :7] 19ca000 
+[CPU 2] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[16] cpu : [2] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff819a0f08] Top[ffffffff819a1110]
+Allocate page : 40006000 (vm: 401000) For [CPU Id :2] 19a2000 
+Allocate page : 40007000 (vm: 3ffff000) For [CPU Id :5] 19b6000 
+PF[4001cb] at Thread[19] cpu : [5] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff819f32f8] Top[ffffffff819f3508]
+Allocate page : 40008000 (vm: 400000) For [CPU Id :5] 19b6000 
+Allocate page : 40009000 (vm: 3ffff000) For [CPU Id :1] 19e7000 
+Allocate page : 4000a000 (vm: 3ffff000) For [CPU Id :4] 19ff000 
+Allocate page : 4000b000 (vm: 3ffff000) For [CPU Id :3] 1a0b000 
+PF[4001cb] at Thread[21] cpu : [4] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff819fe3a8] Top[ffffffff819fe5b8]
+PF[4001cb] at Thread[20] cpu : [1] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff819e62e8] Top[ffffffff819e64f7]
+PF[4001cb] at Thread[22] cpu : [3] RIP:[4001cb] RSP [3ffffff8] Kernel RSP[ffffffff81a0a428] Top[ffffffff81a0a638]
+Allocate page : 4000c000 (vm: 400000) For [CPU Id :1] 19e7000 
+[CPU 7] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+Allocate page : 4000d000 (vm: 400000) For [CPU Id :3] 1a0b000 
+PF[40176a] at Thread[18] cpu : [7] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff819c9278] Top[ffffffff819c9480]
+Allocate page : 4000f000 (vm: 401000) For [CPU Id :7] 19ca000 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 4000e000 (vm: 400000) For [CPU Id :4] 19ff000 
+[CPU 6] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[17] cpu : [6] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff81999c78] Top[ffffffff81999e88]
+Allocate page : 40010000 (vm: 401000) For [CPU Id :6] 199a000 
+[CPU 2] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[16] cpu : [2] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff819a0f08] Top[ffffffff819a1110]
+Allocate page : 40011000 (vm: 403000) For [CPU Id :2] 19a2000 
+[CPU 6] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[17] cpu : [6] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff81999c78] Top[ffffffff81999e88]
+Allocate page : 40012000 (vm: 403000) For [CPU Id :6] 199a000 
+[CPU 1] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[20] cpu : [1] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff819e62e8] Top[ffffffff819e64f7]
+Allocate page : 40013000 (vm: 401000) For [CPU Id :1] 19e7000 
+[CPU 7] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[18] cpu : [7] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff819c9278] Top[ffffffff819c9480]
+Allocate page : 40014000 (vm: 403000) For [CPU Id :7] 19ca000 
+[CPU 6] Going back to [rip : 400212] [rsp : 3ffffed8] 
+[CPU 3] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[22] cpu : [3] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff81a0a428] Top[ffffffff81a0a638]
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 40015000 (vm: 401000) For [CPU Id :3] 1a0b000 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+PF[402fc1] at Thread[17] cpu : [6] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff81999c78] Top[ffffffff81999e88]
+Allocate page : 40016000 (vm: 402000) For [CPU Id :6] 199a000 
+[CPU 2] Going back to [rip : 400212] [rsp : 3ffffed8] 
+[CPU 7] Going back to [rip : 400212] [rsp : 3ffffed8] 
+PF[402fc1] at Thread[16] cpu : [2] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff819a0f08] Top[ffffffff819a1110]
+Allocate page : 40017000 (vm: 402000) For [CPU Id :2] 19a2000 
+PF[402fc1] at Thread[18] cpu : [7] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff819c9278] Top[ffffffff819c9480]
+Allocate page : 40018000 (vm: 402000) For [CPU Id :7] 19ca000 
+[CPU 4] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[21] cpu : [4] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff819fe3a8] Top[ffffffff819fe5b8]
+Allocate page : 40019000 (vm: 401000) For [CPU Id :4] 19ff000 
+[CPU 3] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[22] cpu : [3] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff81a0a428] Top[ffffffff81a0a638]
+Allocate page : 4001a000 (vm: 403000) For [CPU Id :3] 1a0b000 
+[CPU 4] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[21] cpu : [4] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff819fe3a8] Top[ffffffff819fe5b8]
+Allocate page : 4001b000 (vm: 403000) For [CPU Id :4] 19ff000 
+[CPU 3] Going back to [rip : 400212] [rsp : 3ffffed8] 
+PF[402fc1] at Thread[22] cpu : [3] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff81a0a428] Top[ffffffff81a0a638]
+Allocate page : 4001c000 (vm: 402000) For [CPU Id :3] 1a0b000 
+[CPU 6] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[CPU 3] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 17 [CPU:6] 
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Syscall 2 22 [CPU:3] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Syscall 2 22 [CPU:3] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 22 [CPU:3] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 17 [CPU:6] 
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 22 [CPU:3] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Syscall 2 22 [CPU:3] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 22 [CPU:3] 
+Syscall 2 17 [CPU:6] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 17 [CPU:6] 
+[CPU 2] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[CPU 4] Going back to [rip : 400212] [rsp : 3ffffed8] 
+Syscall 2 16 [CPU:2] 
+[CPU 5] Going back to [rip : 4001cb] [rsp : 3ffffff8] 
+PF[40176a] at Thread[19] cpu : [5] RIP:[40176a] RSP [3fffff20] Kernel RSP[ffffffff819f32f8] Top[ffffffff819f3508]
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 4001d000 (vm: 401000) For [CPU Id :5] 19b6000 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+PF[402fc1] at Thread[21] cpu : [4] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff819fe3a8] Top[ffffffff819fe5b8]
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Allocate page : 4001e000 (vm: 402000) For [CPU Id :4] 19ff000 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+[CPU 7] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 16 [CPU:2] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 16 [CPU:2] 
+[CPU 5] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[19] cpu : [5] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff819f32f8] Top[ffffffff819f3508]
+Allocate page : 4001f000 (vm: 403000) For [CPU Id :5] 19b6000 
+Syscall 2 18 [CPU:7] 
+[CPU 4] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 18 [CPU:7] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 18 [CPU:7] 
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 21 [CPU:4] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 21 [CPU:4] 
+[CPU 1] Going back to [rip : 40176a] [rsp : 3fffff20] 
+PF[403298] at Thread[20] cpu : [1] RIP:[400212] RSP [3ffffed8] Kernel RSP[ffffffff819e62e8] Top[ffffffff819e64f7]
+[CPU 5] Going back to [rip : 400212] [rsp : 3ffffed8] 
+Allocate page : 40020000 (vm: 403000) For [CPU Id :1] 19e7000 
+PF[402fc1] at Thread[19] cpu : [5] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff819f32f8] Top[ffffffff819f3508]
+Allocate page : 40021000 (vm: 402000) For [CPU Id :5] 19b6000 
+[CPU 1] Going back to [rip : 400212] [rsp : 3ffffed8] 
+PF[402fc1] at Thread[20] cpu : [1] RIP:[402fc1] RSP [3fffff20] Kernel RSP[ffffffff819e62e8] Top[ffffffff819e64f7]
+Allocate page : 40022000 (vm: 402000) For [CPU Id :1] 19e7000 
+[CPU 5] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[CPU 1] Going back to [rip : 402fc1] [rsp : 3fffff20] 
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 19 [CPU:5] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+[SpinLock QemuLogLock] Contention! ffffffff80422912 
+Syscall 0 19 [CPU:5] 
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 2 20 [CPU:1] 
+a9993e364706816aba3e25717850c26c9cd0d89d
+Syscall 0 20 [CPU:1] 

@@ -25,7 +25,8 @@ class KernelMemoryManager {
         heap_memory_limit_(ONE_GB - KERNEL_HEAP_MEMORY_START_OFFSET -
                            MEMORY_ALGIN_OFFSET),
         current_heap_size_(8 /* Added initial offset*/),
-        heap_lock_(1) {
+        heap_lock_(1),
+        multi_core_lock_("MemLock") {
     for (int i = 0; i < NUM_BUCKETS; i++) {
       free_list_[i] = 0;
     }

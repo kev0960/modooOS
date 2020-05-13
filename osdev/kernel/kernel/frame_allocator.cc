@@ -366,7 +366,8 @@ void FrameDescriptor::Print() const {
 }
 
 UserFrameAllocator::UserFrameAllocator()
-    : physical_addr_boundary_(kAllocatablePhysicalAddrStart) {
+    : physical_addr_boundary_(kAllocatablePhysicalAddrStart),
+      spin_lock_("UserFrameAllocLock") {
   // Create 2^13 size buddy block allocator. This spans 2^25 == 32 MB bytes of
   // the physical address space.
   allocators_.push_back(
