@@ -45,7 +45,6 @@ KernelListElement<KernelThread*>* KernelThreadScheduler::PopNextThreadToRun() {
   return nullptr;
 }
 
-SpinLock sp;
 void KernelThreadScheduler::YieldInInterruptHandler(
     CPUInterruptHandlerArgs* args, InterruptHandlerSavedRegs* regs) {
   // Scheduling is not enabled yet!

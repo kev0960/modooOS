@@ -4,6 +4,7 @@
 #include "../std/printf.h"
 #include "acpi.h"
 #include "cpu.h"
+#include "descriptor_table.h"
 #include "interrupt.h"
 #include "kmalloc.h"
 #include "paging.h"
@@ -86,6 +87,13 @@ void APICManager::SetRegister(size_t offset, uint32_t val) {
 }
 
 void APICManager::SendWakeUpAllCores() {
+  int num_cores = ACPIManager::GetACPIManager().GetCoreAPICIds().size();
+
+  // Create GDT and TSS entries for every other cores.
+  GDTTableManager::GetGDTTableManager().CreateGDTTables(num_cores);
+  TaskStateSegmentManager::GetTaskStateSegmentManager().CreateTSSTables(
+      num_cores);
+
   std::vector<CPUContext*> context_per_ap;
   for (uint32_t id : ACPIManager::GetACPIManager().GetCoreAPICIds()) {
     if (id == 0) {

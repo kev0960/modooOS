@@ -34,13 +34,32 @@ void SetTSSDescripter(TaskSegmentDescriptor* entry, uint64_t base_addr,
 }
 }  // namespace
 
+void GDTTableManager::CreateGDTTables(int num_cores) {
+  ASSERT(gdt_tables_.size() == 1);
+  gdt_tables_.reserve(num_cores);
+
+  for (int i = 0; i < num_cores - 1; i++) {
+    GDTEntry* current_entries = reinterpret_cast<GDTEntry*>(
+        kmalloc(sizeof(GDTEntry) * kNumGDTEntryDefined));
+    descriptors_per_core_.push_back(current_entries);
+
+    gdt_tables_.push_back(
+        reinterpret_cast<GDTEntryPtr*>(kmalloc(sizeof(GDTEntryPtr))));
+
+    GDTEntryPtr* gdt_entry_ptr = gdt_tables_.back();
+    gdt_entry_ptr->limit = sizeof(GDTEntry) * kNumGDTEntryDefined - 1;
+    gdt_entry_ptr->gdt_table = reinterpret_cast<uint64_t>(current_entries);
+  }
+}
+
 void GDTTableManager::SetUpGDTTables() {
-  ASSERT(gdt_tables_.size() == CPUContextManager::GetCurrentCPUId());
+  if (gdt_tables_.empty()) {
+    descriptors_per_core_.push_back(reinterpret_cast<GDTEntry*>(
+        kmalloc(sizeof(GDTEntry) * kNumGDTEntryDefined)));
+  }
 
-  GDTEntry* current_entries = reinterpret_cast<GDTEntry*>(
-      kmalloc(sizeof(GDTEntry) * kNumGDTEntryDefined));
-
-  descriptors_per_core_.push_back(current_entries);
+  GDTEntry* current_entries =
+      descriptors_per_core_[CPUContextManager::GetCurrentCPUId()];
 
   // Null Data Segment
   SetUpGDTTableEntry(&current_entries[0], 0, 0, 0, 0);
@@ -90,7 +109,7 @@ void GDTTableManager::SetUpGDTTables() {
 
   asm volatile("lgdt %0" ::"m"(*gdt_entry_ptr) :);
 
-  asm volatile ("" : : : "memory");
+  asm volatile("" : : : "memory");
   task_state_segment_manager.LoadTR();
 }
 
@@ -102,10 +121,17 @@ void TaskStateSegmentManager::LoadTR() {
           : "%ax");
 }
 
-void TaskStateSegmentManager::SetUpTaskStateSegments() {
-  ASSERT(tss_.size() == CPUContextManager::GetCurrentCPUId());
+void TaskStateSegmentManager::CreateTSSTables(int num_cores) {
+  tss_.reserve(num_cores);
+  for (int i = 0; i < num_cores - 1; i++) {
+    tss_.push_back(reinterpret_cast<TSS*>(kmalloc(sizeof(TSS))));
+  }
+}
 
-  tss_.push_back(reinterpret_cast<TSS*>(kmalloc(sizeof(TSS))));
+void TaskStateSegmentManager::SetUpTaskStateSegments() {
+  if (tss_.size() == 0) {
+    tss_.push_back(reinterpret_cast<TSS*>(kmalloc(sizeof(TSS))));
+  }
 }
 
 TSS* TaskStateSegmentManager::GetTSS() {

@@ -28,6 +28,7 @@ class GDTTableManager {
     return gdt_table_manager;
   }
 
+  void CreateGDTTables(int num_cores);
   void SetUpGDTTables();
 
   // (+2) for TSS segment descriptor.
@@ -91,7 +92,7 @@ class TaskStateSegmentManager {
   void SetUpTaskStateSegments();
   TSS* GetTSS();
   void SetRSP0(uint64_t rsp);
-
+  void CreateTSSTables(int num_cores);
   void LoadTR();
 
  private:
