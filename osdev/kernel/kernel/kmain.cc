@@ -262,6 +262,8 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
 
+  auto* process2 = process_manager.CreateProcess("/a.out");
+  process2->Start();
   // volatile uint64_t k = 0;
   while (1) {
     void* data = kmalloc(1 << 12);

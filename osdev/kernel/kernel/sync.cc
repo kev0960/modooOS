@@ -19,7 +19,7 @@ void SpinLock::lock() {
   int cnt = 0;
   while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
     cnt++;
-    if (cnt >= 10000) {
+    if (cnt >= 10000000) {
       if (lock_name_ != nullptr) {
         QemuSerialLog::Logf("[SpinLock %s] Contention! %lx \n", lock_name_,
                             __builtin_return_address(0));
