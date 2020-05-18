@@ -64,6 +64,9 @@ class KernelThread {
   void MakeSleep() { status_ = THREAD_SLEEP; }
   void MakeRun() { status_ = THREAD_RUN; }
 
+  void SetInQueue(bool in_queue) { in_queue_ = in_queue; }
+  bool IsInQueue() const { return in_queue_; }
+
   virtual bool IsKernelThread() const { return true; }
   virtual bool IsInKernelSpace() const { return true; }
 
@@ -92,6 +95,8 @@ class KernelThread {
 
   // CPU id where the thread belongs.
   uint32_t cpu_id_;
+
+  bool in_queue_;
 };
 
 class Semaphore {

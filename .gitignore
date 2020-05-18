@@ -7,3 +7,4 @@ temp
 !crti.o
 !crtn.o
 *.d
+serial.log

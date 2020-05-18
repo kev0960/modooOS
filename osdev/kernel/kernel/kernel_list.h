@@ -134,6 +134,9 @@ class KernelList {
   void push_front(KernelListElement<T>* elem) {
     size_++;
 
+    if (head_ == elem || tail_ == elem) {
+      PANIC();
+    }
     // If empty.
     if (empty()) {
       head_ = tail_ = elem;
@@ -154,6 +157,9 @@ class KernelList {
   void push_back(KernelListElement<T>* elem) {
     size_++;
 
+    if (head_ == elem || tail_ == elem) {
+      PANIC();
+    }
     if (empty()) {
       head_ = tail_ = elem;
       elem->prev = elem->next = nullptr;
@@ -239,7 +245,7 @@ class KernelList {
   KernelListIterator<T> begin() const { return KernelListIterator<T>(head_); }
   KernelListIterator<T> end() const { return KernelListIterator<T>(nullptr); }
 
- private:
+// private:
   KernelListElement<T>* head_;
   KernelListElement<T>* tail_;
 

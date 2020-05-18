@@ -104,4 +104,25 @@ bool MultiCoreSpinLock::try_lock() {
   return __atomic_compare_exchange_n(&acquired, &expected, true, false,
                                      __ATOMIC_ACQUIRE, __ATOMIC_ACQUIRE);
 }
+
+void MultiCoreSema::Down() {
+  while (true) {
+    lock_.lock();
+    if (cnt_ > 0) {
+      cnt_--;
+      lock_.unlock();
+      return;
+    }
+
+    lock_.unlock();
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+  }
+}
+
+void MultiCoreSema::Up() {
+  lock_.lock();
+  cnt_++;
+  lock_.unlock();
+}
+
 }  // namespace Kernel

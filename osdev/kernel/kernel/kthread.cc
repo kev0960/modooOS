@@ -5,6 +5,7 @@
 #include "kernel_context.h"
 #include "kernel_util.h"
 #include "kmalloc.h"
+#include "qemu_log.h"
 #include "scheduler.h"
 #include "sync.h"
 
@@ -85,7 +86,8 @@ void KernelThread::SetCurrentThread(KernelThread* thread) {
 KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
     : self(this),
       status_(THREAD_RUN),
-      kernel_list_elem_(&KernelThreadScheduler::GetKernelThreadList()) {
+      kernel_list_elem_(&KernelThreadScheduler::GetKernelThreadList()),
+      in_queue_(false) {
   thread_id_ = ThreadIdManager::GetThreadId();
 
   // The rip of this function will be entry_function.
@@ -178,6 +180,14 @@ void Semaphore::Up() {
   if (!waiters_.empty()) {
     // Get the first thread in the waiting queue.
     KernelListElement<KernelThread*>* elem = waiters_.pop_front();
+
+    /*
+    if (elem->Get()->CpuId() != CPUContextManager::GetCurrentCPUId()) {
+      QemuSerialLog::Logf("Thread cpu : %d vs Current : %d \n",
+                          elem->Get()->CpuId(),
+                          CPUContextManager::GetCurrentCPUId());
+      PrintStackTrace();
+    }*/
 
     // Mark it as a runnable thread.
     elem->Get()->MakeRun();

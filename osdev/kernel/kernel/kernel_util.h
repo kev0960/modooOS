@@ -15,6 +15,9 @@ constexpr int OffsetOf(const T& t, U T::*u) {
   return (const char*)&(t.*u) - (const char*)&t;
 }
 
+void PrintStackTrace();
+
+
 // Functions below should not be directly used.
 namespace __ {
 

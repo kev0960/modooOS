@@ -6,6 +6,7 @@
 #include "kernel_context.h"
 #include "kthread.h"
 #include "printf.h"
+#include "qemu_log.h"
 #include "scheduler.h"
 
 namespace Kernel {
@@ -78,6 +79,7 @@ void HandleWaitingThreads() {
         if (sema_and_time->timer_tick <= timer.GetClock() &&
             !sema_and_time->on) {
           sema_and_time->on = true;
+          //QemuSerialLog::Logf("Sema up\n");
           sema_and_time->sema.Up();
 
           is_changed = true;
@@ -89,6 +91,7 @@ void HandleWaitingThreads() {
         break;
       }
     }
+    // QemuSerialLog::Logf("Waiting Sema up\n");
     timer.WaitingThreadSema().Up();
 
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();

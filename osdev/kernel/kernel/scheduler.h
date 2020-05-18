@@ -17,10 +17,7 @@ class KernelThreadScheduler {
     return scheduler;
   }
 
-  static KernelList<KernelThread*>& GetKernelThreadList() {
-    return GetKernelThreadScheduler()
-        .kernel_thread_list_[CPUContextManager::GetCurrentCPUId()];
-  }
+  static KernelList<KernelThread*>& GetKernelThreadList();
 
   KernelThreadScheduler(const KernelThreadScheduler&) = delete;
   void operator=(const KernelThreadScheduler&) = delete;

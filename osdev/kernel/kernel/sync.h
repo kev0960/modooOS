@@ -113,6 +113,20 @@ class Mutex : public Lock {
   Semaphore sema_;
 };
 
+// This acts like a semaphore but does not have waiting queue.
+class MultiCoreSema {
+ public:
+  MultiCoreSema(int cnt) : cnt_(cnt) {}
+
+  void Down();
+  void Up();
+
+ private:
+  MultiCoreSpinLock lock_;
+
+  int cnt_;
+};
+
 }  // namespace Kernel
 
 #endif

@@ -153,22 +153,21 @@ void KernelMain() {
 
   auto& apic_manager = APICManager::GetAPICManager();
   apic_manager.InitLocalAPIC();
+
   apic_manager.SendWakeUpAllCores();
 
   idt_manager.DisablePIC();
   timer_manager.StartAPICTimer();
 
-  /*
   KernelThread thread1(Sleep1);
   KernelThread thread2(Sleep2);
   KernelThread thread3(Sleep3);
-  KernelThread thread4(Sleep4);
 
   thread1.Start();
   thread2.Start();
   thread3.Start();
-  thread4.Start();
 
+  /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
@@ -199,6 +198,7 @@ void KernelMain() {
 
   kprintf("Filesystem setup is done! \n");
 
+  PrintStackTrace();
   /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
@@ -266,7 +266,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   process2->Start();
   // volatile uint64_t k = 0;
   while (1) {
-    void* data = kmalloc(1 << 12);
+    //void* data = kmalloc(1 << 12);
     spin_lock.lock();
     /*
     kprintf("CPU [%d] %lx %lx \n", CPUContextManager::GetCurrentCPUId(), addr,
@@ -276,7 +276,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
             APICManager::GetAPICManager().ReadRegister(0x390),
             APICManager::GetAPICManager().ReadRegister(0x80));*/
     spin_lock.unlock();
-    kfree(data);
+    //kfree(data);
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }

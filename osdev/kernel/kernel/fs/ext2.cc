@@ -116,6 +116,7 @@ Ext2FileSystem::Ext2FileSystem() {
   GetArrayFromBlockId(block_descs_, num_block_desc_, 2);
 
   ASSERT((1024 << super_block_.log_block_size) == kBlockSize);
+  kprintf("super block inode : %d \n", super_block_.inode_size);
   ASSERT(super_block_.inode_size == sizeof(Ext2Inode));
 
   std::array<Ext2Inode, 2> inode_table;

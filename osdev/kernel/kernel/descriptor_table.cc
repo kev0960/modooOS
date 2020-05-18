@@ -56,6 +56,8 @@ void GDTTableManager::SetUpGDTTables() {
   if (gdt_tables_.empty()) {
     descriptors_per_core_.push_back(reinterpret_cast<GDTEntry*>(
         kmalloc(sizeof(GDTEntry) * kNumGDTEntryDefined)));
+    gdt_tables_.push_back(
+        reinterpret_cast<GDTEntryPtr*>(kmalloc(sizeof(GDTEntryPtr))));
   }
 
   GDTEntry* current_entries =
@@ -100,10 +102,8 @@ void GDTTableManager::SetUpGDTTables() {
       /*access=*/0b10001001,
       /*granularity=*/0b10100000);
 
-  gdt_tables_.push_back(
-      reinterpret_cast<GDTEntryPtr*>(kmalloc(sizeof(GDTEntryPtr))));
-
-  GDTEntryPtr* gdt_entry_ptr = gdt_tables_.back();
+  GDTEntryPtr* gdt_entry_ptr =
+      gdt_tables_[CPUContextManager::GetCurrentCPUId()];
   gdt_entry_ptr->limit = sizeof(GDTEntry) * kNumGDTEntryDefined - 1;
   gdt_entry_ptr->gdt_table = reinterpret_cast<uint64_t>(current_entries);
 
