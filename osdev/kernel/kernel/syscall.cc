@@ -1,6 +1,7 @@
 #include "syscall.h"
 
 #include "../std/printf.h"
+#include "./sys/sys_spawn.h"
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
 #include "cpu.h"
@@ -98,17 +99,25 @@ void SyscallManager::InitSyscall() {
 int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
                                    uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                    uint64_t arg5, uint64_t arg6) {
-  QemuSerialLog::Logf("Syscall %d %d [CPU:%d] \n", syscall_num,
+  QemuSerialLog::Logf("Syscall %d [pid:%d] [CPU:%d] \n", syscall_num,
                       KernelThread::CurrentThread()->Id(),
                       CPUContextManager::GetCurrentCPUId());
 
+  CPURegsAccessProvider::EnableInterrupt();
+
+  int ret = 0;
   switch (syscall_num) {
     case SYS_EXIT:
       SysExit(arg1);
       break;
     case SYS_WRITE:
-      return SysWriteHandler::GetSysWriteHandler().SysWrite(
+      ret = SysWriteHandler::GetSysWriteHandler().SysWrite(
           arg1, reinterpret_cast<uint8_t*>(arg2), arg3);
+      break;
+    case SYS_SPAWN:
+      ret = SysSpawnHandler::GetHandler().SysSpawn(
+          reinterpret_cast<pid_t*>(arg1), reinterpret_cast<const char*>(arg2));
+      break;
   }
 
   UNUSED(syscall_num);
@@ -119,7 +128,7 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
   UNUSED(arg5);
   UNUSED(arg6);
 
-  return 0;
+  return ret;
 }
 
 // Terminate the process.

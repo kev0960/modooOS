@@ -3,9 +3,18 @@
 
 namespace Kernel {
 
+template <typename HandlerImpl>
 class SyscallHandler {
-  public:
+ public:
+   static HandlerImpl& GetHandler() {
+     static HandlerImpl handler;
+     return handler;
+   }
+
+ protected:
+   SyscallHandler() = default;
+
 };
-}
+}  // namespace Kernel
 
 #endif

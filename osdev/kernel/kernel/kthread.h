@@ -22,6 +22,8 @@ struct SavedRegisters {
 
 class Semaphore;
 
+using pid_t = size_t;
+
 class KernelThread {
  public:
   enum ThreadStatus { THREAD_RUN, THREAD_SLEEP, THREAD_TERMINATE };
@@ -42,7 +44,7 @@ class KernelThread {
   static void Done() { CurrentThread()->Terminate(); }
 
   SavedRegisters* GetSavedKernelRegs() { return &kernel_regs_; }
-  size_t Id() const { return thread_id_; }
+  pid_t Id() const { return thread_id_; }
   uint32_t CpuId() const { return cpu_id_; }
 
   KernelListElement<KernelThread*>* GetKenrelListElem() {
@@ -85,7 +87,7 @@ class KernelThread {
   ThreadStatus status_;
 
  protected:
-  size_t thread_id_;
+  pid_t thread_id_;
   SavedRegisters kernel_regs_;
 
   // This is used when the kernel thread exits the page fault handler.

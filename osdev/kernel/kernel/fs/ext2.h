@@ -482,8 +482,6 @@ class Ext2FileSystem {
   bool CreateFile(std::string_view path, bool is_directory);
 
  private:
-  MultiCoreSpinLock fs_lock_;
-
   struct BitmapInfo {
     size_t bitmap_block_id;
     Bitmap<1024 * 8> bitmap;
@@ -523,6 +521,8 @@ class Ext2FileSystem {
 
   std::vector<BitmapInfo> block_bitmap;
   std::vector<BitmapInfo> inode_bitmap;
+
+  MultiCoreSpinLock fs_lock_;
 };
 
 template <typename T>

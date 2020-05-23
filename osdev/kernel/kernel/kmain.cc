@@ -159,6 +159,7 @@ void KernelMain() {
   idt_manager.DisablePIC();
   timer_manager.StartAPICTimer();
 
+  /*
   KernelThread thread1(Sleep1);
   KernelThread thread2(Sleep2);
   KernelThread thread3(Sleep3);
@@ -167,7 +168,6 @@ void KernelMain() {
   thread2.Start();
   thread3.Start();
 
-  /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/a.out");
   process->Start();
@@ -198,13 +198,12 @@ void KernelMain() {
 
   kprintf("Filesystem setup is done! \n");
 
-  PrintStackTrace();
-  /*
   auto& process_manager = ProcessManager::GetProcessManager();
-  auto* process = process_manager.CreateProcess("/a.out");
+  auto* process = process_manager.CreateProcess("/hello");
   process->Start();
-*/
+
   while (1) {
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
   }
 }
 
@@ -258,15 +257,17 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   syscall_manager.InitSyscall();
   kprintf("Syscall handler setup is done! \n");
 
-  auto& process_manager = ProcessManager::GetProcessManager();
-  auto* process = process_manager.CreateProcess("/a.out");
-  process->Start();
+  /*
+   auto& process_manager = ProcessManager::GetProcessManager();
+   auto* process = process_manager.CreateProcess("/a.out");
+   process->Start();
 
-  auto* process2 = process_manager.CreateProcess("/a.out");
-  process2->Start();
+   auto* process2 = process_manager.CreateProcess("/a.out");
+   process2->Start();
+   */
   // volatile uint64_t k = 0;
   while (1) {
-    //void* data = kmalloc(1 << 12);
+    // void* data = kmalloc(1 << 12);
     spin_lock.lock();
     /*
     kprintf("CPU [%d] %lx %lx \n", CPUContextManager::GetCurrentCPUId(), addr,
@@ -276,7 +277,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
             APICManager::GetAPICManager().ReadRegister(0x390),
             APICManager::GetAPICManager().ReadRegister(0x80));*/
     spin_lock.unlock();
-    //kfree(data);
+    // kfree(data);
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }

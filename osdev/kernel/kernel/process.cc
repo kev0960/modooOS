@@ -1,6 +1,6 @@
 #include "process.h"
 
-#include "../std/printf.h"
+#include "qemu_log.h"
 #include "./fs/ext2.h"
 #include "cpu_context.h"
 #include "elf.h"
@@ -113,10 +113,13 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 
+  QemuSerialLog::Logf("stat is done %d\n", file_info.file_size);
   // Read the entire file.
   uint8_t* buf = static_cast<uint8_t*>(kmalloc(file_info.file_size));
+  QemuSerialLog::Logf("Start reading file\n");
   ext2_filesystem.ReadFile(file_name, buf, file_info.file_size);
 
+  QemuSerialLog::Logf("reading file done\n");
   // Parse the ELF header.
   ELFReader elf_reader(buf, file_info.file_size);
 

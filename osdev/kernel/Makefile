@@ -32,7 +32,7 @@ clean:
 	find -name "*~" -delete
 	rm -rf $(OBJS) $(DFILES)
 
-%.o: %.cc
+%.o: %.cc $(OBJDIR)/%.d
 	$(CC) $(CXXFLAGS) -c $< -o $(OBJDIR)/$@
 
 %.o: %.S

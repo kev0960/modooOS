@@ -1,20 +1,27 @@
 CC=~/opt/cross/bin/x86_64-elf-gcc
-CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I -mgeneral-regs-only
+CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I -mgeneral-regs-only -MMD
 LDFLAGS = -nostdlib
 
 VPATH=.:./libc
-TARGET = hello
+TARGET = hello print_simple
 default: $(TARGET)
 all: default
 
-OBJECTS = hello.o crt0.o string.o sha1.o printf.o
+OBJ_FILES= string.o sha1.o printf.o syscall.o
+OBJECTS = $(OBJ_FILES) crt0.o
 HEADERS = $(wildcard *.h)
 
 %.o: %.S
 	$(CC) $(ASFLAGS) -c $< -o $@
 
-%.o: %.c $(HEADERS)
+%.o: %.c %.d
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(OBJECTS) -Wall $(LDFLAGS)
+hello: $(OBJECTS) hello.o
+	$(CC) $^ -Wall $(LDFLAGS) -o $@
+
+print_simple: $(OBJECTS) print_simple.o
+	$(CC) $^ -Wall $(LDFLAGS) -o $@
+
+clean:
+	rm $(TARGET) $(OBJ_FILES)

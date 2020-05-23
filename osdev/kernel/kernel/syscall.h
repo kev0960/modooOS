@@ -2,7 +2,14 @@
 
 namespace Kernel {
 
-enum SyscallNumbers { SYS_EXIT, SYS_READ, SYS_WRITE, SYS_FORK, SYS_EXEC };
+enum SyscallNumbers {
+  SYS_EXIT = 0,
+  SYS_READ,
+  SYS_WRITE,
+  SYS_FORK,
+  SYS_EXEC,
+  SYS_SPAWN = 5
+};
 
 class SyscallManager {
  public:

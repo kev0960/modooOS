@@ -179,6 +179,8 @@ class PageTablePrintUtil {
   static void PrintPT(uint64_t* pt_top, uint64_t start_addr);
 };
 
+bool IsKernelMemory(uint64_t memory_addr);
+
 }  // namespace Kernel
 
 extern "C" void PageFaultInterruptHandlerCaller(

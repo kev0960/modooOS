@@ -2,7 +2,9 @@
 
 #include "../../std/algorithm.h"
 #include "../../std/printf.h"
+#include "../apic.h"
 #include "../io.h"
+#include "../qemu_log.h"
 #include "../sync.h"
 
 namespace Kernel {
@@ -227,9 +229,15 @@ void ATADriver::Read(uint8_t* buf, size_t buffer_size, size_t lba) {
        current_read += 512) {
     size_t num_to_read = min(512ul, buffer_size - current_read);
 
+    ASSERT(CPURegsAccessProvider::IsInterruptEnabled());
     // Disk access must be exclusive.
-    CPURegsAccessProvider::EnableInterrupt();
     DiskAccessDown();
+
+    // Now direct ATA irqs to the core which called ReadFile.
+    APICManager::GetAPICManager().RedirectIRQs(
+        0xE, CPUContextManager::GetCurrentCPUId());
+    APICManager::GetAPICManager().RedirectIRQs(
+        0xF, CPUContextManager::GetCurrentCPUId());
 
     // Even if this is called inside of the interrupt handler, external
     // interrupt should be received.
@@ -254,6 +262,13 @@ void ATADriver::Write(uint8_t* buf, size_t buffer_size, size_t lba) {
 
     // Disk access must be exclusive.
     DiskAccessDown();
+
+    // Now direct ATA irqs to the core which called ReadFile.
+    APICManager::GetAPICManager().RedirectIRQs(
+        0xE, CPUContextManager::GetCurrentCPUId());
+    APICManager::GetAPICManager().RedirectIRQs(
+        0xF, CPUContextManager::GetCurrentCPUId());
+
     WriteOneSector(&primary_master_, lba, buf + current_write, num_to_write);
     DiskAccessUp();
 

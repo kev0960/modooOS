@@ -512,7 +512,9 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     PANIC();
   }
 
-  process->SetInKernel();
+  // No need to explicitly set here because if the scheduling ever happens,
+  // since the RIP is in the kernel space, it will know.
+  // process->SetInKernel();
 
   auto* process_regs = process->GetSavedUserRegs();
   process_regs->regs = *regs;
@@ -530,9 +532,11 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     return;
   }
 
+  // Must enable interrupt here for the disk access. It is okay to be scheduled
+  // within the page fault handler.
   CPURegsAccessProvider::EnableInterrupt();
 
-  // Otherwise, allocate the memory.
+  // Allocate 1 page.
   uint64_t boundary = Get4KBBoundary(fault_addr);
   AllocatePage(process->GetPageTableBaseAddress(), (uint64_t*)boundary, 0);
   if (address_info == ProcessAddressInfo::ELF_SEGMENT_ADDR) {
@@ -628,6 +632,10 @@ void PageTablePrintUtil::PrintPT(uint64_t* pt_top, uint64_t start_addr) {
                           GetBaseAddress(pt_top[i]));
     }
   }
+}
+
+bool IsKernelMemory(uint64_t memory_addr) {
+  return memory_addr >= kKernelVirtualOffset;
 }
 
 }  // namespace Kernel

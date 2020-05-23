@@ -80,11 +80,12 @@ void MultiCoreSpinLock::lock() {
 
       if (total_cnt > 100000000) {
         if (lock_name_ == nullptr) {
-          QemuSerialLog::Logf("[MulticoreSpinLock] Contention! %lx \n",
-                              __builtin_return_address(0));
+          QemuSerialLog::Logf("[MulticoreSpinLock] Contention! \n");
+          PrintStackTrace();
         } else {
-          QemuSerialLog::Logf("[MulticoreSpinLock %s] Contention! %lx \n",
-                              lock_name_, __builtin_return_address(0));
+          QemuSerialLog::Logf("[MulticoreSpinLock %s] Contention! \n",
+                              lock_name_);
+          PrintStackTrace();
         }
         total_cnt = 0;
       }

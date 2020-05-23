@@ -8,6 +8,7 @@
 #include "../cpu_context.h"
 #include "../kernel_util.h"
 #include "../kmalloc.h"
+#include "../qemu_log.h"
 #include "ata.h"
 #include "block_iterator.h"
 
@@ -183,14 +184,6 @@ Ext2FileSystem::Ext2FileSystem() {
 
 size_t Ext2FileSystem::ReadFile(std::string_view path, uint8_t* buf,
                                 size_t num_read, size_t offset) {
-  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
-
-  // Now direct ATA irqs to the core which called ReadFile.
-  APICManager::GetAPICManager().RedirectIRQs(
-      0xE, CPUContextManager::GetCurrentCPUId());
-  APICManager::GetAPICManager().RedirectIRQs(
-      0xF, CPUContextManager::GetCurrentCPUId());
-
   int inode_num = GetInodeNumberFromPath(path);
   if (inode_num == -1) {
     kprintf("File is not found!\n");
@@ -277,17 +270,13 @@ void Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
 
 void Ext2FileSystem::WriteFile(std::string_view path, uint8_t* buf,
                                size_t num_write, size_t offset) {
-  fs_lock_.lock();
-
   size_t inode_num = GetInodeNumberFromPath(path);
   kprintf("Write file : %d %s\n", inode_num, path);
   if (inode_num == size_t(-1)) {
-    fs_lock_.unlock();
     return;
   }
 
   WriteFile(inode_num, buf, num_write, offset);
-  fs_lock_.unlock();
 }
 
 void Ext2FileSystem::WriteFile(size_t inode_num, uint8_t* buf, size_t num_write,
@@ -403,6 +392,8 @@ void Ext2FileSystem::ExpandFileSize(size_t inode_num,
 }
 
 size_t Ext2FileSystem::GetEmptyBlock() {
+  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
+
   for (size_t i = 0; i < block_bitmap.size(); i++) {
     BitmapInfo& block_info = block_bitmap[i];
     int index_in_group = block_info.bitmap.GetEmptyBitIndex();
@@ -423,6 +414,8 @@ void Ext2FileSystem::MarkEmptyBlockAsUsed(size_t block_id) {
 }
 
 size_t Ext2FileSystem::GetEmptyInode() {
+  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
+
   for (size_t i = 0; i < inode_bitmap.size(); i++) {
     BitmapInfo& inode_info = inode_bitmap[i];
     int index_in_group = inode_info.bitmap.GetEmptyBitIndex();
@@ -444,8 +437,6 @@ void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
 }
 
 FileInfo Ext2FileSystem::Stat(std::string_view path) {
-  std::lock_guard<MultiCoreSpinLock> lk(fs_lock_);
-
   int inode_num = GetInodeNumberFromPath(path);
   if (inode_num == -1) {
     kprintf("File is not found \n");

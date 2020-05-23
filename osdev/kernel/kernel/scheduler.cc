@@ -3,6 +3,7 @@
 #include "../std/printf.h"
 #include "cpu.h"
 #include "descriptor_table.h"
+#include "paging.h"
 #include "process.h"
 #include "qemu_log.h"
 #include "timer.h"
@@ -77,8 +78,20 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
+  //QemuSerialLog::Logf("Current thread : %d \n", current_thread->Id());
   ASSERT(next_thread_element->Get()->CpuId() ==
          CPUContextManager::GetCurrentCPUId());
+  // If current RIP is in kernel, then the current thread is in kernel.
+  // Otherwise, it is running in the user mode.
+  if (!current_thread->IsKernelThread()) {
+    Process* current_process = static_cast<Process*>(current_thread);
+    if (IsKernelMemory(args->rip)) {
+      current_process->SetInKernel();
+    } else {
+      current_process->SetInUser();
+    }
+  }
+
   // Only push when the current thread is not already in queue.
   // This is because the race condtion that can happen between the scheduler and
   // the semaphore. Suppose thread A calls Down() on Semaphore S.
@@ -122,6 +135,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
+  //QemuSerialLog::Logf("Next thread : %d \n", next_thread->Id());
   next_thread->SetInQueue(false);
 
   /*
