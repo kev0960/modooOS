@@ -11,16 +11,16 @@ namespace Kernel {
 class SysSpawnHandler : public SyscallHandler<SysSpawnHandler> {
  public:
   int SysSpawn(pid_t* pid, const char* path) {
-    Process* process = ProcessManager::GetProcessManager().CreateProcess(path);
+    Process* child = ProcessManager::GetProcessManager().CreateProcess(path);
 
-    QemuSerialLog::Logf("Created process pid: %d \n", process->Id());
+    QemuSerialLog::Logf("Created process pid: %d \n", child->Id());
     // Returns a non zero error on failure.
-    if (process == nullptr) {
+    if (child == nullptr) {
       return 1;
     }
 
-    *pid = process->Id();
-    process->Start();
+    *pid = child->Id();
+    child->Start();
     return 0;
   }
 };

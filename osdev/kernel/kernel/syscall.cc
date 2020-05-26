@@ -1,7 +1,11 @@
 #include "syscall.h"
 
 #include "../std/printf.h"
+#include "./sys/sys_exit.h"
+#include "./sys/sys_open.h"
+#include "./sys/sys_read.h"
 #include "./sys/sys_spawn.h"
+#include "./sys/sys_waitpid.h"
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
 #include "cpu.h"
@@ -108,15 +112,27 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
   int ret = 0;
   switch (syscall_num) {
     case SYS_EXIT:
-      SysExit(arg1);
+      SysExitHandler::GetHandler().SysExit(arg1);
+      break;
+    case SYS_READ:
+      ret = SysReadHandler::GetHandler().SysRead(
+          static_cast<int>(arg1), reinterpret_cast<char*>(arg2), arg3);
       break;
     case SYS_WRITE:
       ret = SysWriteHandler::GetSysWriteHandler().SysWrite(
-          arg1, reinterpret_cast<uint8_t*>(arg2), arg3);
+          static_cast<int>(arg1), reinterpret_cast<uint8_t*>(arg2), arg3);
       break;
     case SYS_SPAWN:
       ret = SysSpawnHandler::GetHandler().SysSpawn(
           reinterpret_cast<pid_t*>(arg1), reinterpret_cast<const char*>(arg2));
+      break;
+    case SYS_WAITPID:
+      ret = SysWaitpidHandler::GetHandler().SysWaitpid(
+          reinterpret_cast<pid_t>(arg1), reinterpret_cast<int*>(arg2));
+      break;
+    case SYS_OPEN:
+      ret = SysOpenHandler::GetHandler().SysOpen(
+          reinterpret_cast<const char*>(arg1));
       break;
   }
 
@@ -131,48 +147,11 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
   return ret;
 }
 
-// Terminate the process.
-void SyscallManager::SysExit(uint64_t exit_num) {
-  KernelThread* current_thread = KernelThread::CurrentThread();
-  UNUSED(exit_num);
-  // kprintf("Terminate thread : %d %d\n", exit_num, current_thread->Id());
-  current_thread->Terminate();
-}
-
 extern "C" int SyscallHandlerCaller(uint64_t syscall_num, uint64_t arg1,
                                     uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                     uint64_t arg5, uint64_t arg6) {
-  /*
-  kprintf("%lx %lx %lx %lx %lx \n", syscall_num, arg1, arg2, arg3, arg4);
-  */
   return SyscallManager::GetSyscallManager().SyscallHandler(
       syscall_num, arg1, arg2, arg3, arg4, arg5, arg6);
-}
-
-int SyscallManager::SysWrite(uint32_t fd, const char* buf, size_t count) {
-  Process* current_process =
-      static_cast<Process*>(KernelThread::CurrentThread());
-
-  // TODO Check current open file descriptors of current process.
-  if (fd != 1) {
-    return -1;
-  }
-
-  // TODO check whether buf is valid.
-  kprintf("[%d:%d]%s", count, current_process->Id(), buf);
-  return 0;
-}
-
-int SyscallManager::SysFork() {
-  // Fork the current process.
-  Process* current_process =
-      static_cast<Process*>(KernelThread::CurrentThread());
-
-  // Create new process.
-  Process* child = new Process(current_process);
-  child->Start();
-
-  return child->Id();
 }
 
 }  // namespace Kernel

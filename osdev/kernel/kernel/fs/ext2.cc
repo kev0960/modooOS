@@ -238,7 +238,7 @@ void Ext2FileSystem::WriteInode(size_t inode_addr, const Ext2Inode& inode) {
   WriteFromBlockId(block_with_inodes.data(), block_containing_inode);
 }
 
-void Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
+size_t Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
                               size_t num_read, size_t offset) {
   BlockIterator iter(file_inode);
   iter.SetOffset(offset);
@@ -266,6 +266,8 @@ void Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
 
     ++iter;
   }
+
+  return read;
 }
 
 void Ext2FileSystem::WriteFile(std::string_view path, uint8_t* buf,

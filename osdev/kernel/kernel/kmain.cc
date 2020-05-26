@@ -226,12 +226,12 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   context->ap_boot_done = true;
   kprintf(">>>> cpu id : %d done <<<< \n", context->cpu_id);
 
-  KernelThread::InitThread();
-  auto& timer_manager = TimerManager::GetTimerManager();
-
   // Wait until every other cores to wake up.
   while (!APICManager::GetAPICManager().IsMulticoreEnabled()) {
   }
+
+  KernelThread::InitThread();
+  auto& timer_manager = TimerManager::GetTimerManager();
 
   // You have to install APIC Timer after waking all other cores. Otherwise it
   // won't send back EOI properly once receiving the timer interrupt.
@@ -257,14 +257,13 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   syscall_manager.InitSyscall();
   kprintf("Syscall handler setup is done! \n");
 
+  auto& process_manager = ProcessManager::GetProcessManager();
+  auto* process = process_manager.CreateProcess("/hello");
+  process->Start();
   /*
-   auto& process_manager = ProcessManager::GetProcessManager();
-   auto* process = process_manager.CreateProcess("/a.out");
-   process->Start();
-
-   auto* process2 = process_manager.CreateProcess("/a.out");
-   process2->Start();
-   */
+  auto* process2 = process_manager.CreateProcess("/a.out");
+  process2->Start();
+  */
   // volatile uint64_t k = 0;
   while (1) {
     // void* data = kmalloc(1 << 12);

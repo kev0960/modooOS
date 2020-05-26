@@ -509,6 +509,7 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   if (current_thread->IsKernelThread()) {
     QemuSerialLog::Logf("#PF in kernel thread! %lx %lx %lx\n", args->rip,
                         args->rsp, CPURegsAccessProvider::ReadCR2());
+    PrintStackTrace();
     PANIC();
   }
 
@@ -557,9 +558,11 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         file_read_start_offset);
   }
 
+  /*
   QemuSerialLog::Logf("[CPU %d] Going back to [rip : %lx] [rsp : %lx] \n",
                       CPUContextManager::GetCurrentCPUId(), args->rip,
                       args->rsp);
+                      */
   CPURegsAccessProvider::DisableInterrupt();
 
   // Done handling.

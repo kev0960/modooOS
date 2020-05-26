@@ -37,5 +37,12 @@ int main() {
 
   char str_out[100];
   sprintf(str_out, "result = %d pid : %d\n", result, pid);
+  write(str_out);
+
+  int status;
+  waitpid(pid, &status);
+  sprintf(str_out, "child exit code : %d\n", status);
+  write(str_out);
+
   return 0;
 }

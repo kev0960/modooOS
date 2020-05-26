@@ -1,5 +1,5 @@
 CC=~/opt/cross/bin/x86_64-elf-g++
-SHARED_FLAGS = -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
+SHARED_FLAGS = -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra \
                -Werror -I ./std -MMD -mno-red-zone -mcmodel=kernel -fno-pie -mgeneral-regs-only \
 							 -fno-threadsafe-statics -fno-rtti -fno-exceptions -std=c++17 -fno-builtin
 CXXFLAGS = $(SHARED_FLAGS)
@@ -9,7 +9,7 @@ VPATH = ./kernel:./boot:./std:./test:./kernel/fs:./kernel/sys
 OBJDIR = ./obj
 
 OBJS := boot.o interrupt_handler.o boot_ap.o
-OBJS += kmain.o string_util.o string.o kernel_math.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o process.o elf.o syscall.o block_iterator.o block_indices.o acpi.o apic.o sync.o
+OBJS += kmain.o string_util.o string.o kernel_math.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o process.o elf.o syscall.o block_iterator.o block_indices.o acpi.o apic.o sync.o actual_file_desc.o
 OBJS += kernel_test.o
 
 CRTI_OBJ = ./obj/crti.o
@@ -32,7 +32,7 @@ clean:
 	find -name "*~" -delete
 	rm -rf $(OBJS) $(DFILES)
 
-%.o: %.cc $(OBJDIR)/%.d
+%.o: %.cc
 	$(CC) $(CXXFLAGS) -c $< -o $(OBJDIR)/$@
 
 %.o: %.S

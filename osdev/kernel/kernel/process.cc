@@ -1,11 +1,11 @@
 #include "process.h"
 
-#include "qemu_log.h"
 #include "./fs/ext2.h"
 #include "cpu_context.h"
 #include "elf.h"
 #include "kernel_math.h"
 #include "paging.h"
+#include "qemu_log.h"
 
 namespace Kernel {
 namespace {
@@ -21,14 +21,16 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
     : KernelThread(nullptr, /*need_stack=*/true),
       in_kernel_space_(false),
       parent_(parent),
-      kernel_list_elem_(nullptr),
+      child_list_elem_(nullptr),
       file_name_(file_name) {
+  child_list_elem_.Set(this);
+
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
     Process* parent_process = static_cast<Process*>(parent);
 
     // Push itself to parent process's children list.
-    kernel_list_elem_.ChangeList(parent_process->GetChildrenList());
-    kernel_list_elem_.PushBack();
+    child_list_elem_.ChangeList(parent_process->GetChildrenList());
+    child_list_elem_.PushBack();
   }
 
   // We need to get a frame for the process.
@@ -47,37 +49,6 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   user_regs_.cs = 0x23;       // User Code segment
   user_regs_.ss = 0x1b;       // User Stack segment.
   user_regs_.rflags = 0x200;  // Interrupt is enabled.
-
-  // Initialize file descriptors.
-  fds_.push_back(File(File::STDIN));
-  fds_.push_back(File(File::STDOUT));
-  fds_.push_back(File(File::STDERR));
-}
-
-Process::Process(Process* parent)
-    : KernelThread(nullptr, /*need_stack=*/true),
-      in_kernel_space_(false),
-      parent_(parent),
-      kernel_list_elem_(nullptr),
-      file_name_(parent->file_name_) {
-  kprintf("Cloning the process!");
-  kernel_list_elem_.ChangeList(parent->GetChildrenList());
-  kernel_list_elem_.PushBack();
-
-  // We need to get a frame for the process.
-  auto& page_table_manager = PageTableManager::GetPageTableManager();
-  pml4e_base_phys_addr_ = page_table_manager.CreateUserPageTable();
-
-  PageTableManager::GetPageTableManager().AllocatePage(
-      pml4e_base_phys_addr_, (uint64_t*)(kUserProcessStackAddress - kFourKB),
-      0);
-
-  // Copy the current state of the parent.
-  user_regs_ = *parent->GetSavedUserRegs();
-
-  // Specify the return value (0 to the child process for fork()) to the newly
-  // created process.
-  user_regs_.regs.rax = 0;
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
@@ -113,13 +84,10 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 
-  QemuSerialLog::Logf("stat is done %d\n", file_info.file_size);
   // Read the entire file.
   uint8_t* buf = static_cast<uint8_t*>(kmalloc(file_info.file_size));
-  QemuSerialLog::Logf("Start reading file\n");
   ext2_filesystem.ReadFile(file_name, buf, file_info.file_size);
 
-  QemuSerialLog::Logf("reading file done\n");
   // Parse the ELF header.
   ELFReader elf_reader(buf, file_info.file_size);
 
@@ -143,6 +111,21 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
   // Now as soon as the kernel switches to this thread, it will first copy the
   // contents from the program headers.
   return process;
+}
+
+void Process::SetExitCode(pid_t pid, uint64_t exit_code) {
+  std::lock_guard<MultiCoreSpinLock> lk(exit_code_lock_);
+  child_to_exit_code_[pid] = exit_code;
+}
+
+bool Process::ReadExitCode(pid_t pid, uint64_t* exit_code) {
+  std::lock_guard<MultiCoreSpinLock> lk(exit_code_lock_);
+  auto itr = child_to_exit_code_.find(pid);
+  if (itr != child_to_exit_code_.end()) {
+    *exit_code = (*itr).second;
+    return true;
+  }
+  return false;
 }
 
 }  // namespace Kernel

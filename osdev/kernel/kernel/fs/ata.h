@@ -4,7 +4,6 @@
 #include "../../std/types.h"
 #include "../kthread.h"
 #include "../sync.h"
-#include "filesystem.h"
 
 namespace Kernel {
 
@@ -54,8 +53,6 @@ struct ATADevice {
 
 class ATADriver {
  public:
-  class ATAFileSystem : public FileSystem {};
-
   ATADriver(const ATADriver&) = delete;
   ATADriver operator=(const ATADriver&) = delete;
 

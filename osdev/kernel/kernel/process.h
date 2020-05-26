@@ -2,8 +2,8 @@
 #define PROCESS_H
 
 #include "../std/string_view.h"
-#include "./fs/filesystem.h"
 #include "elf.h"
+#include "file_descriptor.h"
 #include "kernel_list.h"
 #include "kthread.h"
 
@@ -22,10 +22,10 @@ class Process : public KernelThread {
   Process(KernelThread* parent, const KernelString& file_name,
           EntryFuncType entry_function);
 
-  // Clone the current process by fork.
-  Process(Process* parent);
-
   KernelList<Process*>* GetChildrenList() { return &children_; }
+  void SetParent(KernelThread* parent) { parent_ = parent; }
+  KernelThread* GetParent() { return parent_; }
+
   bool IsKernelThread() const override { return false; }
   bool IsInKernelSpace() const override { return in_kernel_space_; }
 
@@ -47,6 +47,16 @@ class Process : public KernelThread {
   void SetInKernel() { in_kernel_space_ = true; }
   void SetInUser() { in_kernel_space_ = false; }
 
+  KernelListElement<Process*>* GetChildListElem() { return &child_list_elem_; }
+
+  void SetExitCode(pid_t pid, uint64_t exit_code);
+
+  // Read exit code of the child process pid. If success, returns true and sets
+  // the exit_code. Otherwise, returns false.
+  bool ReadExitCode(pid_t pid, uint64_t* exit_code);
+
+  FileDescriptorTable& GetFileDescriptorTable() { return fd_table_; }
+
   // Check whether the address falls within
   //   - Current process's stack size.
   //   - ELF segments.
@@ -62,7 +72,8 @@ class Process : public KernelThread {
 
   KernelThread* parent_;
 
-  KernelListElement<Process*> kernel_list_elem_;
+  // Element that belongs to the parent's process.
+  KernelListElement<Process*> child_list_elem_;
 
   // List of children processes.
   KernelList<Process*> children_;
@@ -72,8 +83,11 @@ class Process : public KernelThread {
 
   KernelString file_name_;
 
-  // List of opened files.
-  std::vector<File> fds_;
+  FileDescriptorTable fd_table_;
+
+  // Map children's pid_t to the exit code.
+  MultiCoreSpinLock exit_code_lock_;
+  std::map<pid_t, int> child_to_exit_code_;
 };
 
 class ProcessManager {
