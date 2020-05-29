@@ -78,7 +78,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
-  //QemuSerialLog::Logf("Current thread : %d \n", current_thread->Id());
+  // QemuSerialLog::Logf("Current thread : %d \n", current_thread->Id());
   ASSERT(next_thread_element->Get()->CpuId() ==
          CPUContextManager::GetCurrentCPUId());
   // If current RIP is in kernel, then the current thread is in kernel.
@@ -135,17 +135,14 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 
   // Now we have to change interrupt frame to the target threads' return info.
   KernelThread* next_thread = next_thread_element->Get();
-  //QemuSerialLog::Logf("Next thread : %d \n", next_thread->Id());
+  // QemuSerialLog::Logf("Next thread : %d \n", next_thread->Id());
   next_thread->SetInQueue(false);
 
   /*
-  int cpu_id = CPUContextManager::GetCurrentCPUId();
-  if (cpu_id >= 0) {
-    QemuSerialLog::Logf("[CPU %d] Schedule!(%d) -> (%d) %lx \n",
-                        CPUContextManager::GetCurrentCPUId(),
-                        current_thread->Id(), next_thread->Id(),
-                        CPUContextManager::GetCurrentCPUId());
-  }
+  QemuSerialLog::Logf("[CPU %d] Schedule!(%d) -> (%d) %lx \n",
+                      CPUContextManager::GetCurrentCPUId(),
+                      current_thread->Id(), next_thread->Id(),
+                      next_thread->GetSavedKernelRegs()->rsp);
   if (CPUContextManager::GetCurrentCPUId() == 1) {
     sp.lock();
   kprintf("Schedule!(%d) -> (%d) %lx \n", current_thread->Id(),
@@ -162,6 +159,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   if (next_thread->IsInKernelSpace()) {
     next_thread_regs = next_thread->GetSavedKernelRegs();
     CopyCPUInteruptHandlerArgs(args, next_thread_regs);
+
   } else {
     Process* process = static_cast<Process*>(next_thread);
     next_thread_regs = process->GetSavedUserRegs();
@@ -169,7 +167,7 @@ void KernelThreadScheduler::YieldInInterruptHandler(
 
     // Also set TSS RSP0 as current user process's kernel stack rsp.
     TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
-        next_thread->GetSavedKernelRegs()->rsp);
+        next_thread->GetKernelStackTop());
   }
   *regs = next_thread_regs->regs;
 
@@ -192,12 +190,12 @@ void KernelThreadScheduler::EnqueueThread(
     KernelListElement<KernelThread*>* elem) {
   uint32_t cpu_id = elem->Get()->CpuId();
 
-  // QemuSerialLog::Logf("Enqueue %d --> %d \n", elem->Get()->Id(), cpu_id);
   // Acquire lock on the scheduling queue.
   queue_locks_[cpu_id].lock();
 
   // Enqueue thread.
   elem->ChangeList(&kernel_thread_list_[cpu_id]);
+  // QemuSerialLog::Logf("Enqueue %d --> %d \n", elem->Get()->Id(), cpu_id);
   /*
   QemuSerialLog::Logf("[EnqueueThread]h %lx t %lx sz : %d t:%d cpu %d t:%d\n",
                       kernel_thread_list_[cpu_id].head_,
@@ -211,6 +209,8 @@ void KernelThreadScheduler::EnqueueThread(
   if (!elem->Get()->IsInQueue()) {
     elem->PushBack();
     elem->Get()->SetInQueue(true);
+  } else {
+    QemuSerialLog::Logf("Already in queue?");
   }
   /*
   QemuSerialLog::Logf("[aftEnqueueThread]h %lx t %lx sz : %d\n",

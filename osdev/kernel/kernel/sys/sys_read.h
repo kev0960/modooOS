@@ -3,6 +3,7 @@
 
 #include "../fs/actual_file_desc.h"
 #include "../kthread.h"
+#include "../pipe.h"
 #include "../process.h"
 #include "../qemu_log.h"
 #include "../scheduler.h"
@@ -28,6 +29,13 @@ class SysReadHandler : public SyscallHandler<SysReadHandler> {
       ActualFileDescriptor* actual_file_desc =
           static_cast<ActualFileDescriptor*>(desc);
       return actual_file_desc->Read(buf, count);
+    } else if (desc->GetDescriptorType() == FileDescriptor::PIPE_READ) {
+      PipeDescriptorReadEnd* read_end =
+          static_cast<PipeDescriptorReadEnd*>(desc);
+      return read_end->Read(buf, count);
+    } else {
+      // Descriptor is not valid or not opened.
+      return -1;
     }
 
     return 0;

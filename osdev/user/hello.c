@@ -32,11 +32,45 @@ int main() {
   }
   */
 
+  int pipefd[2];
+
+  // Create a pipe.
+  pipe(pipefd);
+
   pid_t pid;
+
+  // Now child inherits the pipe.
   int result = spawn(&pid, "/print_simple");
 
-  char str_out[100];
+  char str_out[128];
+  int cnt = read(3, str_out, 128);
+  str_out[0] = '!';
+  str_out[cnt] = 0;
+  write(str_out);
+
+  cnt = read(3, str_out, 128);
+  str_out[0] = '!';
+  str_out[cnt] = 0;
+  write(str_out);
+
+  cnt = read(3, str_out, 128);
+  str_out[0] = '!';
+  str_out[cnt] = 0;
+  write(str_out);
+
+  cnt = read(3, str_out, 128);
+  str_out[0] = '!';
+  str_out[cnt] = 0;
+  write(str_out);
+
+  cnt = read(3, str_out, 128);
+  str_out[0] = '!';
+  str_out[cnt] = 0;
+  write(str_out);
+
   sprintf(str_out, "result = %d pid : %d\n", result, pid);
+  write(str_out);
+  sprintf(str_out, "pipe %d %d \n", pipefd[0], pipefd[1]);
   write(str_out);
 
   int status;

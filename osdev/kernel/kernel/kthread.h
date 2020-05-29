@@ -86,7 +86,7 @@ class KernelThread {
 
   ThreadStatus status_;
 
- protected:
+ //protected:
   pid_t thread_id_;
   SavedRegisters kernel_regs_;
 

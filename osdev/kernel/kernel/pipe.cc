@@ -1,61 +1,65 @@
 #include "pipe.h"
 
+#include "../std/algorithm.h"
 #include "qemu_log.h"
+#include "scheduler.h"
 
 namespace Kernel {
 
-int PipeManager::CreatePipe(int pipe_fd[2]) {
-  PipeManager& pipe_manager = GetPipeManager();
-
-  std::lock_guard<MultiCoreSpinLock> lk(pipe_manager.pipe_create_lock_);
-  pipe_fd[0] = pipe_manager.current_assigned_++;
-  pipe_fd[1] = pipe_manager.current_assigned_++;
-
-  Pipe* pipe = new Pipe;
-
-  pipe_manager.id_to_pipe_[pipe_fd[0]] = pipe;
-  pipe_manager.id_to_pipe_[pipe_fd[1]] = pipe;
-
-  return 0;
-}
-
-Pipe* PipeManager::GetPipe(int pipe_fd) {
-  PipeManager& pipe_manager = GetPipeManager();
-
-  std::lock_guard<MultiCoreSpinLock> lk(pipe_manager.pipe_create_lock_);
-  auto itr = pipe_manager.id_to_pipe_.find(pipe_fd);
-  if (itr != pipe_manager.id_to_pipe_.end()) {
-    return (*itr).second;
-  } else {
-    return nullptr;
-  }
-}
-
 int Pipe::Write(char* data, int len) {
-  std::lock_guard<MultiCoreSpinLock> lk(buf_access_lock_);
-  if (len >= kPipeMaxSize - buf_size_) {
-    QemuSerialLog::Logf("Pipe is full!");
+  QemuSerialLog::Logf("Write PIPE!!! : %s \n", data);
+  if (len > kPipeMaxSize) {
+    QemuSerialLog::Logf("Data size is too large!");
     return 0;
   }
 
-  for (int i = 0; i < len; i++) {
-    buf_[buf_size_ + i] = data[i];
+  // Wait until there is nothing left in the pipe.
+  while (true) {
+    buf_access_lock_.lock();
+    if (size_ > 0) {
+      buf_access_lock_.unlock();
+      KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+      continue;
+    }
+
+    for (int i = 0; i < len; i++) {
+      buf_[i] = data[i];
+    }
+
+    size_ = len;
+    buf_access_lock_.unlock();
+    return len;
   }
-
-  buf_size_ += len;
-
-  return len;
 }
 
-int Pipe::Read(char* data) {
-  std::lock_guard<MultiCoreSpinLock> lk(buf_access_lock_);
-  for (int i = 0; i < buf_size_; i++) {
-    data[i] = buf_[i];
-  }
+int Pipe::Read(char* data, size_t count) {
+  // Wait until there is some data in the pipe.
+  while (true) {
+    buf_access_lock_.lock();
+    if (size_ == 0) {
+      buf_access_lock_.unlock();
+      KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+      continue;
+    }
 
-  int prev_size = buf_size_;
-  buf_size_ = 0;
-  return prev_size;
+    int actually_read = min((int)count, size_);
+    for (int i = 0; i < actually_read; i++) {
+      data[i] = buf_[i];
+    }
+
+    size_ = 0;
+    buf_access_lock_.unlock();
+
+    return actually_read;
+  }
+}
+
+int PipeDescriptorReadEnd::Read(char* data, size_t count) {
+  return pipe_->Read(data, count);
+}
+
+int PipeDescriptorWriteEnd::Write(char* data, int len) {
+  return pipe_->Write(data, len);
 }
 
 }  // namespace Kernel

@@ -1,4 +1,5 @@
 #include "../std/set.h"
+
 #include "../std/map.h"
 #include "kernel_test.h"
 
@@ -60,6 +61,32 @@ TEST(SetTest, SimpleInsert) {
   }
   EXPECT_TRUE(s.count(7) == 0);
   EXPECT_TRUE(s.count(0) == 0);
+}
+
+TEST(SetTest, SimpleCopy) {
+  std::set<int> s;
+  s.insert(2);
+  s.insert(1);
+  s.insert(3);
+  s.insert(6);
+  s.insert(5);
+  s.insert(4);
+  s.insert(8);
+
+  // Copy construct s2.
+  std::set<int> s2(s);
+
+  int data[] = {1, 2, 3, 4, 5, 6, 8};
+  int i = 0;
+  for (auto itr = s2.begin(); itr != s2.end(); ++itr, ++i) {
+    EXPECT_EQ(*itr, data[i]);
+  }
+
+  for (int i = 0; i < 7; i++) {
+    EXPECT_TRUE(s2.count(data[i]) == 1);
+  }
+  EXPECT_TRUE(s2.count(7) == 0);
+  EXPECT_TRUE(s2.count(0) == 0);
 }
 
 TEST(SetTest, SimpleEraseTest) {
@@ -417,6 +444,42 @@ TEST(MapTest, MapIteratorTest) {
 
   i = 0;
   for (auto itr = m.begin(); itr != m.end(); ++itr, ++i) {
+    EXPECT_EQ(itr->first, i);
+    EXPECT_EQ(itr->second, (i + 1) * 2 + 3);
+  }
+}
+
+TEST(MapTest, MapCopy) {
+  std::map<int, int> m;
+  const int num = 10;
+  int data[] = {9, 4, 7, 0, 6, 3, 1, 0, 8, 6, 9, 9, 2, 5, 1,
+                8, 1, 6, 5, 7, 4, 3, 2, 7, 8, 3, 4, 5, 0, 2};
+  int state[num] = {0};
+
+  for (int i = 0; i < 3 * num; i++) {
+    if (state[data[i]] == 0) {
+      m[data[i]] = data[i] + 1;
+    } else if (state[data[i]] == 1) {
+      m[data[i]] *= 2;
+    } else if (state[data[i]] == 2) {
+      m[data[i]] += 2;
+    }
+
+    state[data[i]]++;
+  }
+
+  auto m2 = m;
+
+  int i = 0;
+  for (auto itr = m2.begin(); itr != m2.end(); ++itr, ++i) {
+    EXPECT_EQ(itr->first, i);
+    EXPECT_EQ(itr->second, (i + 1) * 2 + 2);
+
+    itr->second++;
+  }
+
+  i = 0;
+  for (auto itr = m2.begin(); itr != m2.end(); ++itr, ++i) {
     EXPECT_EQ(itr->first, i);
     EXPECT_EQ(itr->second, (i + 1) * 2 + 3);
   }

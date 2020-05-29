@@ -17,6 +17,9 @@ constexpr int OffsetOf(const T& t, U T::*u) {
 
 void PrintStackTrace();
 
+// Print stack of the user process.
+void PrintStackTrace(uint64_t user_rbp, int num_step = -1);
+
 
 // Functions below should not be directly used.
 namespace __ {

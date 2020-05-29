@@ -65,10 +65,10 @@ int BlockIterator::GetBlockId(size_t depth) {
   return block_id;
 }
 
-Block BlockIterator::GetBlockFromDepth(size_t depth) {
+Block* BlockIterator::GetBlockFromDepth(size_t depth) {
   if (depth > current_index_.CurrentDepth()) {
     PANIC();
-    return Block();
+    return nullptr;
   }
 
   for (size_t i = 0; i <= depth; i++) {
@@ -83,8 +83,8 @@ Block BlockIterator::GetBlockFromDepth(size_t depth) {
     }
   }
 
-  Block block;
-  block.CopyFrom(cached_blocks_[depth].data);
+  Block* block = reinterpret_cast<Block*>(kmalloc(sizeof(Block)));
+  block->CopyFrom(cached_blocks_[depth].data);
   return block;
 }
 

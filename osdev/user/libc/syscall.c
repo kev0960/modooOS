@@ -88,3 +88,6 @@ pid_t waitpid(pid_t pid, int* status) {
   return syscall_2(6, pid, (int64_t)status);
 }
 
+int pipe(int pipefd[2]) { return syscall_1(8, (int64_t)pipefd); }
+int dup2(int oldfd, int newfd) { return syscall_2(9, oldfd, newfd); }
+

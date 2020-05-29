@@ -377,10 +377,11 @@ void Ext2FileSystem::ExpandFileSize(size_t inode_num,
           // Need to update the inode.
           WriteInode(inode_num, file_inode);
         } else {
-          Block block = curr.GetBlockFromDepth(i - 1);
-          BlockIterator::SetNthEntryAtAddressBlock(&block, curr.Index()[i],
+          Block* block = curr.GetBlockFromDepth(i - 1);
+          BlockIterator::SetNthEntryAtAddressBlock(block, curr.Index()[i],
                                                    empty_block_id);
-          WriteFromBlockId(block.data(), curr.GetBlockId(i - 1));
+          WriteFromBlockId(block->data(), curr.GetBlockId(i - 1));
+          kfree(block);
         }
       }
     }

@@ -64,6 +64,22 @@ class map {
   using iterator = MapIterator<const Key, Value>;
   using value_type = pair<const Key, Value>;
 
+  map() = default;
+
+  // Dump ways to copy
+  map(const map& m) {
+    for (auto itr = m.begin(); itr != m.end(); ++itr) {
+      operator[]((*itr).first) = (*itr).second;
+    }
+  }
+
+  map& operator=(const map& m) {
+    for (auto itr = m.begin(); itr != m.end(); ++itr) {
+      operator[]((*itr).first) = (*itr).second;
+    }
+    return *this;
+  }
+
   Value& at(const Key& key) {
     iterator itr(key_val_.find(KeyVal<const Key, Value>(key)));
     ASSERT(itr != end());

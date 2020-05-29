@@ -2,6 +2,15 @@
 #include "./libc/syscall.h"
 
 int main() {
+  uint64_t rbp;
+  char r[20];
+  asm volatile("mov %%rbp, %0\n" : "=m"(rbp)::);
+  sprintf(r, "rbp:%lx", rbp);
+  write(r);
+
+  // Now Write to stdout is identical to write to pipe.
+  dup2(4, 1);
+
   write("Hello, world!\n");
 
   int fd = open("/temp.txt");
@@ -23,6 +32,5 @@ int main() {
   read(fd2, buf2, 99);
   buf2[99] = 0;
   write(buf2);
-
   return 123;
 }

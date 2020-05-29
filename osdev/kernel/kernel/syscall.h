@@ -10,7 +10,9 @@ enum SyscallNumbers {
   SYS_EXEC,  // Do not use
   SYS_SPAWN = 5,
   SYS_WAITPID,
-  SYS_OPEN
+  SYS_OPEN,
+  SYS_PIPE = 8,
+  SYS_DUP2
 };
 
 class SyscallManager {

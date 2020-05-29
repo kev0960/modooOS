@@ -31,6 +31,9 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
     // Push itself to parent process's children list.
     child_list_elem_.ChangeList(parent_process->GetChildrenList());
     child_list_elem_.PushBack();
+
+    // Copy the descriptor table.
+    fd_table_ = parent_process->fd_table_;
   }
 
   // We need to get a frame for the process.
@@ -49,6 +52,9 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
   user_regs_.cs = 0x23;       // User Code segment
   user_regs_.ss = 0x1b;       // User Stack segment.
   user_regs_.rflags = 0x200;  // Interrupt is enabled.
+
+  // Make sure the descriptors recognizes this process.
+  fd_table_.AddProcessIdToDescriptors(Id());
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {

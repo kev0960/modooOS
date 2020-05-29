@@ -98,6 +98,20 @@ class set {
   using const_iterator = const SetIterator<BinaryTreeNode<T>>;
 
   set() : num_elements_(0) {}
+  set(const set& s) {
+    // This is pretty dumb way to implement copying.
+    // TODO improve this.
+    for (auto itr = s.begin(); itr != s.end(); ++itr) {
+      insert(*itr);
+    }
+  }
+
+  set& operator=(const set& s) {
+    for (auto itr = s.begin(); itr != s.end(); ++itr) {
+      insert(*itr);
+    }
+    return *this;
+  }
 
   iterator begin() const {
     auto* current = tree_.Root();

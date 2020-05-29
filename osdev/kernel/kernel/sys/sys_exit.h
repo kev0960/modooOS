@@ -19,6 +19,10 @@ class SysExitHandler : public SyscallHandler<SysExitHandler> {
     }
     // kprintf("Terminate thread : %d %d\n", exit_num, current_thread->Id());
 
+    // Let descriptors know that this process is now being terminated.
+    // It will probably remove descriptors that are not being used anymore.
+    process->GetFileDescriptorTable().RemoveProcessIdToDescriptors(
+        process->Id());
     process->Terminate();
 
     return exit_code;

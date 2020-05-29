@@ -1,8 +1,10 @@
 #include "syscall.h"
 
 #include "../std/printf.h"
+#include "./sys/sys_dup2.h"
 #include "./sys/sys_exit.h"
 #include "./sys/sys_open.h"
+#include "./sys/sys_pipe.h"
 #include "./sys/sys_read.h"
 #include "./sys/sys_spawn.h"
 #include "./sys/sys_waitpid.h"
@@ -10,6 +12,7 @@
 #include "cpp_macro.h"
 #include "cpu.h"
 #include "cpu_context.h"
+#include "descriptor_table.h"
 #include "kthread.h"
 #include "process.h"
 #include "qemu_log.h"
@@ -103,38 +106,52 @@ void SyscallManager::InitSyscall() {
 int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
                                    uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                    uint64_t arg5, uint64_t arg6) {
-  QemuSerialLog::Logf("Syscall %d [pid:%d] [CPU:%d] \n", syscall_num,
+  QemuSerialLog::Logf("Syscall %d [pid:%d] [CPU:%d] %lx \n", syscall_num,
                       KernelThread::CurrentThread()->Id(),
-                      CPUContextManager::GetCurrentCPUId());
+                      CPUContextManager::GetCurrentCPUId(),
+                      CPURegsAccessProvider::ReadRSP());
 
   CPURegsAccessProvider::EnableInterrupt();
 
   int ret = 0;
   switch (syscall_num) {
-    case SYS_EXIT:
+    case SYS_EXIT:  // 0
       SysExitHandler::GetHandler().SysExit(arg1);
       break;
-    case SYS_READ:
+    case SYS_READ:  // 1
       ret = SysReadHandler::GetHandler().SysRead(
           static_cast<int>(arg1), reinterpret_cast<char*>(arg2), arg3);
       break;
-    case SYS_WRITE:
-      ret = SysWriteHandler::GetSysWriteHandler().SysWrite(
+    case SYS_WRITE:  // 2
+      ret = SysWriteHandler::GetHandler().SysWrite(
           static_cast<int>(arg1), reinterpret_cast<uint8_t*>(arg2), arg3);
+      QemuSerialLog::Logf("sys write[pid : %d] %lx %lx\n",
+                          KernelThread::CurrentThread()->Id(),
+                          CPURegsAccessProvider::ReadRSP(),
+                          KernelThread::CurrentThread()->kernel_stack_top_);
       break;
-    case SYS_SPAWN:
+    case SYS_SPAWN:  // 5
       ret = SysSpawnHandler::GetHandler().SysSpawn(
           reinterpret_cast<pid_t*>(arg1), reinterpret_cast<const char*>(arg2));
       break;
-    case SYS_WAITPID:
+    case SYS_WAITPID:  // 6
       ret = SysWaitpidHandler::GetHandler().SysWaitpid(
           reinterpret_cast<pid_t>(arg1), reinterpret_cast<int*>(arg2));
       break;
-    case SYS_OPEN:
+    case SYS_OPEN:  // 7
       ret = SysOpenHandler::GetHandler().SysOpen(
           reinterpret_cast<const char*>(arg1));
       break;
+    case SYS_PIPE:  // 8
+      ret = SysPipeHandler::GetHandler().SysPipe(reinterpret_cast<int*>(arg1));
+      break;
+    case SYS_DUP2:  // 9
+      ret = SysDup2Handler::GetHandler().SysDup2(arg1, arg2);
+      break;
   }
+
+  TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
+      KernelThread::CurrentThread()->GetKernelStackTop());
 
   UNUSED(syscall_num);
   UNUSED(arg1);

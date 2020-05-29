@@ -10,56 +10,52 @@ namespace Kernel {
 
 class Pipe {
  public:
-  Pipe() {}
-
-  // Writes to the pipe.
+  // Writes to the pipe. Will wait until there is nothing left in the pipe.
   int Write(char* data, int len);
 
-  // Read from the pipe.
-  int Read(char* data);
+  // Read from the pipe. Will wait until there is something in the pipe.
+  // If count < size_, then any remaining data will be dropped from pipe.
+  // Hence, to make sure the user reads everything, it needs to provide at least
+  // kPipeMaxSize buffer.
+  int Read(char* data, size_t count);
+
+  Pipe() = default;
+  ~Pipe() = default;
 
  private:
   static constexpr int kPipeMaxSize = 4096;
 
-  // For convenience, our pipe can hold up to 4096 bytes of data.
+  // Our pipe can hold up to 4096 bytes of data.
   char buf_[kPipeMaxSize];
 
-  int buf_size_;
+  // Current buffer size.
+  int size_;
 
   MultiCoreSpinLock buf_access_lock_;
 };
 
-class PipeDescriptor : FileDescriptor {
+class PipeDescriptorReadEnd : public FileDescriptor {
  public:
-  DescriptorType GetDescriptorType() final { return PIPE; }
+  PipeDescriptorReadEnd(Pipe* pipe) : pipe_(pipe) {}
 
-  PipeDescriptor(Pipe* pipe) : pipe_(pipe) {}
+  DescriptorType GetDescriptorType() final { return PIPE_READ; }
 
-  Pipe* GetPipe() { return pipe_; }
+  int Read(char* data, size_t count);
 
  private:
   Pipe* pipe_;
 };
 
-class PipeManager {
+class PipeDescriptorWriteEnd : public FileDescriptor {
  public:
-  static int CreatePipe(int pipe_fd[2]);
+  PipeDescriptorWriteEnd(Pipe* pipe) : pipe_(pipe) {}
 
-  static PipeManager& GetPipeManager() {
-    static PipeManager pipe_manager;
-    return pipe_manager;
-  }
+  DescriptorType GetDescriptorType() final { return PIPE_WRITE; }
 
-  static Pipe* GetPipe(int pipe_fd);
+  int Write(char* data, int len);
 
  private:
-  static constexpr int kPipeStartId = 0x10000000;
-  MultiCoreSpinLock pipe_create_lock_;
-  int current_assigned_;
-
-  std::map<int, Pipe*> id_to_pipe_;
-
-  PipeManager() { current_assigned_ = kPipeStartId; }
+  Pipe* pipe_;
 };
 
 }  // namespace Kernel

@@ -526,8 +526,10 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
     PageTablePrintUtil::PrintUserTable(
         PhysToKernel<uint64_t*>(process->GetPageTableBaseAddress()));
 
-    QemuSerialLog::Logf("Terminate! %lx [CPU : %d] addr : %lx\n", fault_addr,
-                        CPUContextManager::GetCurrentCPUId(), fault_addr);
+    QemuSerialLog::Logf("Terminate! [fault : %lx] [CPU : %d] rbp : %lx\n",
+                        fault_addr, CPUContextManager::GetCurrentCPUId(),
+                        regs->rbp);
+    PrintStackTrace(regs->rbp);
     // Terminate this process if the fault address is not allowed.
     process->TerminateInInterruptHandler(args, regs);
     return;

@@ -45,4 +45,28 @@ void PrintStackTrace() {
   } while (rbp);
 }
 
+void PrintStackTrace(uint64_t user_rbp, int num_step) {
+  uint64_t rbp = user_rbp;
+  if (rbp == 0) {
+    return;
+  }
+  do {
+    uint64_t return_addr = *((uint64_t*)(rbp) + 1);
+    QemuSerialLog::Logf("%lx [FrameAddr: %lx] \n", return_addr, rbp);
+
+    uint64_t next_rbp = *(uint64_t*)(rbp);
+    if (next_rbp == rbp) {
+      break;
+    }
+    rbp = next_rbp;
+
+    if (num_step == 0) {
+      break;
+    }
+    if (num_step > 0) {
+      num_step--;
+    }
+  } while (rbp);
+}
+
 }  // namespace Kernel

@@ -10,7 +10,16 @@ using Block = std::array<uint8_t, kBlockSize>;
 
 class BlockIterator {
  public:
-  BlockIterator(Ext2Inode* inode) : inode_(inode) {}
+  BlockIterator(Ext2Inode* inode) : inode_(inode) {
+    cached_blocks_ =
+        reinterpret_cast<CachedBlock*>(kmalloc(sizeof(CachedBlock) * 4));
+    for (int i = 0; i < 4; i++) {
+      cached_blocks_[i].block_addr = -1;
+      cached_blocks_[i].index = -1;
+    }
+  }
+
+  ~BlockIterator() { kfree(cached_blocks_); }
 
   BlockIterator& operator++() {
     ++current_index_;
@@ -43,7 +52,9 @@ class BlockIterator {
   // Block[2345] --> 5 th entry = 3456
   // Returns 3456
   int GetBlockId(size_t depth);
-  Block GetBlockFromDepth(size_t depth);
+
+  // Dynamically Allocate block.
+  Block* GetBlockFromDepth(size_t depth);
   void SetBlockId(size_t depth, size_t block_id);
 
   // Get the block id of the current data block.
@@ -75,7 +86,8 @@ class BlockIterator {
     AddressBlock data;
   };
 
-  std::array<CachedBlock, 4> cached_blocks_;
+  CachedBlock* cached_blocks_;
+  // std::array<CachedBlock, 4> cached_blocks_;
 };
 }  // namespace Kernel
 
