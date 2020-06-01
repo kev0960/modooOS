@@ -106,7 +106,6 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
     // of the stack.
     kernel_regs_.rsp =
         reinterpret_cast<uint64_t>(&stack[num_stack_elements - 1]);
-    kprintf("PROCESS Stack range : %lx ~ %lx \n", kernel_regs_.rsp, stack);
 
     // We are pushing Done as a return address. When the thread finishes, it
     // will return to Done() which will finish the thread.

@@ -56,6 +56,12 @@ struct KeyInfo {
   KEY_ACTION action;
 };
 
+struct KeyStroke {
+  char c;
+  bool is_ctrl_down;
+  bool is_alt_down;
+};
+
 struct KeyPressTracker {
   // Last time that the key press was DOWN.
   uint64_t time_down;

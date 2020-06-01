@@ -1,6 +1,7 @@
 #include "keyboard.h"
 
 #include "../std/char_util.h"
+#include "console.h"
 #include "timer.h"
 #include "vga_output.h"
 
@@ -163,18 +164,32 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
     key_press_info.time_down = 0;
   }
 
+  auto& console = KernelConsole::GetKernelConsole();
+  bool is_console_up = console.IsRunning();
+
   if (key_info.action == KEY_DOWN) {
+    char c = 0;
     if (key_info.key < 128) {
       if (IsShiftDown()) {
-        vga_output << CharWhenShiftPressed(static_cast<char>(key_info.key));
+        c = CharWhenShiftPressed(static_cast<char>(key_info.key));
       } else {
-        vga_output << static_cast<char>(key_info.key);
+        c = static_cast<char>(key_info.key);
       }
     } else {
       if (key_info.key == ENTER) {
-        vga_output << "\n";
+        c = '\n';
       }
-      // vga_output << static_cast<int>(key_info.key);
+    }
+
+    if (is_console_up) {
+      KeyStroke ks;
+      ks.c = c;
+      ks.is_alt_down = IsAltDown();
+      ks.is_ctrl_down = IsControlDown();
+
+      console.AddKeyStroke(ks);
+    } else {
+      VGAOutput::GetVGAOutput() << c;
     }
   }
 }

@@ -20,7 +20,6 @@
 
 using namespace Kernel;
 
-Kernel::VGAOutput<> Kernel::vga_output{};
 MultiCoreSpinLock spin_lock;
 
 extern "C" void KernelMain(void);
@@ -46,32 +45,14 @@ void Sleep1() {
 void Sleep2() {
   while (true) {
     TimerManager::GetCurrentTimer().Sleep(300);
-    Kernel::vga_output << "Hi (2) ";
+    kprintf("Hi (2) ");
   }
 }
 
 void Sleep3() {
   while (true) {
     TimerManager::GetCurrentTimer().Sleep(1000);
-    Kernel::vga_output << "Hi (3) ";
-  }
-}
-
-void Weird() {
-  while (true) {
-    uint8_t* str = (uint8_t*)kmalloc(10);
-    Ext2FileSystem::GetExt2FileSystem().ReadFile("/a.out", str, 9);
-    str[9] = '\0';
-
-    spin_lock.lock();
-
-    Kernel::vga_output << "Hi !!!! " << CPUContextManager::GetCurrentCPUId()
-                       << " " << (int)str[0] << (int)str[1] << "\n";
-
-    spin_lock.unlock();
-
-    kfree(str);
-    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+    kprintf("Hi (3) ");
   }
 }
 
@@ -105,11 +86,11 @@ void KernelMain() {
   idt_manager.InitializeIDTForCPUException();
   idt_manager.InitializeCustomInterrupt();
   idt_manager.LoadIDT();
-  Kernel::vga_output << "IDT setup is done! \n";
+  kprintf("IDT setup is done! \n");
 
   auto& gdt_table_manager = GDTTableManager::GetGDTTableManager();
   gdt_table_manager.SetUpGDTTables();
-  Kernel::vga_output << "Resetting GDT is done! \n";
+  kprintf("Resetting GDT is done! \n");
 
   idt_manager.InitializeIDTForIRQ();
 
@@ -120,7 +101,7 @@ void KernelMain() {
   auto& page_table_manager = PageTableManager::GetPageTableManager();
   page_table_manager.SetCR3<CPURegsAccessProvider>(
       page_table_manager.GetKernelPml4eBaseAddr());
-  Kernel::vga_output << "Init Paging is done! \n";
+  kprintf("Init Paging is done! \n");
 
   ACPIManager::GetACPIManager().DetectRSDP();
   ACPIManager::GetACPIManager().ParseRSDT();
@@ -138,7 +119,7 @@ void KernelMain() {
   timer_manager.InstallAPICTimer(num_cores);
 
   KernelThread::InitThread();
-  Kernel::vga_output << "Init kThread is done! \n";
+  kprintf("Init kThread is done! \n");
 
   kernel_test::KernelTestRunner::GetTestRunner().RunTest();
 

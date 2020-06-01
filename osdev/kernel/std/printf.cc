@@ -40,7 +40,7 @@
 #define PRINTF_SUPPORT_LONG_LONG
 
 void _putchar(char character) {
-  Kernel::vga_output.PutCharWithoutLock(character);
+  Kernel::VGAOutput::GetVGAOutput().PutCharWithoutLock(character);
 }
 
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
@@ -917,13 +917,14 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen,
 ///////////////////////////////////////////////////////////////////////////////
 
 int printf_(const char* format, ...) {
-  Kernel::vga_output.PrintLock();
+  auto& vga_output = Kernel::VGAOutput::GetVGAOutput();
+  vga_output.PrintLock();
   va_list va;
   va_start(va, format);
   char buffer[1];
   const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
   va_end(va);
-  Kernel::vga_output.PrintUnlock();
+  vga_output.PrintUnlock();
   return ret;
 }
 

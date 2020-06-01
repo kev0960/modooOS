@@ -125,10 +125,6 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
     case SYS_WRITE:  // 2
       ret = SysWriteHandler::GetHandler().SysWrite(
           static_cast<int>(arg1), reinterpret_cast<uint8_t*>(arg2), arg3);
-      QemuSerialLog::Logf("sys write[pid : %d] %lx %lx\n",
-                          KernelThread::CurrentThread()->Id(),
-                          CPURegsAccessProvider::ReadRSP(),
-                          KernelThread::CurrentThread()->kernel_stack_top_);
       break;
     case SYS_SPAWN:  // 5
       ret = SysSpawnHandler::GetHandler().SysSpawn(

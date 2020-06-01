@@ -54,24 +54,23 @@ void PrintCPUInterruptFrame(CPUInterruptHandlerArgs* args, size_t int_num) {
   QemuSerialLog::Logf("Interrupt Frame ------------- \n");
   QemuSerialLog::Logf("Interrupt index : %lx \n", int_num);
   QemuSerialLog::Logf(
-      "[CPU %d] cs : %lx; rip : %lx; rsp : %lx; rflags : %lx; ss : %lx\n",
-      CPUContextManager::GetCurrentCPUId(), args->cs, args->rip, args->rsp,
-      args->rflags, args->ss);
+      "cs : %lx; rip : %lx; rsp : %lx; rflags : %lx; ss : %lx\n", args->cs,
+      args->rip, args->rsp, args->rflags, args->ss);
+  QemuSerialLog::Logf("CPU Id: %d\n", CPUContextManager::GetCurrentCPUId());
 
-  vga_output << "Interrupt Frame --------------------\n";
-  vga_output << " Interrupt index : " << int_num;
+  kprintf("Interrupt Frame --------------------\n");
+  kprintf(" Interrupt index : %d", int_num);
   if (int_num < sizeof(kCPUExceptionErrorMessages) /
                     sizeof(kCPUExceptionErrorMessages[0])) {
-    vga_output << " [" << kCPUExceptionErrorMessages[int_num] << "]";
+    kprintf("[%s]", kCPUExceptionErrorMessages[int_num]);
   }
-  vga_output << "\n";
+  kprintf("\n");
 
-  // vga_output << "at : " << KernelThread::CurrentThread()->Id();
-  vga_output << " cs : " << args->cs << "\n";
-  vga_output << " rip : " << args->rip << "\n";
-  vga_output << " rflags : " << args->rflags << "\n";
-  vga_output << " rsp : " << args->rsp << "\n";
-  vga_output << " ss : " << args->ss << "\n";
+  kprintf(" cs : %lx \n", args->cs);
+  kprintf(" rip: %lx \n", args->rip);
+  kprintf(" rflags: %lx \n", args->rflags);
+  kprintf(" rsp: %lx \n", args->rsp);
+  kprintf(" ss: %lx \n", args->ss);
 
   while (1)
     ;
@@ -86,7 +85,7 @@ __attribute__((interrupt)) void CPUInterruptHandler(
 template <int INT_NUM>
 __attribute__((interrupt)) void CPUInterruptHandlerWithErrorCode(
     CPUInterruptHandlerArgs* args, uint64_t error_code) {
-  vga_output << "Error Code : " << error_code << "\n";
+  kprintf("Error Code : %lx \n", error_code);
   PrintCPUInterruptFrame(args, INT_NUM);
 }
 
