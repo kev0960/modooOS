@@ -21,6 +21,7 @@ class SysWriteHandler : public SyscallHandler<SysWriteHandler> {
     // TODO This is just a placeholder.
     if (desc == nullptr) {
       QemuSerialLog::Logf("%s", buf);
+      //kprintf("%s", buf);
     } else if (desc->GetDescriptorType() == FileDescriptor::ACTUAL_FILE) {
       ActualFileDescriptor* actual_file_desc =
           static_cast<ActualFileDescriptor*>(desc);

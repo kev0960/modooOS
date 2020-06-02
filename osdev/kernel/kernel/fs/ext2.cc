@@ -272,9 +272,9 @@ size_t Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
 
 void Ext2FileSystem::WriteFile(std::string_view path, uint8_t* buf,
                                size_t num_write, size_t offset) {
-  size_t inode_num = GetInodeNumberFromPath(path);
+  int inode_num = GetInodeNumberFromPath(path);
   kprintf("Write file : %d %s\n", inode_num, path);
-  if (inode_num == size_t(-1)) {
+  if (inode_num == -1) {
     return;
   }
 
@@ -442,7 +442,6 @@ void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
 FileInfo Ext2FileSystem::Stat(std::string_view path) {
   int inode_num = GetInodeNumberFromPath(path);
   if (inode_num == -1) {
-    kprintf("File is not found \n");
     return FileInfo{};
   }
 
@@ -610,8 +609,8 @@ size_t Ext2FileSystem::GetEndOfDirectoryEntry(Ext2Inode* dir_inode) {
 }
 
 int Ext2FileSystem::GetInodeNumberFromPath(std::string_view path) {
-  if (path.empty()) {
-    PANIC();
+  if (path.empty() || path[0] != '/') {
+    return -1;
   }
 
   // TODO Support relative paths.

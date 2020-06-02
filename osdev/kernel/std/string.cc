@@ -32,5 +32,25 @@ int strncmp(const char* lhs, const char* rhs, size_t count) {
   return 0;
 }
 
+std::vector<KernelString> Split(const KernelString& ks, char delim) {
+  std::vector<KernelString> sp;
+
+  size_t current = 0;
+  while (current < ks.size()) {
+    size_t next = ks.find(delim, current);
+    if (next == npos) {
+      sp.push_back(ks.substr(current));
+      break;
+    } else if (next != current) {
+      sp.push_back(ks.substr(current, next - current));
+    }
+
+    // Note that we ignore consecutive delimiters.
+
+    current = next + 1;
+  }
+
+  return sp;
+}
 }  // namespace Kernel
 

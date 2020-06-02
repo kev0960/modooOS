@@ -183,9 +183,10 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
 
     if (is_console_up) {
       KeyStroke ks;
-      ks.c = c;
+      ks.c = key_info.key;
       ks.is_alt_down = IsAltDown();
       ks.is_ctrl_down = IsControlDown();
+      ks.is_shift_down = IsShiftDown();
 
       console.AddKeyStroke(ks);
     } else {
@@ -206,6 +207,19 @@ bool PS2Keyboard::IsControlDown() const {
 
 bool PS2Keyboard::IsAltDown() const {
   return key_press_list_[KEY_CODES::LALT].time_down != 0;
+}
+
+char KeyStroke::ToChar() const {
+  char ch = 0;
+  if (c < 128) {
+    if (is_shift_down) {
+      ch = CharWhenShiftPressed(static_cast<char>(c));
+    } else {
+      ch = static_cast<char>(c);
+    }
+  }
+
+  return ch;
 }
 
 }  // namespace Kernel

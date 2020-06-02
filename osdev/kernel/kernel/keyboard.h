@@ -57,9 +57,12 @@ struct KeyInfo {
 };
 
 struct KeyStroke {
-  char c;
+  KEY_CODES c;
   bool is_ctrl_down;
   bool is_alt_down;
+  bool is_shift_down;
+
+  char ToChar() const;
 };
 
 struct KeyPressTracker {

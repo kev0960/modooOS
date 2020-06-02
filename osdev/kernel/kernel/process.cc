@@ -90,6 +90,11 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 
+  // File is not found.
+  if (file_info.file_size == 0) {
+    return nullptr;
+  }
+
   // Read the entire file.
   uint8_t* buf = static_cast<uint8_t*>(kmalloc(file_info.file_size));
   ext2_filesystem.ReadFile(file_name, buf, file_info.file_size);

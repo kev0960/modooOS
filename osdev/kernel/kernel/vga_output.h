@@ -4,7 +4,9 @@
 #include "../std/algorithm.h"
 #include "../std/string_view.h"
 #include "../std/type_traits.h"
+#include "../std/vector.h"
 #include "cpu.h"
+#include "keyboard.h"
 #include "printf.h"
 #include "sync.h"
 
@@ -35,7 +37,7 @@ class VGAOutput {
   constexpr static size_t kNumRows = 25;
   constexpr static size_t kNumCols = 80;
   constexpr static uint64_t kVGAMemoryStart =
-      0xffffffff80000000ULL + 0xb8000ULL;
+      (0xffffffff80000000ULL + 0xb8000ULL);
 
   static VGAOutput& GetVGAOutput() {
     static VGAOutput vga_output;
@@ -44,49 +46,7 @@ class VGAOutput {
 
   void PrintLock() { spin_lock_.lock(); }
   void PrintUnlock() { spin_lock_.unlock(); }
-
-  void PrintString(std::string_view s, VGAColor color = White) {
-    while (!s.empty()) {
-      auto len = min(kNumCols - current_col_, s.size());
-      size_t endline_or_col_chars = s.find_first_of('\n', 0, len);
-      bool endline_found = (endline_or_col_chars != npos);
-
-      if (endline_or_col_chars == npos) {
-        endline_or_col_chars = len;
-      }
-      auto first_num_col_chars = s.substr(0, endline_or_col_chars);
-
-      PrintStringLineAtCursor(first_num_col_chars, color);
-
-      if (endline_found && current_col_ != 0 && current_row_ < kNumRows) {
-        // Fill remaining part as 0.
-        for (size_t i = current_col_; i < kNumCols; i++) {
-          text_buffer_[current_row_][i] = 0;
-        }
-
-        current_row_++;
-        current_col_ = 0;
-      }
-
-      if (endline_found) {
-        s.remove_prefix(min(endline_or_col_chars + 1, len));
-      } else {
-        s.remove_prefix(min(endline_or_col_chars, len));
-      }
-    }
-
-    auto vga = reinterpret_cast<uint16_t*>(kVGAMemoryStart);
-    for (size_t i = 0; i < current_row_; i++) {
-      for (size_t j = 0; j < kNumCols; j++) {
-        vga[i * kNumCols + j] = text_buffer_[i][j];
-      }
-    }
-    if (current_col_ != 0) {
-      for (size_t i = 0; i < kNumCols; i++) {
-        vga[kNumCols * current_row_ + i] = text_buffer_[current_row_][i];
-      }
-    }
-  }
+  void PrintString(std::string_view s, VGAColor color = White);
 
   VGAOutput& operator<<(std::string_view s) {
     PrintLock();
@@ -121,30 +81,19 @@ class VGAOutput {
     PrintString(s);
   }
 
-  void PutCharAt(size_t row, size_t col);
+  void PrintKeyStrokes(const std::vector<KeyStroke>& ks, int start, int end);
+  void PutCharAt(size_t row, size_t col, char c, VGAColor color);
 
+ private:
   size_t current_row_;
   size_t current_col_;
-
-  size_t offset_;
 
   uint16_t text_buffer_[kNumRows][kNumCols];
 
   SpinLock m_;
 
-  // Scroll the text buffer up.
-  void ScrollTextBufferUp() {
-    for (size_t i = 1; i < kNumRows; i++) {
-      for (size_t j = 0; j < kNumCols; j++) {
-        text_buffer_[i - 1][j] = text_buffer_[i][j];
-      }
-    }
-
-    // Clear the last row.
-    for (size_t i = 0; i < kNumCols; i++) {
-      text_buffer_[kNumRows - 1][i] = 0;
-    }
-  }
+  // Scroll the text buffer up by num_up times.
+  void ScrollTextBufferUp(size_t num_up = 1);
 
   // Print the string at single line.
   void PrintStringLineAtCursor(std::string_view s, VGAColor color) {
@@ -165,14 +114,17 @@ class VGAOutput {
     }
   }
 
- private:
-  explicit VGAOutput() : current_row_(0), current_col_(0) {
+  VGAOutput() : current_row_(0), current_col_(0) {
     for (size_t i = 0; i < kNumRows; i++) {
       for (size_t j = 0; j < kNumCols; j++) {
         text_buffer_[i][j] = 0;
       }
     }
   }
+
+  int EstimateNumScrollDown(const std::vector<KeyStroke>& ks, int start,
+                            int end);
+  void FlushTextBuffer();
 
   SpinLockNoLockInIntr spin_lock_;
 };

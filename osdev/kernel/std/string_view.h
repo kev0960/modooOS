@@ -3,6 +3,7 @@
 
 #include "string_util.h"
 #include "types.h"
+#include "vector.h"
 
 namespace Kernel {
 namespace std {
@@ -57,8 +58,8 @@ class basic_string_view {
     return npos;
   }
 
-  constexpr size_t find_first_of(CharT c, size_t pos, size_t count) const
-      noexcept {
+  constexpr size_t find_first_of(CharT c, size_t pos,
+                                 size_t count) const noexcept {
     size_t i = pos;
     for (; i < min(size_, pos + count); i++) {
       if (str_[i] == c) {
@@ -90,6 +91,29 @@ class basic_string_view {
 };
 
 using string_view = basic_string_view<char>;
+
+template <typename CharT>
+std::vector<basic_string_view<CharT>> Split(basic_string_view<CharT> s,
+                                            char delim) {
+  std::vector<basic_string_view<CharT>> sp;
+
+  size_t current = 0;
+  while (current < s.size()) {
+    size_t next = s.find_first_of(delim, current);
+    if (next == npos) {
+      sp.push_back(s.substr(current));
+      break;
+    } else if (next != current) {
+      sp.push_back(s.substr(current, next - current));
+    }
+
+    // Note that we ignore consecutive delimiters.
+
+    current = next + 1;
+  }
+
+  return sp;
+}
 
 }  // namespace std
 }  // namespace Kernel

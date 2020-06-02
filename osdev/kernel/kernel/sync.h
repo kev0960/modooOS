@@ -73,6 +73,7 @@ class SpinLock : public Lock {
 
  private:
   bool acquired = false;
+  KernelThread* holder_;
 };
 
 // This spinlock can be used even when the spinlock needs to be acuqired inside

@@ -3,10 +3,12 @@
 
 #include "algorithm.h"
 #include "types.h"
+#include "vector.h"
 
 #define NTOA_BUFFER_SIZE 20
 
 namespace Kernel {
+
 unsigned int strlen(const char* s);
 int strcmp(const char* s, const char* t);
 
@@ -59,6 +61,7 @@ void ntoa(char* str, size_t size, Int num, size_t base = 10) {
   }
   str[num_len + offset] = 0;
 }
+
 }  // namespace Kernel
 
 #endif

@@ -19,7 +19,22 @@ void SpinLock::lock() {
   int cnt = 0;
   while (__atomic_test_and_set(&acquired, __ATOMIC_ACQUIRE)) {
     cnt++;
-    if (cnt >= 10000000) {
+    if (cnt >= 100000) {
+      // If the lock holder terminates without returning the unlocking (for
+      // whatever reasons), then we need to retrieve the lock back somehow. This
+      // is just a temporary solution. The better way would be the thread itself
+      // holds the list of acquired locks and unlocks those right before
+      // termination.
+      //
+      // This is a temporary fix to support kernel console killing process in
+      // the middle of QemuLogging.
+      //
+      // TODO Fix this behavior.
+      if (holder_->IsTerminated()) {
+        holder_ = KernelThread::CurrentThread();
+        break;
+      }
+
       if (lock_name_ != nullptr) {
         QemuSerialLog::Logf("[SpinLock %s] Contention! %lx \n", lock_name_,
                             __builtin_return_address(0));
@@ -30,9 +45,14 @@ void SpinLock::lock() {
       cnt = 0;
     }
   }
+
+  holder_ = KernelThread::CurrentThread();
 }
 
-void SpinLock::unlock() { __atomic_clear(&acquired, __ATOMIC_RELEASE); }
+void SpinLock::unlock() {
+  holder_ = nullptr;
+  __atomic_clear(&acquired, __ATOMIC_RELEASE);
+}
 
 bool SpinLock::try_lock() {
   bool expected = false;

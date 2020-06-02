@@ -66,6 +66,9 @@ class KernelThread {
   void MakeSleep() { status_ = THREAD_SLEEP; }
   void MakeRun() { status_ = THREAD_RUN; }
 
+  void MakeTerminate() { status_ = THREAD_TERMINATE; }
+  bool IsTerminated() { return status_ == THREAD_TERMINATE; }
+
   void SetInQueue(bool in_queue) { in_queue_ = in_queue; }
   bool IsInQueue() const { return in_queue_; }
 

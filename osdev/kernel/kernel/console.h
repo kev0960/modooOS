@@ -44,6 +44,9 @@ class KernelConsole {
 
   KernelConsole();
 
+  void FillInputBufferAndParse(int num_received);
+  void DoParse();
+
   // Line buffer. If someone prints more lines than kLinBufferSize without
   // newline, then it will automatically add newline and the previous line will
   // be unmodifiable.
@@ -66,6 +69,9 @@ class KernelConsole {
   // This is the input buffer exclusively used for the input.
   char* input_buffer_;
   int input_buffer_size_;
+
+  // If true, print fancy shell prefix ("root$").
+  bool should_show_shell_prefix_;
 };
 
 }  // namespace Kernel

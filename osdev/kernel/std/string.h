@@ -77,20 +77,21 @@ class KernelBasicString {
 
   const char* c_str() const { return &str_.at(0); }
 
-  KernelBasicString substr(size_t start, size_t len = -1) {
-    if (len == -1) {
+  KernelBasicString substr(size_t start, size_t len = npos) const {
+    if (len == npos) {
       len = size() - start;
     }
 
-    return KernelBasicString(&str_[start], len);
+    return KernelBasicString(&str_.at(start), len);
   }
 
-  size_t find(CharT c, size_t from = 0) {
+  size_t find(CharT c, size_t from = 0) const {
     for (size_t i = from; i < size(); i++) {
-      if (str_[i] == c) {
+      if (str_.at(i) == c) {
         return i;
       }
     }
+    return npos;
   }
 
   bool operator==(const KernelBasicString& s) const {
@@ -105,6 +106,8 @@ class KernelBasicString {
     return true;
   }
 
+  bool operator!=(const KernelBasicString& s) const { return !(operator==(s)); }
+
   bool operator==(std::basic_string_view<CharT> s) const {
     if (size() != s.size()) {
       return false;
@@ -117,11 +120,17 @@ class KernelBasicString {
     return true;
   }
 
+  bool operator!=(std::basic_string_view<CharT> s) const {
+    return !(operator==(s));
+  }
+
  private:
   std::vector<CharT> str_;
 };
 
 using KernelString = KernelBasicString<char>;
+
+std::vector<KernelString> Split(const KernelString& ks, char delim);
 
 }  // namespace Kernel
 

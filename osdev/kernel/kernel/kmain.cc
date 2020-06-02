@@ -3,6 +3,7 @@
 #include "./fs/ext2.h"
 #include "acpi.h"
 #include "apic.h"
+#include "console.h"
 #include "cpu.h"
 #include "cpu_context.h"
 #include "descriptor_table.h"
@@ -179,9 +180,12 @@ void KernelMain() {
 
   kprintf("Filesystem setup is done! \n");
 
+  /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/hello");
   process->Start();
+  */
+  KernelConsole::InitKernelConsole();
 
   while (1) {
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
@@ -241,6 +245,7 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/hello");
   process->Start();
+
   /*
   auto* process2 = process_manager.CreateProcess("/a.out");
   process2->Start();
