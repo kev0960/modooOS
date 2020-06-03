@@ -37,20 +37,22 @@ class KernelConsole {
   // function.
   int ReadKeyStroke(std::vector<KeyStroke>* strokes);
 
+  void PrintToTerminal(char* data, int sz);
+  void PrintTermOutputBuffer();
+
+  void ShowWelcome();
+
  private:
-  static constexpr int kLineBufferSize = 1024;
   static constexpr int kInputLineBufferSize = 1024;
   static constexpr int kKeyStrokeBufferSize = 1024;
+
+  // 1 MB of the terminal output buffer.
+  static constexpr int kTerminalOutputBufferSize = 1048576 - 1;
 
   KernelConsole();
 
   void FillInputBufferAndParse(int num_received);
   void DoParse();
-
-  // Line buffer. If someone prints more lines than kLinBufferSize without
-  // newline, then it will automatically add newline and the previous line will
-  // be unmodifiable.
-  char* line_buffer_;
 
   // Current foreground process.
   Process* fg_process_;
@@ -72,6 +74,14 @@ class KernelConsole {
 
   // If true, print fancy shell prefix ("root$").
   bool should_show_shell_prefix_;
+
+  // Anything that the process prints with "write" syscall to the stdout will be
+  // written here.
+  char* term_output_buffer_;
+  size_t term_output_read_index_;
+  size_t term_output_write_index_;
+
+  char* term_output_buffer_to_print_;
 };
 
 }  // namespace Kernel

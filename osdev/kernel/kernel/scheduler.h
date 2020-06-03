@@ -32,6 +32,13 @@ class KernelThreadScheduler {
   // Enqueue the kernel thread.
   void EnqueueThread(KernelListElement<KernelThread*>* elem);
 
+  // Enqueue the kernel thread for the first time. Core will be chosen.
+  void EnqueueThreadFirstTime(KernelListElement<KernelThread*>* elem);
+
+  const std::vector<int>& NumThreadsPerCore() const {
+    return num_threads_per_core_;
+  }
+
  private:
   KernelThreadScheduler() = default;
   KernelListElement<KernelThread*>* PopNextThreadToRun();
@@ -39,6 +46,9 @@ class KernelThreadScheduler {
   // Scheduling queue.
   // NOTE that currently running thread (on CPU) is NOT on the queue.
   std::vector<KernelList<KernelThread*>> kernel_thread_list_;
+
+  // Number of threads running per core.
+  std::vector<int> num_threads_per_core_;
 
   // Locks for the scheduling queue. MUST be obtained when modifying the queue.
   std::vector<MultiCoreSpinLock> queue_locks_;

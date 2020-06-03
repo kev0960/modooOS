@@ -42,6 +42,9 @@ void PrintStackTrace() {
       break;
     }
     rbp = next_rbp;
+    if (rbp < 0xFFFFFFFF80000000ULL) {
+      break;
+    }
   } while (rbp);
 }
 

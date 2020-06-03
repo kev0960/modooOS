@@ -83,6 +83,7 @@ class VGAOutput {
 
   void PrintKeyStrokes(const std::vector<KeyStroke>& ks, int start, int end);
   void PutCharAt(size_t row, size_t col, char c, VGAColor color);
+  void ClearScreen();
 
  private:
   size_t current_row_;

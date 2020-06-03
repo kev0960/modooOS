@@ -1,6 +1,7 @@
 #ifndef SYS_SYS_WRITE_H
 #define SYS_SYS_WRITE_H
 
+#include "../console.h"
 #include "../fs/actual_file_desc.h"
 #include "../pipe.h"
 #include "../process.h"
@@ -21,7 +22,9 @@ class SysWriteHandler : public SyscallHandler<SysWriteHandler> {
     // TODO This is just a placeholder.
     if (desc == nullptr) {
       QemuSerialLog::Logf("%s", buf);
-      //kprintf("%s", buf);
+      KernelConsole::GetKernelConsole().PrintToTerminal(
+          reinterpret_cast<char*>(buf), count);
+      // kprintf("%s", buf);
     } else if (desc->GetDescriptorType() == FileDescriptor::ACTUAL_FILE) {
       ActualFileDescriptor* actual_file_desc =
           static_cast<ActualFileDescriptor*>(desc);

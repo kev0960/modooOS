@@ -83,11 +83,13 @@ void KernelThread::SetCurrentThread(KernelThread* thread) {
                                 current_thread_addr >> 32);
 }
 
-KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
+KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack,
+                           bool in_same_cpu_id)
     : self(this),
       status_(THREAD_RUN),
       kernel_list_elem_(&KernelThreadScheduler::GetKernelThreadList()),
-      in_queue_(false) {
+      in_queue_(false),
+      in_same_cpu_id_(in_same_cpu_id) {
   thread_id_ = ThreadIdManager::GetThreadId();
 
   // The rip of this function will be entry_function.
@@ -126,8 +128,13 @@ KernelThread::KernelThread(EntryFuncType entry_function, bool need_stack)
 }
 
 void KernelThread::Start() {
-  KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThread(
-      &kernel_list_elem_);
+  if (in_same_cpu_id_) {
+    KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThread(
+        &kernel_list_elem_);
+  } else {
+    KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThreadFirstTime(
+        &kernel_list_elem_);
+  }
 }
 
 void KernelThread::Terminate() {

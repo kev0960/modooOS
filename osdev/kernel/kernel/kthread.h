@@ -34,7 +34,8 @@ class KernelThread {
   static bool kInitThreadDone;
 
   // If need_stack is true, then rsp will be used as a RSP.
-  KernelThread(EntryFuncType entry_function, bool need_stack = true);
+  KernelThread(EntryFuncType entry_function, bool need_stack = true,
+               bool in_same_cpu_id = true);
 
   static KernelThread* CurrentThread();
   static void SetCurrentThread(KernelThread* thread);
@@ -46,6 +47,7 @@ class KernelThread {
   SavedRegisters* GetSavedKernelRegs() { return &kernel_regs_; }
   pid_t Id() const { return thread_id_; }
   uint32_t CpuId() const { return cpu_id_; }
+  void SetCpuId(pid_t id) { cpu_id_ = id; }
 
   KernelListElement<KernelThread*>* GetKenrelListElem() {
     return &kernel_list_elem_;
@@ -102,6 +104,7 @@ class KernelThread {
   uint32_t cpu_id_;
 
   bool in_queue_;
+  bool in_same_cpu_id_;
 };
 
 class Semaphore {

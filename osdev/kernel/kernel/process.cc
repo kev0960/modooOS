@@ -15,10 +15,9 @@ constexpr uint64_t kFourKB = (1 << 12);
 
 }  // namespace
 
-// Since this is a user process, it does not need a kernel stack.
 Process::Process(KernelThread* parent, const KernelString& file_name,
                  EntryFuncType entry_function)
-    : KernelThread(nullptr, /*need_stack=*/true),
+    : KernelThread(nullptr, /*need_stack=*/true, /*in_same_cpu_id=*/false),
       in_kernel_space_(false),
       parent_(parent),
       child_list_elem_(nullptr),

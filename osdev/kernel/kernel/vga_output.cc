@@ -90,12 +90,20 @@ void VGAOutput::PrintKeyStrokes(const std::vector<KeyStroke>& ks, int start,
 
   for (int i = start; i < end; i++) {
     if (current_col_ == kNumCols) {
-      ScrollTextBufferUp();
+      if (current_row_ < kNumRows - 1) {
+        current_row_++;
+      } else {
+        ScrollTextBufferUp();
+      }
       current_col_ = 0;
     }
 
     if (ks.at(i).c == KEY_CODES::ENTER) {
-      ScrollTextBufferUp();
+      if (current_row_ < kNumRows - 1) {
+        current_row_++;
+      } else {
+        ScrollTextBufferUp();
+      }
       current_col_ = 0;
       continue;
     } else if (ks.at(i).c == KEY_CODES::BACKSPACE) {
@@ -103,6 +111,8 @@ void VGAOutput::PrintKeyStrokes(const std::vector<KeyStroke>& ks, int start,
         current_col_--;
         PutCharAt(current_row_, current_col_, 0, VGAColor::White);
       }
+      continue;
+    } else if (ks.at(i).ToChar() == 0) {
       continue;
     } else {
       PutCharAt(current_row_, current_col_, ks.at(i).ToChar(), VGAColor::White);
@@ -148,6 +158,19 @@ void VGAOutput::FlushTextBuffer() {
       vga[i * kNumCols + j] = text_buffer_[i][j];
     }
   }
+}
+
+void VGAOutput::ClearScreen() {
+  auto* vga = reinterpret_cast<uint16_t*>(kVGAMemoryStart);
+
+  for (size_t i = 0; i < kNumRows; i++) {
+    for (size_t j = 0; j < kNumCols; j++) {
+      vga[i * kNumCols + j] = text_buffer_[i][j] = 0;
+    }
+  }
+
+  current_row_ = 0;
+  current_col_ = 0;
 }
 
 }  // namespace Kernel

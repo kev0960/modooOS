@@ -1,5 +1,6 @@
 #include "console.h"
 
+#include "../std/string_view.h"
 #include "process.h"
 #include "scheduler.h"
 #include "string.h"
@@ -11,13 +12,24 @@ void KernelConsole::InitKernelConsole() {
   KernelThread* console_thread =
       new KernelThread([] { KernelConsole::GetKernelConsole().Run(); });
   console_thread->Start();
+
+  // This thread will keep monitor the terminal output buffer and print anything
+  // that shows up there.
+  KernelThread* print_terminal_thread = new KernelThread(
+      [] { KernelConsole::GetKernelConsole().PrintTermOutputBuffer(); });
+  print_terminal_thread->Start();
 }
 
 KernelConsole::KernelConsole() {
-  line_buffer_ = reinterpret_cast<char*>(kmalloc(kLineBufferSize));
-
   input_buffer_ = reinterpret_cast<char*>(kmalloc(kInputLineBufferSize));
   input_buffer_size_ = 0;
+
+  term_output_buffer_ =
+      reinterpret_cast<char*>(kmalloc(kTerminalOutputBufferSize));
+  term_output_read_index_ = 0;
+  term_output_write_index_ = 0;
+  term_output_buffer_to_print_ =
+      reinterpret_cast<char*>(kmalloc(kTerminalOutputBufferSize + 1));
 
   received_keyinfo_queue.reserve(kKeyStrokeBufferSize);
 
@@ -124,8 +136,11 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
         input_buffer_size_--;
       }
     } else {
-      input_buffer_[input_buffer_size_] = received_keyinfo_queue[i].ToChar();
-      input_buffer_size_++;
+      char c = received_keyinfo_queue[i].ToChar();
+      if (c != 0) {
+        input_buffer_[input_buffer_size_] = c;
+        input_buffer_size_++;
+      }
     }
 
     if (input_buffer_size_ >= kInputLineBufferSize) {
@@ -148,6 +163,18 @@ void KernelConsole::DoParse() {
   if (input[0] == "cd") {
     QemuSerialLog::Logf("cd is called!");
     return;
+  } else if (input[0] == "clear") {
+    VGAOutput::GetVGAOutput().ClearScreen();
+    should_show_shell_prefix_ = true;
+    return;
+  } else if (input[0] == "ps") {
+    const auto& th_per_core =
+        KernelThreadScheduler::GetKernelThreadScheduler().NumThreadsPerCore();
+    for (size_t i = 0; i < th_per_core.size(); i++) {
+      kprintf("CPU %d has [%d] thread(s) \n", i, th_per_core.at(i));
+    }
+    kprintf("\n");
+    return;
   }
 
   for (auto s : input) {
@@ -166,6 +193,76 @@ void KernelConsole::DoParse() {
   fg_process_->Join();
 
   fg_process_ = nullptr;
+}
+
+void KernelConsole::PrintToTerminal(char* data, int sz) {
+  for (int i = 0; i < sz; i++) {
+    size_t write_index =
+        __atomic_fetch_add(&term_output_write_index_, 1, __ATOMIC_RELAXED);
+    term_output_buffer_[write_index % kTerminalOutputBufferSize] = data[i];
+  }
+}
+
+void KernelConsole::PrintTermOutputBuffer() {
+  while (true) {
+    size_t write_index = term_output_write_index_ % kTerminalOutputBufferSize;
+    if (write_index == term_output_read_index_) {
+      KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+      continue;
+    }
+
+    int num_to_read = 0;
+    if (write_index > term_output_read_index_) {
+      num_to_read = write_index - term_output_read_index_;
+    } else {
+      num_to_read =
+          term_output_read_index_ - write_index + kTerminalOutputBufferSize;
+    }
+
+    for (int i = 0; i < num_to_read; i++) {
+      if (i + term_output_read_index_ < kTerminalOutputBufferSize) {
+        term_output_buffer_to_print_[i] =
+            term_output_buffer_[i + term_output_read_index_];
+      } else {
+        term_output_buffer_to_print_[i] =
+            term_output_buffer_[i + term_output_read_index_ -
+                                kTerminalOutputBufferSize];
+      }
+    }
+
+    // Add NULL terminator.
+    term_output_buffer_to_print_[num_to_read] = 0;
+
+    term_output_read_index_ += num_to_read;
+    if (term_output_read_index_ >= kTerminalOutputBufferSize) {
+      term_output_read_index_ -= kTerminalOutputBufferSize;
+    }
+
+    kprintf("%s", term_output_buffer_to_print_);
+  }
+}
+
+void KernelConsole::ShowWelcome() {
+  std::string_view welcome = R"(
+              a8888b.
+             d888888b.
+             8P"YP"Y88
+             8|o||o|88   Welcome To
+             8'    .88    ModooOs
+             8`._.' Y8.
+            d/      `8b.
+           dP   .    Y8b.
+          d8:'  "  `::88b
+         d8"         'Y88b
+        :8P    '      :888
+         8a.   :     _a88P
+       ._/"Yaa_:   .| 88P|
+  jgs  \    YP"    `| 8P  `.
+  a:f  /     \.___.d|    .'
+       `--..__)8888P`._.'
+)";
+
+  VGAOutput::GetVGAOutput().PrintString(welcome, VGAColor::Green);
 }
 
 }  // namespace Kernel

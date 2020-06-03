@@ -1,6 +1,7 @@
 #include "scheduler.h"
 
 #include "../std/printf.h"
+#include "apic.h"
 #include "cpu.h"
 #include "descriptor_table.h"
 #include "paging.h"
@@ -116,6 +117,8 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   } else {
     // This thread is no longer in queue (since it is sleeping).
     current_thread->SetInQueue(false);
+    __atomic_fetch_sub(&num_threads_per_core_[current_thread->CpuId()], 1,
+                       __ATOMIC_RELAXED);
   }
   /*
   QemuSerialLog::Logf("[aft enq]h %lx t %lx sz : %d\n",
@@ -189,6 +192,7 @@ void KernelThreadScheduler::Yield() { asm volatile("int $0x30\n"); }
 void KernelThreadScheduler::EnqueueThread(
     KernelListElement<KernelThread*>* elem) {
   uint32_t cpu_id = elem->Get()->CpuId();
+  __atomic_fetch_add(&num_threads_per_core_[cpu_id], 1, __ATOMIC_RELAXED);
 
   // Acquire lock on the scheduling queue.
   queue_locks_[cpu_id].lock();
@@ -222,13 +226,29 @@ void KernelThreadScheduler::EnqueueThread(
   queue_locks_[cpu_id].unlock();
 }
 
+static size_t core = 1;
+void KernelThreadScheduler::EnqueueThreadFirstTime(
+    KernelListElement<KernelThread*>* elem) {
+  if (APICManager::GetAPICManager().IsMulticoreEnabled()) {
+    elem->Get()->SetCpuId(core);
+    elem->Get()->SetCpuId(core);
+    core++;
+    core = core % queue_locks_.size();
+    QemuSerialLog::Logf("Enqueue thread %d to CPU %d \n", elem->Get()->Id(),
+                        elem->Get()->CpuId());
+  }
+  EnqueueThread(elem);
+}
+
 void KernelThreadScheduler::SetCoreCount(int num_core) {
   kernel_thread_list_.reserve(num_core);
   queue_locks_.reserve(num_core);
+  num_threads_per_core_.reserve(num_core);
 
   for (int i = 0; i < num_core; i++) {
     kernel_thread_list_.push_back(KernelList<KernelThread*>());
     queue_locks_.push_back(MultiCoreSpinLock());
+    num_threads_per_core_.push_back(0);
   }
 }
 

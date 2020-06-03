@@ -186,6 +186,9 @@ void KernelMain() {
   process->Start();
   */
   KernelConsole::InitKernelConsole();
+  //VGAOutput::GetVGAOutput().ClearScreen();
+
+  KernelConsole::GetKernelConsole().ShowWelcome();
 
   while (1) {
     KernelThreadScheduler::GetKernelThreadScheduler().Yield();
@@ -240,13 +243,12 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
 
   auto& syscall_manager = SyscallManager::GetSyscallManager();
   syscall_manager.InitSyscall();
-  kprintf("Syscall handler setup is done! \n");
 
+  /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/hello");
   process->Start();
 
-  /*
   auto* process2 = process_manager.CreateProcess("/a.out");
   process2->Start();
   */

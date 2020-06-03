@@ -142,7 +142,7 @@ void APICManager::SendWakeUpAllCores() {
     SetRegister(kICRHighOffset, id << 24);
     SetRegister(kICRLowOffset, 0x04602);
 
-    TimerManager::GetCurrentTimer().Sleep(100);
+    TimerManager::GetCurrentTimer().Sleep(20);
     // Loop until AP finishes the setup.
     while (!context->ap_boot_done) {
     }
