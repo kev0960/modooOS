@@ -12,7 +12,8 @@ enum SyscallNumbers {
   SYS_WAITPID,
   SYS_OPEN,
   SYS_PIPE = 8,
-  SYS_DUP2
+  SYS_DUP2,
+  SYS_STAT = 10
 };
 
 class SyscallManager {

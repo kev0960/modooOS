@@ -13,3 +13,10 @@ pid_t waitpid(pid_t pid, int* status);
 
 int pipe(int pipefd[2]);
 int dup2(int oldfd, int newfd);
+
+struct stat {
+  size_t inode;
+  size_t file_size;
+};
+
+int stat(const char* pathname, struct stat* statbuf);

@@ -7,6 +7,7 @@
 #include "./sys/sys_pipe.h"
 #include "./sys/sys_read.h"
 #include "./sys/sys_spawn.h"
+#include "./sys/sys_stat.h"
 #include "./sys/sys_waitpid.h"
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
@@ -143,6 +144,11 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
       break;
     case SYS_DUP2:  // 9
       ret = SysDup2Handler::GetHandler().SysDup2(arg1, arg2);
+      break;
+    case SYS_STAT:
+      ret = SysStatHandler::GetHandler().SysStat(
+          reinterpret_cast<const char*>(arg1),
+          reinterpret_cast<FileInfo*>(arg2));
       break;
   }
 

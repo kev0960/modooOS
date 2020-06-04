@@ -195,6 +195,11 @@ void KernelConsole::DoParse() {
   fg_process_->Join();
 
   fg_process_ = nullptr;
+
+  // By yielding here, print_terminal_thread will be enqueued. This will give a
+  // chance to flush every remaining output buffer before printing the prompt
+  // back.
+  KernelThreadScheduler::GetKernelThreadScheduler().Yield();
 }
 
 void KernelConsole::PrintToTerminal(char* data, int sz) {
