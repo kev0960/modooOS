@@ -73,7 +73,7 @@ class KernelBasicString {
   CharT& operator[](size_t index) { return str_[index]; }
   const CharT& at(size_t index) const { return str_.at(index); }
 
-  CharT& back() { return str_[size() - 1]; }
+  CharT& back() { return str_[size()]; }
 
   const char* c_str() const { return &str_.at(0); }
 

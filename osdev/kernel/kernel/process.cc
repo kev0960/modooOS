@@ -10,8 +10,26 @@
 namespace Kernel {
 namespace {
 
-constexpr uint64_t kUserProcessStackAddress = 0x40000000;
 constexpr uint64_t kFourKB = (1 << 12);
+
+uint64_t CopyStringToStack(const KernelString& s, uint64_t rsp) {
+  // We have to put NULL terminator too.
+  rsp = rsp - (s.size() + 1);
+
+  for (size_t i = 0; i < s.size(); i++) {
+    *reinterpret_cast<char*>(rsp + i) = s.at(i);
+  }
+  *reinterpret_cast<char*>(rsp + s.size()) = 0;
+
+  return rsp;
+}
+
+template <typename T>
+uint64_t WriteToRSP(T val, uint64_t rsp) {
+  rsp -= sizeof(T);
+  *reinterpret_cast<T*>(rsp) = val;
+  return rsp;
+}
 
 }  // namespace
 
@@ -21,7 +39,8 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       in_kernel_space_(false),
       parent_(parent),
       child_list_elem_(nullptr),
-      file_name_(file_name) {
+      file_name_(file_name),
+      num_page_fault_(0) {
   child_list_elem_.Set(this);
 
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
@@ -85,12 +104,35 @@ ELFProgramHeader Process::GetMatchingProgramHeader(uint64_t addr) const {
   return ELFProgramHeader{};
 }
 
+void Process::CopyArgvToStack() {
+  ASSERT(user_regs_.rsp == kUserProcessStackAddress - 8);
+
+  std::vector<char*> addrs(argv_.size());
+  for (int i = argv_.size() - 1; i >= 0; i--) {
+    user_regs_.rsp = CopyStringToStack(argv_[i], user_regs_.rsp);
+    addrs[i] = reinterpret_cast<char*>(user_regs_.rsp);
+  }
+
+  // Align RSP to 8 byte addr boundary.
+  user_regs_.rsp = user_regs_.rsp - (user_regs_.rsp % 8);
+
+  // Now copy address table.
+  for (int i = addrs.size() - 1; i >= 0; i--) {
+    user_regs_.rsp = WriteToRSP(addrs[i], user_regs_.rsp);
+  }
+
+  // Copy the number of args.
+  user_regs_.rsp = WriteToRSP(argv_.size(), user_regs_.rsp);
+}
+
 Process* ProcessManager::CreateProcess(std::string_view file_name) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
+  QemuSerialLog::Logf("File : %s \n", KernelString(file_name).c_str());
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 
   // File is not found.
   if (file_info.file_size == 0) {
+    QemuSerialLog::Logf("not found\n");
     return nullptr;
   }
 
@@ -120,6 +162,17 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
 
   // Now as soon as the kernel switches to this thread, it will first copy the
   // contents from the program headers.
+  return process;
+}
+
+Process* ProcessManager::CreateProcess(std::string_view file_name,
+                                       std::vector<KernelString> argv) {
+  Process* process = CreateProcess(file_name);
+  if (process == nullptr) {
+    return nullptr;
+  }
+
+  process->GetArgv() = argv;
   return process;
 }
 

@@ -498,9 +498,22 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   KernelThread* current_thread = KernelThread::CurrentThread();
   Process* process = static_cast<Process*>(current_thread);
 
+  // If this is the first page fault, then we should pass argc and argv to the
+  // stack.
+  if (!process->IsKernelThread() && process->GetNumPageFault() == 0) {
+    SavedRegisters* process_regs = process->GetSavedUserRegs();
+    ASSERT(process_regs->rsp == Process::kUserProcessStackAddress - 8);
+    ASSERT(args->rsp == Process::kUserProcessStackAddress - 8);
+
+    process->CopyArgvToStack();
+
+    // Copy it since rsp is modified.
+    args->rsp = process_regs->rsp;
+  }
+
   QemuSerialLog::Logf(
       "PF[%lx] at Thread[%d] cpu : [%d] RIP:[%lx] RSP [%lx] Kernel RSP[%lx] "
-      "Top[%lx]\n",
+      "Top[%lx] %d\n",
       fault_addr, current_thread->Id(), CPUContextManager::GetCurrentCPUId(),
       args->rip, args->rsp, CPURegsAccessProvider::ReadRSP(),
       current_thread->GetKernelStackTop());
@@ -569,6 +582,9 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 
   // Done handling.
   process->SetInUser();
+
+  // Increase the page fault count.
+  process->IncNumPageFault();
 
   TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
       current_thread->GetKernelStackTop());

@@ -177,11 +177,13 @@ void KernelConsole::DoParse() {
     return;
   }
 
+  std::vector<KernelString> argv;
   for (auto s : input) {
-    QemuSerialLog::Logf("param : %s \n", KernelString(s).c_str());
+    argv.push_back(s);
   }
 
-  fg_process_ = ProcessManager::GetProcessManager().CreateProcess(input[0]);
+  fg_process_ =
+      ProcessManager::GetProcessManager().CreateProcess(input[0], argv);
   if (fg_process_ == nullptr) {
     kprintf("%s is not found. \n", KernelString(input[0]).c_str());
     return;

@@ -3,7 +3,7 @@ CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -We
 LDFLAGS = -nostdlib
 
 VPATH=.:./libc
-TARGET = hello print_simple
+TARGET = hello print_simple cat
 default: $(TARGET)
 all: default
 
@@ -18,6 +18,9 @@ HEADERS = $(wildcard *.h)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 hello: $(OBJECTS) hello.o
+	$(CC) $^ -Wall $(LDFLAGS) -o $@
+
+cat: $(OBJECTS) cat.o
 	$(CC) $^ -Wall $(LDFLAGS) -o $@
 
 print_simple: $(OBJECTS) print_simple.o

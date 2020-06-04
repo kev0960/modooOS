@@ -18,6 +18,8 @@ enum class ProcessAddressInfo {
 // Reprsents the user process.
 class Process : public KernelThread {
  public:
+  static constexpr uint64_t kUserProcessStackAddress = 0x40000000;
+
   // Specify nullptr to parent if it is the process is the first process.
   Process(KernelThread* parent, const KernelString& file_name,
           EntryFuncType entry_function);
@@ -66,6 +68,12 @@ class Process : public KernelThread {
   ProcessAddressInfo GetAddressInfo(uint64_t addr) const;
   ELFProgramHeader GetMatchingProgramHeader(uint64_t addr) const;
 
+  std::vector<KernelString>& GetArgv() { return argv_; }
+  void CopyArgvToStack();
+
+  int GetNumPageFault() const { return num_page_fault_; }
+  void IncNumPageFault() { num_page_fault_++; }
+
  private:
   bool in_kernel_space_;
   SavedRegisters user_regs_;
@@ -88,6 +96,10 @@ class Process : public KernelThread {
   // Map children's pid_t to the exit code.
   MultiCoreSpinLock exit_code_lock_;
   std::map<pid_t, int> child_to_exit_code_;
+
+  std::vector<KernelString> argv_;
+
+  int num_page_fault_;
 };
 
 class ProcessManager {
@@ -98,6 +110,8 @@ class ProcessManager {
   }
 
   Process* CreateProcess(std::string_view file_name);
+  Process* CreateProcess(std::string_view file_name,
+                         std::vector<KernelString> argv);
 
  private:
   ProcessManager() {}
