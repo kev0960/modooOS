@@ -1,5 +1,5 @@
 #!/bin/zsh
 cd user; make;cd ..;
-sudo cp user/* /mnt/.
+sudo cp -r user/* /mnt/.
 sync -f /mnt
 

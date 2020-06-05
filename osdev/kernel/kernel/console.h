@@ -3,6 +3,7 @@
 
 #include "../std/string.h"
 #include "keyboard.h"
+#include "pipe.h"
 #include "process.h"
 
 namespace Kernel {
@@ -42,6 +43,10 @@ class KernelConsole {
 
   void ShowWelcome();
 
+  Process* GetForegroundProcess() { return fg_process_; }
+  void SetForegroundProcess(Process* fg_process) { fg_process_ = fg_process; }
+  void ShowShellPrefix() { should_show_shell_prefix_ = true; }
+
  private:
   static constexpr int kInputLineBufferSize = 1024;
   static constexpr int kKeyStrokeBufferSize = 1024;
@@ -53,6 +58,7 @@ class KernelConsole {
 
   void FillInputBufferAndParse(int num_received);
   void DoParse();
+  void SendInputBufferToFgProcess(int index);
 
   // Current foreground process.
   Process* fg_process_;
@@ -82,6 +88,12 @@ class KernelConsole {
   size_t term_output_write_index_;
 
   char* term_output_buffer_to_print_;
+
+  bool fg_process_started_;
+
+  Pipe* console_pipe_;
+  PipeDescriptorReadEnd console_pipe_read_end_;
+  PipeDescriptorWriteEnd console_pipe_write_end_;
 };
 
 }  // namespace Kernel

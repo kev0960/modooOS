@@ -7,7 +7,6 @@
 namespace Kernel {
 
 int Pipe::Write(char* data, int len) {
-  QemuSerialLog::Logf("Write PIPE!!! : %s \n", data);
   if (len > kPipeMaxSize) {
     QemuSerialLog::Logf("Data size is too large!");
     return 0;

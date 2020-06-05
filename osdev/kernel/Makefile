@@ -26,7 +26,7 @@ $(info $(DFILES))
 all: kernel
 
 kernel: $(OBJS) kernel.ld Makefile
-	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o kernel.bin $(OBJ_LIST)
+	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o kernel.bin $(OBJ_LIST) -lgcc
 
 clean:
 	find -name "*~" -delete

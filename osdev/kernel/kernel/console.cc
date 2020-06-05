@@ -18,9 +18,34 @@ void KernelConsole::InitKernelConsole() {
   KernelThread* print_terminal_thread = new KernelThread(
       [] { KernelConsole::GetKernelConsole().PrintTermOutputBuffer(); });
   print_terminal_thread->Start();
+
+  // This thread will wait for the foreground process to join.
+  KernelThread* wait_fg_process_thread = new KernelThread([] {
+    auto& console = KernelConsole::GetKernelConsole();
+    bool process_just_joined = false;
+    while (true) {
+      Process* fg_process = console.GetForegroundProcess();
+      if (fg_process) {
+        fg_process->Join();
+        console.SetForegroundProcess(nullptr);
+        process_just_joined = true;
+      }
+      KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+
+      if (process_just_joined) {
+        console.ShowShellPrefix();
+        process_just_joined = false;
+      }
+    }
+  });
+
+  wait_fg_process_thread->Start();
 }
 
-KernelConsole::KernelConsole() {
+KernelConsole::KernelConsole()
+    : console_pipe_(new Pipe()),
+      console_pipe_read_end_(console_pipe_),
+      console_pipe_write_end_(console_pipe_) {
   input_buffer_ = reinterpret_cast<char*>(kmalloc(kInputLineBufferSize));
   input_buffer_size_ = 0;
 
@@ -43,6 +68,7 @@ KernelConsole::KernelConsole() {
 
   is_running_ = false;
   should_show_shell_prefix_ = true;
+  fg_process_started_ = false;
 }
 
 void KernelConsole::AddKeyStroke(const KeyStroke& key) {
@@ -112,25 +138,29 @@ void KernelConsole::Run() {
       continue;
     }
 
-    if (fg_process_ == nullptr) {
-      // Then this is an input to the console.
-      vga_output.PrintKeyStrokes(received_keyinfo_queue, 0, num_received);
+    // Print key strokes to the console.
+    vga_output.PrintKeyStrokes(received_keyinfo_queue, 0, num_received);
 
-      // Fill buffer and parse if needed.
-      FillInputBufferAndParse(num_received);
-    } else {
-      // Otherwise pass the input to the foreground process.
-    }
+    // Fill buffer and parse if needed.
+    FillInputBufferAndParse(num_received);
   }
 }
 
 void KernelConsole::FillInputBufferAndParse(int num_received) {
   for (int i = 0; i < num_received; i++) {
+    // Note that we do not handle input buffer until the user hits the ENTER.
     if (received_keyinfo_queue[i].c == KEY_CODES::ENTER) {
-      // Parse the input.
-      DoParse();
+      if (fg_process_ == nullptr) {
+        fg_process_started_ = false;
+        // Parse the input.
+        DoParse();
 
-      should_show_shell_prefix_ = true;
+        if (!fg_process_started_) {
+          should_show_shell_prefix_ = true;
+        }
+      } else {
+        SendInputBufferToFgProcess(input_buffer_size_);
+      }
     } else if (received_keyinfo_queue[i].c == KEY_CODES::BACKSPACE) {
       if (input_buffer_size_ > 0) {
         input_buffer_size_--;
@@ -165,7 +195,6 @@ void KernelConsole::DoParse() {
     return;
   } else if (input[0] == "clear") {
     VGAOutput::GetVGAOutput().ClearScreen();
-    should_show_shell_prefix_ = true;
     return;
   } else if (input[0] == "ps") {
     const auto& th_per_core =
@@ -189,17 +218,24 @@ void KernelConsole::DoParse() {
     return;
   }
 
+  // Associate fore ground process's output buffer to console's pipe.
+  FileDescriptorTable& table = fg_process_->GetFileDescriptorTable();
+  table.SetDescriptor(FileDescriptorTable::STDIO::STDIN,
+                      &console_pipe_read_end_);
+
   fg_process_->Start();
-
-  // Wait until it finishes.
-  fg_process_->Join();
-
-  fg_process_ = nullptr;
+  fg_process_started_ = true;
 
   // By yielding here, print_terminal_thread will be enqueued. This will give a
   // chance to flush every remaining output buffer before printing the prompt
   // back.
   KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+}
+
+void KernelConsole::SendInputBufferToFgProcess(int index) {
+  // Send [0, index) characters in the input buffer to the foreground process.
+  console_pipe_write_end_.Write(input_buffer_, index);
+  input_buffer_size_ = 0;
 }
 
 void KernelConsole::PrintToTerminal(char* data, int sz) {
@@ -264,8 +300,8 @@ void KernelConsole::ShowWelcome() {
         :8P    '      :888
          8a.   :     _a88P
        ._/"Yaa_:   .| 88P|
-  jgs  \    YP"    `| 8P  `.
-  a:f  /     \.___.d|    .'
+  jae \    YP"    `| 8P  `.
+  bum  /     \.___.d|    .'
        `--..__)8888P`._.'
 )";
 
