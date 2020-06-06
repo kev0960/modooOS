@@ -26,7 +26,16 @@ using pid_t = size_t;
 
 class KernelThread {
  public:
-  enum ThreadStatus { THREAD_RUN, THREAD_SLEEP, THREAD_TERMINATE };
+  enum ThreadStatus {
+    THREAD_RUN,
+    THREAD_SLEEP,
+    THREAD_TERMINATE,
+
+    // If the thread is in terminate ready state, then once the threads leaves
+    // the kernel context, then it will never come back to the kernel context.
+    // Rather, it will be terminated by the scheduler.
+    THREAD_TERMINATE_READY
+  };
 
  public:
   using EntryFuncType = void (*)();
@@ -52,7 +61,9 @@ class KernelThread {
   KernelListElement<KernelThread*>* GetKenrelListElem() {
     return &kernel_list_elem_;
   }
-  bool IsRunnable() const { return status_ == THREAD_RUN; }
+  bool IsRunnable() const {
+    return (status_ == THREAD_RUN || status_ == THREAD_TERMINATE_READY);
+  }
 
   // Starts the thread by adding to the scheduling queue.
   void Start();
@@ -69,7 +80,8 @@ class KernelThread {
   void MakeRun() { status_ = THREAD_RUN; }
 
   void MakeTerminate() { status_ = THREAD_TERMINATE; }
-  bool IsTerminated() { return status_ == THREAD_TERMINATE; }
+  void MakeTerminateReady() { status_ = THREAD_TERMINATE_READY; }
+  bool IsTerminateReady() const { return status_ == THREAD_TERMINATE_READY; }
 
   void SetInQueue(bool in_queue) { in_queue_ = in_queue; }
   bool IsInQueue() const { return in_queue_; }
@@ -90,6 +102,8 @@ class KernelThread {
   uint64_t saved_rbp;
 
   ThreadStatus status_;
+
+  virtual ~KernelThread();
 
  protected:
   pid_t thread_id_;

@@ -29,11 +29,12 @@ void SpinLock::lock() {
       // This is a temporary fix to support kernel console killing process in
       // the middle of QemuLogging.
       //
-      // TODO Fix this behavior.
+      /*
       if (holder_->IsTerminated()) {
         holder_ = KernelThread::CurrentThread();
         break;
       }
+      */
 
       if (lock_name_ != nullptr) {
         QemuSerialLog::Logf("[SpinLock %s] Contention! %lx \n", lock_name_,

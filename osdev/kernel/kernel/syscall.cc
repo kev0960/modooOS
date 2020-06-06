@@ -114,6 +114,16 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
 
   CPURegsAccessProvider::EnableInterrupt();
 
+  Process* current_process =
+      static_cast<Process*>(KernelThread::CurrentThread());
+  if (current_process->IsTerminateReady()) {
+    QemuSerialLog::Logf(">>>Really terminate syscall!!<<<\n");
+    current_process->MakeTerminate();
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+
+    PANIC();
+  }
+
   int ret = 0;
   switch (syscall_num) {
     case SYS_EXIT:  // 0

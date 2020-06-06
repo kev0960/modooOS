@@ -90,6 +90,11 @@ void KernelThreadScheduler::YieldInInterruptHandler(
       current_process->SetInKernel();
     } else {
       current_process->SetInUser();
+
+      if (current_thread->IsTerminateReady()) {
+        QemuSerialLog::Logf(">>>Really terminate!!<<<\n");
+        current_thread->MakeTerminate();
+      }
     }
   }
 

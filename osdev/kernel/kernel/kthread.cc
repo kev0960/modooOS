@@ -175,6 +175,14 @@ uint64_t* KernelThread::GetPageTableBaseAddress() const {
   return nullptr;
 }
 
+KernelThread::~KernelThread() {
+  QemuSerialLog::Logf("Destroy thread\n");
+  // Previously, kernel_stack_top_ = stack[kKernelThreadStackSize / 8 - 1]
+  uint64_t stack_bottom =
+      kernel_stack_top_ - sizeof(uint64_t) * (kKernelThreadStackSize / 8 - 1);
+  kfree((void*)(stack_bottom));
+}
+
 void Semaphore::Up() {
   bool need_irq_lock = CPURegsAccessProvider::IsInterruptEnabled();
 

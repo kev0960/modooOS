@@ -14,6 +14,7 @@
 #include "kthread.h"
 #include "process.h"
 #include "qemu_log.h"
+#include "scheduler.h"
 #include "vga_output.h"
 
 namespace Kernel {
@@ -497,6 +498,19 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
   // We first need to check whether the fault address is valid.
   KernelThread* current_thread = KernelThread::CurrentThread();
   Process* process = static_cast<Process*>(current_thread);
+
+  // If the process is marked as TERMINATE_READY, then instead of needlessly
+  // hadling the page fault, just mark this thread.
+  // Note that since we have not really acquired any kernel objects here, it is
+  // okay to just terminate the thread.
+  if (!process->IsKernelThread() && process->IsTerminateReady()) {
+    QemuSerialLog::Logf(">>>Really terminate PF!!<<<\n");
+    process->MakeTerminate();
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
+
+    // It should never reach here!
+    PANIC();
+  }
 
   // If this is the first page fault, then we should pass argc and argv to the
   // stack.

@@ -32,6 +32,11 @@ void KernelConsole::InitKernelConsole() {
       }
       KernelThreadScheduler::GetKernelThreadScheduler().Yield();
 
+      if (fg_process) {
+        QemuSerialLog::Logf("Deleting FG\n");
+        delete fg_process;
+      }
+
       if (process_just_joined) {
         console.ShowShellPrefix();
         process_just_joined = false;
@@ -76,7 +81,7 @@ void KernelConsole::AddKeyStroke(const KeyStroke& key) {
   // kill the current running process.)
   if (key.c == 'c' && key.is_ctrl_down) {
     if (fg_process_ != nullptr) {
-      fg_process_->MakeTerminate();
+      fg_process_->MakeTerminateReady();
     }
   }
 
