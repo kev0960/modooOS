@@ -34,13 +34,14 @@ uint64_t WriteToRSP(T val, uint64_t rsp) {
 }  // namespace
 
 Process::Process(KernelThread* parent, const KernelString& file_name,
-                 EntryFuncType entry_function)
+                 EntryFuncType entry_function, std::string_view working_dir)
     : KernelThread(nullptr, /*need_stack=*/true, /*in_same_cpu_id=*/false),
       in_kernel_space_(false),
       parent_(parent),
       child_list_elem_(nullptr),
       file_name_(file_name),
-      num_page_fault_(0) {
+      num_page_fault_(0),
+      working_dir_(working_dir) {
   child_list_elem_.Set(this);
 
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
@@ -125,7 +126,8 @@ void Process::CopyArgvToStack() {
   user_regs_.rsp = WriteToRSP(argv_.size(), user_regs_.rsp);
 }
 
-Process* ProcessManager::CreateProcess(std::string_view file_name) {
+Process* ProcessManager::CreateProcess(std::string_view file_name,
+                                       std::string_view working_dir) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   QemuSerialLog::Logf("File : %s \n", KernelString(file_name).c_str());
   FileInfo file_info = ext2_filesystem.Stat(file_name);
@@ -155,7 +157,7 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
 
   Process* process =
       new Process(KernelThread::CurrentThread(), file_name,
-                  (KernelThread::EntryFuncType)elf_header.e_entry);
+                  (KernelThread::EntryFuncType)elf_header.e_entry, working_dir);
 
   process->SetProgramHeaders(elf_reader.GetProgramHeaders());
   kfree(buf);
@@ -166,8 +168,9 @@ Process* ProcessManager::CreateProcess(std::string_view file_name) {
 }
 
 Process* ProcessManager::CreateProcess(std::string_view file_name,
+                                       std::string_view working_dir,
                                        std::vector<KernelString> argv) {
-  Process* process = CreateProcess(file_name);
+  Process* process = CreateProcess(file_name, working_dir);
   if (process == nullptr) {
     return nullptr;
   }

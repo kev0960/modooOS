@@ -58,6 +58,7 @@ class KernelConsole {
 
   void FillInputBufferAndParse(int num_received);
   void DoParse();
+  void DoCd(const KernelString& path);
   void SendInputBufferToFgProcess(int index);
 
   // Current foreground process.
@@ -94,6 +95,9 @@ class KernelConsole {
   Pipe* console_pipe_;
   PipeDescriptorReadEnd console_pipe_read_end_;
   PipeDescriptorWriteEnd console_pipe_write_end_;
+
+  // Current working directory of the console.
+  KernelString working_dir_;
 };
 
 }  // namespace Kernel

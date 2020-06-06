@@ -458,6 +458,7 @@ struct Ext2Directory {
 struct FileInfo {
   size_t inode;      // Inode number.
   size_t file_size;  // File size in bytes.
+  uint16_t mode;     // File info
 };
 
 class Ext2FileSystem {
@@ -469,6 +470,42 @@ class Ext2FileSystem {
     static Ext2FileSystem ext2;
     return ext2;
   }
+
+  //  -- file format --
+  //  EXT2_S_IFSOCK   0xC000  socket
+  //  EXT2_S_IFLNK    0xA000  symbolic link
+  //  EXT2_S_IFREG    0x8000  regular file
+  //  EXT2_S_IFBLK    0x6000  block device
+  //  EXT2_S_IFDIR    0x4000  directory
+  //  EXT2_S_IFCHR    0x2000  character device
+  //  EXT2_S_IFIFO    0x1000  fifo
+
+  enum Ext2FileMode {
+    S_SOCK,
+    S_LNK,
+    S_REG,
+    S_BLK,
+    S_DIR,
+    S_CHR,
+    S_FIFO,
+    S_UNKNOWN
+  };
+
+  static Ext2FileMode GetFileFormatFromMode(uint16_t mode) {
+    Ext2FileMode modes[] = {S_SOCK, S_LNK, S_REG, S_BLK, S_DIR, S_CHR, S_FIFO};
+    int values[] = {0xC000, 0xA000, 0x8000, 0x6000, 0x4000, 0x2000, 0x1000};
+
+    for (int i = 0; i < 7; i++) {
+      if ((mode & values[i]) == values[i]) {
+        return modes[i];
+      }
+    }
+
+    return S_UNKNOWN;
+  }
+
+  static KernelString GetAbsolutePath(const KernelString& path,
+                                      const KernelString& current_dir);
 
   // Read the file at the path.
   size_t ReadFile(std::string_view path, uint8_t* buf, size_t num_read,

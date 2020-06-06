@@ -17,6 +17,7 @@ int dup2(int oldfd, int newfd);
 struct stat {
   size_t inode;
   size_t file_size;
+  uint16_t mode;
 };
 
 int stat(const char* pathname, struct stat* statbuf);

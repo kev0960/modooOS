@@ -1,6 +1,7 @@
 #include "console.h"
 
 #include "../std/string_view.h"
+#include "./fs/ext2.h"
 #include "process.h"
 #include "scheduler.h"
 #include "string.h"
@@ -50,7 +51,8 @@ void KernelConsole::InitKernelConsole() {
 KernelConsole::KernelConsole()
     : console_pipe_(new Pipe()),
       console_pipe_read_end_(console_pipe_),
-      console_pipe_write_end_(console_pipe_) {
+      console_pipe_write_end_(console_pipe_),
+      working_dir_("/") {
   input_buffer_ = reinterpret_cast<char*>(kmalloc(kInputLineBufferSize));
   input_buffer_size_ = 0;
 
@@ -132,7 +134,7 @@ void KernelConsole::Run() {
 
   while (true) {
     if (should_show_shell_prefix_) {
-      kprintf("root:/# ");
+      kprintf("root:%s# ", working_dir_.c_str());
       should_show_shell_prefix_ = false;
     }
 
@@ -196,7 +198,11 @@ void KernelConsole::DoParse() {
 
   // Handle special commands here first.
   if (input[0] == "cd") {
-    QemuSerialLog::Logf("cd is called!");
+    if (input.size() > 1) {
+      DoCd(input[1]);
+    } else {
+      kprintf("Please specify a directory \n");
+    }
     return;
   } else if (input[0] == "clear") {
     VGAOutput::GetVGAOutput().ClearScreen();
@@ -216,11 +222,22 @@ void KernelConsole::DoParse() {
     argv.push_back(s);
   }
 
-  fg_process_ =
-      ProcessManager::GetProcessManager().CreateProcess(input[0], argv);
+  auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
+  auto file_path = ext2.GetAbsolutePath(input[0], working_dir_);
+
+  fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
+      file_path.c_str(), working_dir_.c_str(), argv);
   if (fg_process_ == nullptr) {
-    kprintf("%s is not found. \n", KernelString(input[0]).c_str());
-    return;
+    // Try again with input[0] with root path.
+    // TODO Later we have to introduce env variables.
+    auto file_path = ext2.GetAbsolutePath(input[0], "/");
+    fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
+        file_path.c_str(), working_dir_.c_str(), argv);
+
+    if (fg_process_ == nullptr) {
+      kprintf("%s is not found. \n", KernelString(input[0]).c_str());
+      return;
+    }
   }
 
   // Associate fore ground process's output buffer to console's pipe.
@@ -288,6 +305,21 @@ void KernelConsole::PrintTermOutputBuffer() {
 
     kprintf("%s", term_output_buffer_to_print_);
   }
+}
+
+void KernelConsole::DoCd(const KernelString& path) {
+  auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
+  auto new_working_dir = ext2.GetAbsolutePath(path, working_dir_);
+
+  // Check that new working dir is a directory.
+  FileInfo file_info = ext2.Stat(new_working_dir.c_str());
+  if (Ext2FileSystem::GetFileFormatFromMode(file_info.mode) !=
+      Ext2FileSystem::S_DIR) {
+    kprintf("cd: '%s' does not exist or not a directory.\n", path.c_str());
+    return;
+  }
+
+  working_dir_ = new_working_dir;
 }
 
 void KernelConsole::ShowWelcome() {

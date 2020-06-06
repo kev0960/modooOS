@@ -22,7 +22,7 @@ class Process : public KernelThread {
 
   // Specify nullptr to parent if it is the process is the first process.
   Process(KernelThread* parent, const KernelString& file_name,
-          EntryFuncType entry_function);
+          EntryFuncType entry_function, std::string_view working_dir);
 
   KernelList<Process*>* GetChildrenList() { return &children_; }
   void SetParent(KernelThread* parent) { parent_ = parent; }
@@ -74,6 +74,8 @@ class Process : public KernelThread {
   int GetNumPageFault() const { return num_page_fault_; }
   void IncNumPageFault() { num_page_fault_++; }
 
+  KernelString GetWorkingDir() const { return working_dir_; }
+
  private:
   bool in_kernel_space_;
   SavedRegisters user_regs_;
@@ -100,6 +102,8 @@ class Process : public KernelThread {
   std::vector<KernelString> argv_;
 
   int num_page_fault_;
+
+  KernelString working_dir_;
 };
 
 class ProcessManager {
@@ -109,8 +113,10 @@ class ProcessManager {
     return process_manager;
   }
 
-  Process* CreateProcess(std::string_view file_name);
   Process* CreateProcess(std::string_view file_name,
+                         std::string_view working_dir);
+  Process* CreateProcess(std::string_view file_name,
+                         std::string_view working_dir,
                          std::vector<KernelString> argv);
 
  private:

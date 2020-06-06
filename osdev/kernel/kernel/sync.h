@@ -4,6 +4,7 @@
 #include "../std/types.h"
 #include "cpu.h"
 #include "kthread.h"
+#include "semaphore.h"
 
 namespace Kernel {
 namespace std {

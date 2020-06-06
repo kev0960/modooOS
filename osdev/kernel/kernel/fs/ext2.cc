@@ -239,7 +239,7 @@ void Ext2FileSystem::WriteInode(size_t inode_addr, const Ext2Inode& inode) {
 }
 
 size_t Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
-                              size_t num_read, size_t offset) {
+                                size_t num_read, size_t offset) {
   BlockIterator iter(file_inode);
   iter.SetOffset(offset);
 
@@ -450,6 +450,7 @@ FileInfo Ext2FileSystem::Stat(std::string_view path) {
   FileInfo info;
   info.file_size = file.size;
   info.inode = inode_num;
+  info.mode = file.mode;
 
   return info;
 }
@@ -660,6 +661,33 @@ int Ext2FileSystem::GetInodeNumberFromPath(std::string_view path) {
     }
   }
   return -1;
+}
+
+KernelString Ext2FileSystem::GetAbsolutePath(const KernelString& path,
+                                             const KernelString& current_dir) {
+  QemuSerialLog::Logf("Path : %s %d\n", path.c_str(), path.size());
+  // current_dir must be an absolute dir.
+  if (!(current_dir.size() > 0 && current_dir.at(0) == '/')) {
+    return "";
+  }
+
+  if (path.size() == 0) {
+    return current_dir;
+  }
+
+  // If path is already an absolute path.
+  if (path.at(0) == '/') {
+    return path;
+  }
+
+  KernelString p = current_dir;
+  QemuSerialLog::Logf("p : %s %c %d\n", p.c_str(), p.back(), p.size());
+  if (p.back() != '/') {
+    p.append("/");
+  }
+  p.append(path);
+
+  return p;
 }
 
 }  // namespace Kernel

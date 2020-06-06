@@ -20,8 +20,6 @@ struct SavedRegisters {
   InterruptHandlerSavedRegs regs;
 } __attribute__((packed));
 
-class Semaphore;
-
 using pid_t = size_t;
 
 class KernelThread {
@@ -34,6 +32,11 @@ class KernelThread {
     // If the thread is in terminate ready state, then once the threads leaves
     // the kernel context, then it will never come back to the kernel context.
     // Rather, it will be terminated by the scheduler.
+    //
+    // This state is added so that when the console kills the running process,
+    // we have to make sure that the process only dies when it is in the user
+    // context, not in the kernel context because it might be holding some
+    // kernel objects.
     THREAD_TERMINATE_READY
   };
 
@@ -119,27 +122,6 @@ class KernelThread {
 
   bool in_queue_;
   bool in_same_cpu_id_;
-};
-
-class Semaphore {
- public:
-  Semaphore(int cnt) : cnt_(cnt) {}
-
-  // Semaphore is not copiable.
-  Semaphore(const Semaphore&) = delete;
-
-  Semaphore(Semaphore&& sema) : waiters_(std::move(sema.waiters_)) {
-    cnt_ = sema.cnt_;
-  }
-
-  // If we are using semaphore inside of the interrupt handler, then we should
-  // set without_lock as true.
-  void Up();
-  void Down();
-
- private:
-  int cnt_;
-  KernelList<KernelThread*> waiters_;
 };
 
 }  // namespace Kernel

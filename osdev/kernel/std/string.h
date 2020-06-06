@@ -1,6 +1,7 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include "../kernel/qemu_log.h"
 #include "string_view.h"
 #include "types.h"
 #include "vector.h"
@@ -43,13 +44,13 @@ class KernelBasicString {
   }
 
   KernelBasicString(const std::basic_string_view<CharT>& view) {
-    str_.reserve(view.size());
+    str_.reserve(view.size() + 1);
 
     for (size_t i = 0; i < view.size(); i++) {
       str_.push_back(view[i]);
     }
 
-    if (view.size() == 0 || back() != 0) {
+    if (view.size() == 0 || str_.back() != 0) {
       str_.push_back(0);
     }
   }
@@ -73,7 +74,7 @@ class KernelBasicString {
   CharT& operator[](size_t index) { return str_[index]; }
   const CharT& at(size_t index) const { return str_.at(index); }
 
-  CharT& back() { return str_[size()]; }
+  CharT& back() { return str_[size() - 1]; }
 
   const char* c_str() const { return &str_.at(0); }
 
@@ -89,6 +90,19 @@ class KernelBasicString {
     for (size_t i = from; i < size(); i++) {
       if (str_.at(i) == c) {
         return i;
+      }
+    }
+    return npos;
+  }
+
+  size_t find_last_of(CharT c) const {
+    for (size_t i = size() - 1; i >= 0; i--) {
+      if (str_.at(i) == c) {
+        return i;
+      }
+
+      if (i == 0) {
+        break;
       }
     }
     return npos;
@@ -122,6 +136,23 @@ class KernelBasicString {
 
   bool operator!=(std::basic_string_view<CharT> s) const {
     return !(operator==(s));
+  }
+
+  KernelBasicString& append(const KernelBasicString& s) {
+    int current_size = size();
+    str_.reserve(current_size + s.size() + 1);
+
+    for (size_t i = 0; i < s.size(); i++) {
+      if (i == 0) {
+        str_[current_size + i] = s.at(i);
+      } else {
+        str_.push_back(s.at(i));
+      }
+    }
+
+    str_.push_back(0);
+
+    return *this;
   }
 
  private:
