@@ -223,7 +223,8 @@ void KernelConsole::DoParse() {
   }
 
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
-  auto file_path = ext2.GetAbsolutePath(input[0], working_dir_);
+  auto file_path = ext2.GetCanonicalAbsolutePath(
+      ext2.GetAbsolutePath(input[0], working_dir_));
 
   fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
       file_path.c_str(), working_dir_.c_str(), argv);
@@ -309,7 +310,9 @@ void KernelConsole::PrintTermOutputBuffer() {
 
 void KernelConsole::DoCd(const KernelString& path) {
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
-  auto new_working_dir = ext2.GetAbsolutePath(path, working_dir_);
+  auto new_working_dir =
+      ext2.GetCanonicalAbsolutePath(ext2.GetAbsolutePath(path, working_dir_));
+  QemuSerialLog::Logf("New workign dir : %s \n", new_working_dir.c_str());
 
   // Check that new working dir is a directory.
   FileInfo file_info = ext2.Stat(new_working_dir.c_str());

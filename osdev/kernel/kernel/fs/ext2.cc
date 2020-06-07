@@ -690,4 +690,52 @@ KernelString Ext2FileSystem::GetAbsolutePath(const KernelString& path,
   return p;
 }
 
+KernelString Ext2FileSystem::GetCanonicalAbsolutePath(
+    const KernelString& absolute_path) {
+  if (!(absolute_path.size() > 0 && absolute_path.at(0) == '/')) {
+    return "";
+  }
+
+  std::vector<KernelString> paths;
+
+  size_t current = 1;
+  while (current < absolute_path.size()) {
+    // /abc/def
+    //  1234
+    //  dir_name_end = 4, current = 1.
+    //
+    // //
+    //  1
+    // dir_name_end = 1, current = 1
+
+    size_t dir_name_end = absolute_path.find('/', current);
+    KernelString dir;
+    if (dir_name_end == npos) {
+      dir = absolute_path.substr(current);
+    } else {
+      dir = absolute_path.substr(current, dir_name_end - current);
+    }
+
+    if (dir == "..") {
+      if (!paths.empty()) {
+        paths.pop_back();
+      }
+    } else if (dir != "." && dir != "") {
+      paths.push_back(dir);
+    }
+
+    if (dir_name_end == npos) {
+      break;
+    }
+    current = dir_name_end + 1;
+    continue;
+  }
+
+  KernelString path = "/";
+  for (auto p : paths) {
+    path.append(p);
+  }
+  return path;
+}
+
 }  // namespace Kernel

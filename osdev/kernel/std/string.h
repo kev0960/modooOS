@@ -108,6 +108,15 @@ class KernelBasicString {
     return npos;
   }
 
+  bool operator==(const char* s) const {
+    // Compare including the Null terminating character.
+    for (size_t i = 0; i <= size(); i++) {
+      if (at(i) != s[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
   bool operator==(const KernelBasicString& s) const {
     if (size() != s.size()) {
       return false;
@@ -120,6 +129,7 @@ class KernelBasicString {
     return true;
   }
 
+  bool operator!=(const char* s) const { return !(operator==(s)); }
   bool operator!=(const KernelBasicString& s) const { return !(operator==(s)); }
 
   bool operator==(std::basic_string_view<CharT> s) const {

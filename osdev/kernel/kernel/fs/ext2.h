@@ -507,6 +507,11 @@ class Ext2FileSystem {
   static KernelString GetAbsolutePath(const KernelString& path,
                                       const KernelString& current_dir);
 
+  // Generate shortest-form absolute path from the absolute path.
+  // E.g /a/../b --> /b
+  static KernelString GetCanonicalAbsolutePath(
+      const KernelString& absolute_path);
+
   // Read the file at the path.
   size_t ReadFile(std::string_view path, uint8_t* buf, size_t num_read,
                   size_t offset = 0);
