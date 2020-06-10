@@ -18,7 +18,11 @@ enum class ProcessAddressInfo {
 // Reprsents the user process.
 class Process : public KernelThread {
  public:
+  // Address of the top of the stack.
   static constexpr uint64_t kUserProcessStackAddress = 0x40000000;
+
+  // Adress of the start of the heap.
+  static constexpr uint64_t kUserProcessHeapStartAddress = 0x10000000;
 
   // Specify nullptr to parent if it is the process is the first process.
   Process(KernelThread* parent, const KernelString& file_name,
@@ -76,6 +80,11 @@ class Process : public KernelThread {
 
   KernelString GetWorkingDir() const { return working_dir_; }
 
+  // Increase size of the process heap by (bytes) bytes.
+  // It must be multiple of 4KB (Page size).
+  void IncreaseHeapSize(uint64_t bytes);
+  void* GetHeapEnd() const;
+
  private:
   bool in_kernel_space_;
   SavedRegisters user_regs_;
@@ -104,6 +113,9 @@ class Process : public KernelThread {
   int num_page_fault_;
 
   KernelString working_dir_;
+
+  // Heap size.
+  uint64_t heap_size_;
 };
 
 class ProcessManager {

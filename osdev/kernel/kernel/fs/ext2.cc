@@ -665,7 +665,6 @@ int Ext2FileSystem::GetInodeNumberFromPath(std::string_view path) {
 
 KernelString Ext2FileSystem::GetAbsolutePath(const KernelString& path,
                                              const KernelString& current_dir) {
-  QemuSerialLog::Logf("Path : %s %d\n", path.c_str(), path.size());
   // current_dir must be an absolute dir.
   if (!(current_dir.size() > 0 && current_dir.at(0) == '/')) {
     return "";
@@ -681,7 +680,6 @@ KernelString Ext2FileSystem::GetAbsolutePath(const KernelString& path,
   }
 
   KernelString p = current_dir;
-  QemuSerialLog::Logf("p : %s %c %d\n", p.c_str(), p.back(), p.size());
   if (p.back() != '/') {
     p.append("/");
   }

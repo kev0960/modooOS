@@ -95,3 +95,4 @@ int stat(const char* pathname, struct stat* statbuf) {
   return syscall_2(10, (int64_t)pathname, (int64_t)statbuf);
 }
 
+void* sbrk(intptr_t bytes) { return (void*)syscall_1(11, (int64_t)bytes); }

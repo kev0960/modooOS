@@ -41,7 +41,8 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
       child_list_elem_(nullptr),
       file_name_(file_name),
       num_page_fault_(0),
-      working_dir_(working_dir) {
+      working_dir_(working_dir),
+      heap_size_(0) {
   child_list_elem_.Set(this);
 
   if (parent_ != nullptr && !parent_->IsKernelThread()) {
@@ -165,6 +166,24 @@ Process* ProcessManager::CreateProcess(std::string_view file_name,
   // Now as soon as the kernel switches to this thread, it will first copy the
   // contents from the program headers.
   return process;
+}
+
+void Process::IncreaseHeapSize(uint64_t bytes) {
+  ASSERT(bytes % kFourKB == 0);
+  int num_pages = bytes / kFourKB;
+
+  auto& page_table_manager = PageTableManager::GetPageTableManager();
+  for (int i = 0; i < num_pages; i++) {
+    uint64_t* user_vm_addr = reinterpret_cast<uint64_t*>(
+        kUserProcessHeapStartAddress + heap_size_ + i * kFourKB);
+    page_table_manager.AllocatePage(GetPageTableBaseAddress(), user_vm_addr, 0);
+  }
+
+  heap_size_ += bytes;
+}
+
+void* Process::GetHeapEnd() const {
+  return reinterpret_cast<void*>(kUserProcessHeapStartAddress + heap_size_);
 }
 
 Process* ProcessManager::CreateProcess(std::string_view file_name,

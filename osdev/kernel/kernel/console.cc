@@ -312,7 +312,6 @@ void KernelConsole::DoCd(const KernelString& path) {
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
   auto new_working_dir =
       ext2.GetCanonicalAbsolutePath(ext2.GetAbsolutePath(path, working_dir_));
-  QemuSerialLog::Logf("New workign dir : %s \n", new_working_dir.c_str());
 
   // Check that new working dir is a directory.
   FileInfo file_info = ext2.Stat(new_working_dir.c_str());

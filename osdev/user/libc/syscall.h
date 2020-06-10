@@ -21,3 +21,4 @@ struct stat {
 };
 
 int stat(const char* pathname, struct stat* statbuf);
+void* sbrk(intptr_t bytes);
