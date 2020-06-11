@@ -96,3 +96,11 @@ int stat(const char* pathname, struct stat* statbuf) {
 }
 
 void* sbrk(intptr_t bytes) { return (void*)syscall_1(11, (int64_t)bytes); }
+
+int get_dents(int fd, struct linux_dirent* dirp, size_t count) {
+  return (int)syscall_3(12, fd, (int64_t)(dirp), count);
+}
+
+char* getcwd(char* buf, size_t size) {
+  return (char*)syscall_2(13, (int64_t)buf, size);
+}

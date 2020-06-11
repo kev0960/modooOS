@@ -1,6 +1,7 @@
 #ifndef SYS_SYS_SPAWN_H
 #define SYS_SYS_SPAWN_H
 
+#include "../fs/ext2.h"
 #include "../kthread.h"
 #include "../process.h"
 #include "../qemu_log.h"
@@ -14,8 +15,12 @@ class SysSpawnHandler : public SyscallHandler<SysSpawnHandler> {
     ASSERT(!KernelThread::CurrentThread()->IsKernelThread());
     Process* parent = static_cast<Process*>(KernelThread::CurrentThread());
 
+    auto file_path = Ext2FileSystem::GetCanonicalAbsolutePath(
+        Ext2FileSystem::GetAbsolutePath(path, parent->GetWorkingDir()));
+    QemuSerialLog::Logf("Spawn file : %s \n", file_path.c_str());
+
     Process* child = ProcessManager::GetProcessManager().CreateProcess(
-        path, parent->GetWorkingDir().c_str());
+        file_path.c_str(), parent->GetWorkingDir().c_str());
 
     QemuSerialLog::Logf("Created process pid: %d \n", child->Id());
     // Returns a non zero error on failure.

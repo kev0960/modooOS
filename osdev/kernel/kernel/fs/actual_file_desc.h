@@ -18,6 +18,7 @@ class ActualFileDescriptor : public FileDescriptor {
 
   size_t Read(void* buf, int count);
   size_t Write(void* buf, int count);
+  FileInfo Stat();
 
  private:
   int inode_num_;

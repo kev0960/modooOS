@@ -455,6 +455,15 @@ struct Ext2Directory {
   KernelString name;
 };
 
+struct linux_dirent {
+  uint32_t d_ino;     /* Inode number */
+  uint32_t d_off;     /* Offset to next linux_dirent */
+  uint16_t d_reclen; /* Length of this linux_dirent */
+  char d_name[];           /* Filename (null-terminated) */
+                           /* length is actually (d_reclen - 2 -
+                              offsetof(struct linux_dirent, d_name) */
+};
+
 struct FileInfo {
   size_t inode;      // Inode number.
   size_t file_size;  // File size in bytes.
@@ -529,10 +538,13 @@ class Ext2FileSystem {
 
   // Get file info.
   FileInfo Stat(std::string_view path);
+  FileInfo Stat(size_t inode_num);
 
   bool CreateFile(std::string_view path, bool is_directory);
 
   int GetInodeNumberFromPath(std::string_view path);
+
+  std::vector<Ext2Directory> ParseDirectory(Ext2Inode* dir);
 
  private:
   struct BitmapInfo {
@@ -541,7 +553,6 @@ class Ext2FileSystem {
   };
 
   Ext2FileSystem();
-  std::vector<Ext2Directory> ParseDirectory(Ext2Inode* dir);
 
   // Get empty block. returns the block number.
   size_t GetEmptyBlock();

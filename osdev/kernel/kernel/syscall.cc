@@ -1,8 +1,11 @@
 #include "syscall.h"
 
 #include "../std/printf.h"
+#include "./fs/ext2.h"
 #include "./sys/sys_dup2.h"
 #include "./sys/sys_exit.h"
+#include "./sys/sys_getcwd.h"
+#include "./sys/sys_getdents.h"
 #include "./sys/sys_open.h"
 #include "./sys/sys_pipe.h"
 #include "./sys/sys_read.h"
@@ -163,6 +166,14 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
     case SYS_SBRK:  // 11
       ret = reinterpret_cast<uint64_t>(
           SysSbrkHandler::GetHandler().SysSbrk(arg1));
+      break;
+    case SYS_GETDENTS:  // 12
+      ret = SysGetDentsHandler::GetHandler().SysGetDents(
+          arg1, reinterpret_cast<linux_dirent*>(arg2), arg3);
+      break;
+    case SYS_GETCWD:  // 13
+      ret = reinterpret_cast<uint64_t>(SysGetCWDHandler::GetHandler().SysGetCWD(
+          reinterpret_cast<char*>(arg1), arg2));
       break;
   }
 

@@ -22,3 +22,16 @@ struct stat {
 
 int stat(const char* pathname, struct stat* statbuf);
 void* sbrk(intptr_t bytes);
+
+struct linux_dirent {
+  uint32_t d_ino;    /* Inode number */
+  uint32_t d_off;    /* Offset to next linux_dirent */
+  uint16_t d_reclen; /* Length of this linux_dirent */
+  char d_name[];     /* Filename (null-terminated) */
+                     /* length is actually (d_reclen - 2 -
+                        offsetof(struct linux_dirent, d_name) */
+};
+
+int get_dents(int fd, struct linux_dirent* dirp, size_t count);
+
+char* getcwd(char* buf, size_t size);

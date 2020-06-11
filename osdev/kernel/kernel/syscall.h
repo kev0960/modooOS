@@ -14,7 +14,9 @@ enum SyscallNumbers {
   SYS_PIPE = 8,
   SYS_DUP2,
   SYS_STAT = 10,
-  SYS_SBRK
+  SYS_SBRK,
+  SYS_GETDENTS,
+  SYS_GETCWD
 };
 
 class SyscallManager {

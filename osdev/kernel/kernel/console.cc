@@ -229,9 +229,9 @@ void KernelConsole::DoParse() {
   fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
       file_path.c_str(), working_dir_.c_str(), argv);
   if (fg_process_ == nullptr) {
-    // Try again with input[0] with root path.
+    // Try again with input[0] with /usr/bin path.
     // TODO Later we have to introduce env variables.
-    auto file_path = ext2.GetAbsolutePath(input[0], "/");
+    auto file_path = ext2.GetAbsolutePath(input[0], "/usr/bin");
     fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
         file_path.c_str(), working_dir_.c_str(), argv);
 

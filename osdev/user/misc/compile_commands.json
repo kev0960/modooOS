@@ -1,0 +1,197 @@
+[
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-I../libc",
+            "-nostdlib",
+            "-o",
+            "bin/hello.o",
+            "hello.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "hello.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-I../libc",
+            "-nostdlib",
+            "-o",
+            "bin/print_simple.o",
+            "print_simple.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "print_simple.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-I../libc",
+            "-nostdlib",
+            "-o",
+            "bin/input.o",
+            "input.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "input.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-o",
+            "../libc/printf.o",
+            "../libc/printf.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "../libc/printf.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-o",
+            "../libc/crt0.o",
+            "../libc/crt0.S"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "../libc/crt0.S"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-o",
+            "../libc/string.o",
+            "../libc/string.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "../libc/string.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-I../libc",
+            "-nostdlib",
+            "-o",
+            "bin/malloc_test.o",
+            "malloc_test.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "malloc_test.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-o",
+            "../libc/syscall.o",
+            "../libc/syscall.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "../libc/syscall.c"
+    },
+    {
+        "arguments": [
+            "/home/jaebum/opt/cross/bin/x86_64-elf-gcc",
+            "-c",
+            "-fno-builtin",
+            "-O0",
+            "-nostdinc",
+            "-nostdlib",
+            "-ffreestanding",
+            "-g",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-I",
+            "-mgeneral-regs-only",
+            "-o",
+            "../libc/malloc.o",
+            "../libc/malloc.c"
+        ],
+        "directory": "/home/jaebum/OSDEV/osdev/osdev/user/misc",
+        "file": "../libc/malloc.c"
+    }
+]

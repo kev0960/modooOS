@@ -8,9 +8,22 @@ ASFLAGS = $(SHARED_FLAGS) -Wa,--divide
 VPATH = ./kernel:./boot:./std:./test:./kernel/fs:./kernel/sys
 OBJDIR = ./obj
 
-OBJS := boot.o interrupt_handler.o boot_ap.o
-OBJS += kmain.o string_util.o string.o kernel_math.o interrupt.o keyboard.o timer.o printf.o kmalloc.o  scheduler.o kthread.o memory.o ata.o ext2.o paging.o frame_allocator.o kernel_util.o descriptor_table.o process.o elf.o syscall.o block_iterator.o block_indices.o acpi.o apic.o sync.o actual_file_desc.o pipe.o console.o vga_output.o semaphore.o
-OBJS += kernel_test.o string_test.o
+BOOT_DIR = ./boot
+KERNEL_DIR = ./kernel
+STD_DIR = ./std
+FS_DIR = $(KERNEL_DIR)/fs
+SYS_DIR = $(KERNEL_DIR)/sys
+
+SRCS = $(notdir $(wildcard $(BOOT_DIR)/*.S))
+SRCS += $(notdir $(wildcard $(KERNEL_DIR)/*.cc $(KERNEL_DIR)/*.S))
+SRCS += $(notdir $(wildcard $(FS_DIR)/*.cc $(FS_DIR)/*.S))
+SRCS += $(notdir $(wildcard $(SYS_DIR)/*.cc $(SYS_DIR)/*.S))
+SRCS += $(notdir $(wildcard $(STD_DIR)/*.cc $(STD_DIR)/*.S))
+
+# Add test here.
+SRCS += kernel_test.cc
+
+OBJS := $(addsuffix .o, $(basename $(SRCS)))
 
 CRTI_OBJ = ./obj/crti.o
 CRTBEGIN_OBJ := $(shell $(CC) $(CXXFLAGS) -print-file-name=crtbegin.o)
@@ -21,21 +34,22 @@ OBJS_IN_OBJ_DIR = $(addprefix $(OBJDIR)/, $(OBJS))
 OBJ_LIST = $(CRTI_OBJ) $(CRTBEGIN_OBJ) $(OBJS_IN_OBJ_DIR) $(CRTEND_OBJ) $(CRTN_OBJ)
 DFILES = $(addprefix $(OBJDIR)/, $(patsubst %.o,%.d,$(OBJS)))
 
-$(info $(DFILES))
-
 all: kernel
 
-kernel: $(OBJS) kernel.ld Makefile
+kernel: $(OBJ_LIST) kernel.ld Makefile
 	$(CC) -z max-page-size=0x1000 $(CXXFLAGS) -no-pie -Wl,--build-id=none -T kernel.ld -o kernel.bin $(OBJ_LIST) -lgcc
+
+$(info $(OBJ_LIST))
+$(info $(OBJS))
 
 clean:
 	find -name "*~" -delete
 	rm -rf $(OBJS) $(DFILES)
 
-%.o: %.cc
-	$(CC) $(CXXFLAGS) -c $< -o $(OBJDIR)/$@
+$(OBJDIR)/%.o: %.cc
+	$(CC) $(CXXFLAGS) -c $< -o $@
 
-%.o: %.S
-	$(CC) $(ASFLAGS) -c $< -o $(OBJDIR)/$@
+%(OBJDIR)/%.o: %.S
+	$(CC) $(ASFLAGS) -c $< -o $@
 
 -include $(DFILES)

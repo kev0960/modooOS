@@ -439,12 +439,7 @@ void Ext2FileSystem::MarkEmptyInodeAsUsed(size_t inode_num) {
   WriteFromBlockId(inode_info.bitmap.GetBitmap(), inode_info.bitmap_block_id);
 }
 
-FileInfo Ext2FileSystem::Stat(std::string_view path) {
-  int inode_num = GetInodeNumberFromPath(path);
-  if (inode_num == -1) {
-    return FileInfo{};
-  }
-
+FileInfo Ext2FileSystem::Stat(size_t inode_num) {
   Ext2Inode file = ReadInode(inode_num);
   // PrintInodeInfo(file);
   FileInfo info;
@@ -453,6 +448,15 @@ FileInfo Ext2FileSystem::Stat(std::string_view path) {
   info.mode = file.mode;
 
   return info;
+}
+
+FileInfo Ext2FileSystem::Stat(std::string_view path) {
+  int inode_num = GetInodeNumberFromPath(path);
+  if (inode_num == -1) {
+    return FileInfo{};
+  }
+
+  return Stat(inode_num);
 }
 
 bool Ext2FileSystem::CreateFile(std::string_view path, bool is_directory) {
@@ -685,6 +689,7 @@ KernelString Ext2FileSystem::GetAbsolutePath(const KernelString& path,
   }
   p.append(path);
 
+  QemuSerialLog::Logf("path : %s %s \n", current_dir.c_str(), p.c_str());
   return p;
 }
 
@@ -729,10 +734,17 @@ KernelString Ext2FileSystem::GetCanonicalAbsolutePath(
     continue;
   }
 
-  KernelString path = "/";
+  KernelString path;
   for (auto p : paths) {
+    path.append("/");
     path.append(p);
   }
+
+  if (path.size() == 0) {
+    path = "/";
+  }
+
+  QemuSerialLog::Logf("Absolute : %s \n", path.c_str());
   return path;
 }
 

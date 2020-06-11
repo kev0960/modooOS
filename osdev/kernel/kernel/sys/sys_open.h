@@ -17,9 +17,13 @@ class SysOpenHandler : public SyscallHandler<SysOpenHandler> {
         Ext2FileSystem::GetAbsolutePath(pathname, process->GetWorkingDir());
     QemuSerialLog::Logf("Open : %s \n", absolute_path.c_str());
 
-    ActualFileDescriptor* desc = new ActualFileDescriptor(
-        Ext2FileSystem::GetExt2FileSystem().GetInodeNumberFromPath(
-            absolute_path.c_str()));
+    int inode_num = Ext2FileSystem::GetExt2FileSystem().GetInodeNumberFromPath(
+        absolute_path.c_str());
+    if (inode_num == -1) {
+      return -1;
+    }
+
+    ActualFileDescriptor* desc = new ActualFileDescriptor(inode_num);
 
     FileDescriptorTable& table = process->GetFileDescriptorTable();
     return table.AddDescriptor(desc);

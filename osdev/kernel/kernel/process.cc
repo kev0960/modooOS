@@ -131,11 +131,16 @@ Process* ProcessManager::CreateProcess(std::string_view file_name,
                                        std::string_view working_dir) {
   auto& ext2_filesystem = Ext2FileSystem::GetExt2FileSystem();
   QemuSerialLog::Logf("File : %s \n", KernelString(file_name).c_str());
+
   FileInfo file_info = ext2_filesystem.Stat(file_name);
 
   // File is not found.
   if (file_info.file_size == 0) {
     QemuSerialLog::Logf("not found\n");
+    return nullptr;
+  } else if (Ext2FileSystem::GetFileFormatFromMode(file_info.mode) !=
+             Ext2FileSystem::S_REG) {
+    QemuSerialLog::Logf("Is not a regular file\n");
     return nullptr;
   }
 
