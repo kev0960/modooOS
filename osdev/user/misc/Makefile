@@ -18,6 +18,7 @@ LIBC_OBJS += $(patsubst %.S,%.o,$(wildcard $(LIBC_PATH)/*.S))
 LIBC_DEPS = $(patsubst %.o,%.d,$(LIBC_OBJS))
 
 $(info $(LIBC_OBJS))
+$(info $(LIBC_DEPS))
 
 all: $(LIBC_OBJS) $(TARGET_PATH)
 
@@ -27,16 +28,16 @@ $(OBJ_PATH)/%.o: %.c
 $(LIBC_PATH)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(LDFLAGS) -c $< -o $@
 
-$(OBJ_PATH)/hello: $(OBJ_PATH)/hello.o
+$(OBJ_PATH)/hello: $(OBJ_PATH)/hello.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
-$(OBJ_PATH)/input: $(OBJ_PATH)/input.o
+$(OBJ_PATH)/input: $(OBJ_PATH)/input.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
-$(OBJ_PATH)/malloc_test: $(OBJ_PATH)/malloc_test.o
+$(OBJ_PATH)/malloc_test: $(OBJ_PATH)/malloc_test.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
-$(OBJ_PATH)/print_simple: $(OBJ_PATH)/print_simple.o
+$(OBJ_PATH)/print_simple: $(OBJ_PATH)/print_simple.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
 .PHONY: clean

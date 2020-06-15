@@ -32,11 +32,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "printf.h"
-#include "stdint.h"
 
-void _putchar(char c) {
-  (void)c;
-}
+#include "stdint.h"
+#include "syscall.h"
+
+void _putchar(char c) { (void)c; }
 
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
 // printf_config.h header file
@@ -911,9 +911,12 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen,
 int printf_(const char* format, ...) {
   va_list va;
   va_start(va, format);
-  char buffer[1];
-  const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+  char buffer[1024];
+  const int ret = vsnprintf(buffer, 1024, format, va);
+  buffer[ret] = 0;
   va_end(va);
+
+  write(buffer);
   return ret;
 }
 

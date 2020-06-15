@@ -12,6 +12,9 @@ namespace {
 
 constexpr uint64_t kFourKB = (1 << 12);
 
+// Process default stack size limit is 8 MB.
+constexpr uint64_t kEightMB = (1 << 23);
+
 uint64_t CopyStringToStack(const KernelString& s, uint64_t rsp) {
   // We have to put NULL terminator too.
   rsp = rsp - (s.size() + 1);
@@ -82,7 +85,7 @@ ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
     return ProcessAddressInfo::NOT_VALID_ADDR;
   }
 
-  if (kUserProcessStackAddress - kFourKB <= addr &&
+  if (kUserProcessStackAddress - kEightMB <= addr &&
       addr <= kUserProcessStackAddress) {
     return ProcessAddressInfo::STACK_ADDR;
   }

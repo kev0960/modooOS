@@ -14,12 +14,8 @@ int main(int argc, char* argv[]) {
 
   int fd = open(current_dir);
 
-  char dir_info[1025];
-  int cnt = get_dents(fd, (struct linux_dirent*)dir_info, 1025);
-
-  if (cnt >= 1025) {
-    write("Directory size too large :(\n");
-  }
+  char dir_info[1024];
+  int cnt = get_dents(fd, (struct linux_dirent*)dir_info, 1024);
 
   char* current = dir_info;
   while (current - dir_info < cnt) {

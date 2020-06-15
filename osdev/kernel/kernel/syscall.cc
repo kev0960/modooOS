@@ -111,10 +111,12 @@ void SyscallManager::InitSyscall() {
 int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
                                    uint64_t arg2, uint64_t arg3, uint64_t arg4,
                                    uint64_t arg5, uint64_t arg6) {
-  QemuSerialLog::Logf("Syscall %d [pid:%d] [CPU:%d] %lx \n", syscall_num,
-                      KernelThread::CurrentThread()->Id(),
-                      CPUContextManager::GetCurrentCPUId(),
-                      CPURegsAccessProvider::ReadRSP());
+  if (syscall_num != 2) {
+    QemuSerialLog::Logf("Syscall %d [pid:%d] [CPU:%d] %lx \n", syscall_num,
+                        KernelThread::CurrentThread()->Id(),
+                        CPUContextManager::GetCurrentCPUId(),
+                        CPURegsAccessProvider::ReadRSP());
+  }
 
   CPURegsAccessProvider::EnableInterrupt();
 

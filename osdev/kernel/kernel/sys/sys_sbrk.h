@@ -23,12 +23,14 @@ class SysSbrkHandler : public SyscallHandler<SysSbrkHandler> {
     ASSERT(!KernelThread::CurrentThread()->IsKernelThread());
     Process* process = static_cast<Process*>(KernelThread::CurrentThread());
 
+    QemuSerialLog::Logf("Bytes : %d\n", bytes);
     void* prev_brk = process->GetHeapEnd();
     if (bytes < 0) {
       // TODO actually decrease the heap size.
       return prev_brk;
     }
 
+    QemuSerialLog::Logf("Request size : %d", RoundUpToMultipleOfFourKb(bytes));
     process->IncreaseHeapSize(RoundUpToMultipleOfFourKb(bytes));
     return prev_brk;
   }
