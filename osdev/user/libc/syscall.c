@@ -1,5 +1,7 @@
 #include "syscall.h"
 
+#include <string.h>
+
 int64_t syscall_1(int64_t sysnum, int64_t arg1) {
   int64_t ret;
   asm volatile(
@@ -60,24 +62,14 @@ int64_t syscall_3(int64_t sysnum, int64_t arg1, int64_t arg2, int64_t arg3) {
   return ret;
 }
 
-size_t strlen(const char* s) {
-  size_t sz = 0;
-  while (*s != 0) {
-    sz++;
-    s++;
-  }
-  return sz;
-}
-
 int open(const char* pathname) { return syscall_1(7, (int64_t)pathname); }
 
 size_t read(int64_t fd, char* buf, size_t count) {
   return syscall_3(1, fd, (int64_t)buf, count);
 }
 
-size_t write(const char* s) {
-  size_t count = strlen(s);
-  return syscall_3(2, /*stdout*/ 1, (int64_t)s, count);
+size_t write(int fd, const char* s, size_t count) {
+  return syscall_3(2, /*stdout*/ fd, (int64_t)s, count);
 }
 
 int spawn(pid_t* pid, const char* s) {

@@ -46,7 +46,11 @@ int Pipe::Read(char* data, size_t count) {
       data[i] = buf_[i];
     }
 
-    size_ = 0;
+    size_ -= actually_read;
+    for (int i = 0; i < size_; i ++) {
+      buf_[i] = buf_[i + actually_read];
+    }
+
     buf_access_lock_.unlock();
 
     return actually_read;

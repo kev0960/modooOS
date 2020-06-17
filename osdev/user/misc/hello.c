@@ -45,37 +45,34 @@ int main() {
   int cnt = read(3, str_out, 128);
   str_out[0] = '!';
   str_out[cnt] = 0;
-  write(str_out);
+  printf("%s", str_out);
 
   cnt = read(3, str_out, 128);
   str_out[0] = '!';
   str_out[cnt] = 0;
-  write(str_out);
+  printf("%s", str_out);
 
   cnt = read(3, str_out, 128);
   str_out[0] = '!';
   str_out[cnt] = 0;
-  write(str_out);
+  printf("%s", str_out);
 
   cnt = read(3, str_out, 128);
   str_out[0] = '!';
   str_out[cnt] = 0;
-  write(str_out);
+  printf("%s", str_out);
 
   cnt = read(3, str_out, 128);
   str_out[0] = '!';
   str_out[cnt] = 0;
-  write(str_out);
+  printf("%s", str_out);
 
-  sprintf(str_out, "result = %d pid : %d\n", result, pid);
-  write(str_out);
-  sprintf(str_out, "pipe %d %d \n", pipefd[0], pipefd[1]);
-  write(str_out);
+  printf("result = %d pid : %d\n", result, pid);
+  printf("pipe %d %d \n", pipefd[0], pipefd[1]);
 
   int status;
   waitpid(pid, &status);
-  sprintf(str_out, "child exit code : %d\n", status);
-  write(str_out);
+  printf("child exit code : %d\n", status);
 
   return 0;
 }

@@ -105,7 +105,8 @@ class VGAOutput {
 
     size_t i;
     for (i = current_col_; i < min(current_col_ + s.size(), kNumCols); i++) {
-      text_buffer_[current_row_][i] = (s[i - current_col_] | (color << 8));
+      PutCharAt(current_row_, i, s[i - current_col_], color);
+      // text_buffer_[current_row_][i] = (s[i - current_col_] | (color << 8));
     }
     current_col_ = i;
 

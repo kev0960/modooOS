@@ -74,6 +74,11 @@ int VGAOutput::EstimateNumScrollDown(const std::vector<KeyStroke>& ks,
 
 // Print char at (row, col)
 void VGAOutput::PutCharAt(size_t row, size_t col, char c, VGAColor color) {
+  // Carriage return should be treated as empty.
+  if (c == 13) {
+    c = 0;
+  }
+
   text_buffer_[row][col] = (c | (color << 8));
 }
 

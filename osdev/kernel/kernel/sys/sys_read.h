@@ -20,7 +20,6 @@ class SysReadHandler : public SyscallHandler<SysReadHandler> {
     FileDescriptorTable& table = process->GetFileDescriptorTable();
     FileDescriptor* desc = table.GetDescriptor(fd);
 
-    QemuSerialLog::Logf("Desc %x ! \n", desc);
     // fd is not opened.
     if (desc == nullptr) {
       return 0;

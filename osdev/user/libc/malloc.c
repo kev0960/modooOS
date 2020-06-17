@@ -307,6 +307,10 @@ void InitMalloc() {
 }
 
 void* malloc(unsigned long int bytes) {
+  if (bytes == 0) {
+    return NULL;
+  }
+
   if (allocated_size == 0) {
     InitMalloc();
   }
@@ -351,7 +355,25 @@ void* malloc(unsigned long int bytes) {
   return heap_start + new_free_mem + 4;
 }
 
+void* realloc(void* ptr, unsigned long int bytes) {
+  if (ptr == 0) {
+    return malloc(bytes);
+  }
+
+  size_t offset = (char*)(ptr)-heap_start - 4;
+  struct MetaFieldFront* front = GetMetaFieldFront(offset);
+  if (front->sz >= bytes) {
+    return ptr;
+  }
+
+  free(ptr);
+  return malloc(bytes);
+}
+
 void free(void* mem) {
+  if (mem == 0) {
+    return;
+  }
   size_t offset = (char*)(mem)-heap_start - 4;
   MarkFree(offset);
 }

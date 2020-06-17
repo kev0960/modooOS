@@ -1,5 +1,6 @@
 #include <malloc.h>
 #include <printf.h>
+#include <string.h>
 #include <syscall.h>
 
 #include "../test/ctest.h"
@@ -86,6 +87,7 @@ void test_medium_random() {
     int index = actions[i];
     if (!mem[index]) {
       mem[index] = malloc(mem_size[index]);
+      memset(mem[index], 0xDD, mem_size[index]);
     } else {
       free(mem[index]);
     }
@@ -218,6 +220,7 @@ void test_random_large() {
     int index = actions[i];
     if (!mem[index]) {
       mem[index] = malloc(mem_size[index]);
+      memset(mem[index], 0xDD, mem_size[index]);
     } else {
       free(mem[index]);
     }

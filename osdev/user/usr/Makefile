@@ -24,7 +24,7 @@ all: $(LIBC_OBJS) $(TARGET_PATH)
 $(OBJ_PATH)/%.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(LDFLAGS) -c $< -o $@
 
-$(LIBC_PATH)/%.o: %.c
+$(LIBC_PATH)/%.o: $(LIBC_PATH)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(LDFLAGS) -c $< -o $@
 
 $(OBJ_PATH)/cat: $(OBJ_PATH)/cat.o

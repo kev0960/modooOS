@@ -21,7 +21,7 @@ class SysWriteHandler : public SyscallHandler<SysWriteHandler> {
 
     // TODO This is just a placeholder.
     if (desc == nullptr) {
-      QemuSerialLog::Logf("%s", buf);
+      QemuSerialLog::Logf("%.*s", count, buf);
       KernelConsole::GetKernelConsole().PrintToTerminal(
           reinterpret_cast<char*>(buf), count);
       // kprintf("%s", buf);

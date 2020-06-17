@@ -6,12 +6,10 @@ int main() {
   char* buf = getcwd(current_dir, 1024);
 
   if (buf == 0) {
-    sprintf(current_dir,
-            "Current directory name is too long (>= 1024) Unable to print.");
-    write(current_dir);
+    printf("Current directory name is too long (>= 1024) Unable to print.");
   } else {
-    write(current_dir);
-    write("\n");
+    printf("%s", current_dir);
+    printf("\n");
   }
 
   return 0;

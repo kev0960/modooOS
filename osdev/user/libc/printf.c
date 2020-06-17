@@ -35,6 +35,7 @@
 
 #include "stdint.h"
 #include "syscall.h"
+#include "unistd.h"
 
 void _putchar(char c) { (void)c; }
 
@@ -916,7 +917,7 @@ int printf_(const char* format, ...) {
   buffer[ret] = 0;
   va_end(va);
 
-  write(buffer);
+  write(STDOUT_FILENO, buffer, ret);
   return ret;
 }
 

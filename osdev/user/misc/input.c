@@ -7,9 +7,7 @@ int main() {
     int cnt = read(0, buf, 100);
     buf[cnt] = 0;
 
-    char out[200];
-    sprintf(out, "You wrote: %s\n", buf);
-    write(out);
+    printf("You wrote: %s\n", buf);
   }
 
   return 0;

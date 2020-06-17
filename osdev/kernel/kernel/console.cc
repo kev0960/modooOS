@@ -166,6 +166,10 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
           should_show_shell_prefix_ = true;
         }
       } else {
+        // Need to include ENTER.
+        input_buffer_[input_buffer_size_] = '\r';
+        input_buffer_size_++;
+
         SendInputBufferToFgProcess(input_buffer_size_);
       }
     } else if (received_keyinfo_queue[i].c == KEY_CODES::BACKSPACE) {

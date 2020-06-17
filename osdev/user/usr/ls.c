@@ -44,14 +44,14 @@ int main(int argc, char* argv[]) {
     file_name[name_len] = 0;
 
     // Now it contains d_name, which includes the Null terminator.
-    write(file_name);
-    write(" ");
+    printf("%s", file_name);
+    printf(" ");
 
     current -= 8;
     current += d_off;
   }
 
-  write("\n");
+  printf("\n");
 
   return 0;
 }
