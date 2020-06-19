@@ -19,15 +19,15 @@ static char* __test_names[MAX_NUM_TEST_FUNC];
 static int __num_violation = 0;
 
 #define ASSERT_TRUE(expr)                                           \
-  if (!expr) {                                                      \
+  if (!(expr)) {                                                      \
     __num_violation++;                                              \
-    printf("ASSERT_TRUE Failed at : %s:%s \n", __FILE__, __LINE__); \
+    printf("ASSERT_TRUE Failed at : %s:%d \n", __FILE__, __LINE__); \
   }
 
 #define ASSERT_FALSE(expr)                                           \
   if (expr) {                                                        \
     __num_violation++;                                               \
-    printf("ASSERT_FALSE Failed at : %s:%s \n", __FILE__, __LINE__); \
+    printf("ASSERT_FALSE Failed at : %s:%d \n", __FILE__, __LINE__); \
   }
 
 void RunTest() {

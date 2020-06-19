@@ -98,6 +98,38 @@ ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
   return ProcessAddressInfo::NOT_VALID_ADDR;
 }
 
+void Process::ZeroInitIfNeeded(uint64_t boundary) {
+  // Check if [boudary, boudary + 4KB] overlaps with BSS section.
+  for (const auto section : section_headers_) {
+    if (section.sh_type == 0x8 /* SHT_NOBITS */ && section.sh_addr != 0) {
+      // Section range : sh_addr ~ sh_addr + sh_size
+      uint64_t overlap_start = 0, overlap_end = 0;
+      if (section.sh_addr <= boundary &&
+          boundary <= section.sh_addr + section.sh_size) {
+        overlap_start = boundary;
+        overlap_end =
+            min(boundary + kFourKB, section.sh_addr + section.sh_size);
+      } else if (section.sh_addr <= boundary + kFourKB &&
+                 boundary + kFourKB <= section.sh_addr + section.sh_size) {
+        overlap_start = max(boundary, section.sh_addr);
+        overlap_end = boundary + kFourKB;
+      } else if (boundary <= section.sh_addr &&
+                 section.sh_addr + section.sh_size <= boundary + kFourKB) {
+        overlap_start = section.sh_addr;
+        overlap_end = section.sh_addr + section.sh_size;
+      }
+
+      if (overlap_start != 0 && overlap_end != 0) {
+        QemuSerialLog::Logf("Zero init : %x ~ %x \n", overlap_start,
+                            overlap_end);
+        memset(reinterpret_cast<void*>(overlap_start), 0,
+               overlap_end - overlap_start);
+        break;
+      }
+    }
+  }
+}
+
 ELFProgramHeader Process::GetMatchingProgramHeader(uint64_t addr) const {
   for (const auto header : program_headers_) {
     if (header.p_vaddr <= addr && addr < header.p_vaddr + header.p_memsz) {
@@ -169,6 +201,7 @@ Process* ProcessManager::CreateProcess(std::string_view file_name,
                   (KernelThread::EntryFuncType)elf_header.e_entry, working_dir);
 
   process->SetProgramHeaders(elf_reader.GetProgramHeaders());
+  process->SetSectionHeaders(elf_reader.GetSectionHeaders());
   kfree(buf);
 
   // Now as soon as the kernel switches to this thread, it will first copy the

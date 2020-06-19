@@ -12,7 +12,7 @@ enum class ProcessAddressInfo {
   NOT_VALID_ADDR,
   STACK_ADDR,
   ELF_SEGMENT_ADDR,
-  HEAP_ADDR
+  HEAP_ADDR,
 };
 
 // Reprsents the user process.
@@ -41,6 +41,10 @@ class Process : public KernelThread {
 
   void SetProgramHeaders(std::vector<ELFProgramHeader> headers) {
     program_headers_ = headers;
+  }
+
+  void SetSectionHeaders(std::vector<ELFSectionHeader> headers) {
+    section_headers_ = headers;
   }
 
   const std::vector<ELFProgramHeader>& GetProgramHeaders() {
@@ -85,6 +89,8 @@ class Process : public KernelThread {
   void IncreaseHeapSize(uint64_t bytes);
   void* GetHeapEnd() const;
 
+  void ZeroInitIfNeeded(uint64_t boundary);
+
  private:
   bool in_kernel_space_;
   SavedRegisters user_regs_;
@@ -99,6 +105,7 @@ class Process : public KernelThread {
 
   uint64_t* pml4e_base_phys_addr_;
   std::vector<ELFProgramHeader> program_headers_;
+  std::vector<ELFSectionHeader> section_headers_;
 
   KernelString file_name_;
 

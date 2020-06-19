@@ -11,7 +11,7 @@ void* memcpy(void* dest, const void* src, size_t count) {
     d++;
     s++;
   }
-  return d;
+  return dest;
 }
 
 void* memset(void* dest, int ch, size_t count) {
@@ -20,7 +20,7 @@ void* memset(void* dest, int ch, size_t count) {
     *d = ch;
     d++;
   }
-  return d;
+  return dest;
 }
 
 void* memmove(void* dest, const void* src, size_t count) {
@@ -72,9 +72,11 @@ int strcmp(const char* lhs, const char* rhs) {
 
 int strncmp(const char* lhs, const char* rhs, size_t count) {
   while (count--) {
-    if (*lhs++ != *rhs++) {
-      return *(unsigned char*)(lhs - 1) - *(unsigned char*)(rhs - 1);
+    if (*lhs != *rhs) {
+      return *(unsigned char*)(lhs) - *(unsigned char*)(rhs);
     }
+    lhs++;
+    rhs++;
   }
   return 0;
 }

@@ -585,6 +585,8 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
         process->GetFileName().c_str(),
         reinterpret_cast<uint8_t*>(max(header.p_vaddr, boundary)), num_read,
         file_read_start_offset);
+
+    process->ZeroInitIfNeeded(boundary);
   }
 
   /*
