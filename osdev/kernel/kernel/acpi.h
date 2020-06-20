@@ -81,6 +81,7 @@ class ACPIManager {
   }
 
   void ParseMADT();
+  void ParseHPET();
 
   void EnableACPI();
 
@@ -116,6 +117,8 @@ class ACPIManager {
   ACPIManager(const ACPIManager&) = delete;
   ACPIManager& operator=(const ACPIManager&) = delete;
 
+  uint8_t* GetHPETRegAddr() { return hpet_reg_addr_; }
+
  private:
   ACPIManager() = default;
 
@@ -123,6 +126,8 @@ class ACPIManager {
 
   uint32_t* sdts_;
   uint32_t num_sdt_;
+
+  uint8_t* hpet_reg_addr_;
 
   std::vector<ACPITableEntry> entries_;
   std::vector<uint8_t> core_apic_ids_;

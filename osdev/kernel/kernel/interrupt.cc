@@ -196,6 +196,12 @@ __attribute__((interrupt)) void ATAHandler(CPUInterruptHandlerArgs* args) {
   }
 }
 
+__attribute__((interrupt)) void HPETInterruptHandler(
+    CPUInterruptHandlerArgs* args) {
+  UNUSED(args);
+  QemuSerialLog::Logf("HPET Timer intr\n");
+}
+
 void IDTManager::InitializeIDTForCPUException() {
   InstallIDTEntry<0>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
   InstallIDTEntry<1>({INTERRUPT_GATE_32_BIT, 0, 1}, false);
@@ -243,6 +249,7 @@ void IDTManager::InitializeIDTForIRQ() {
 
   InstallIDTEntry(TimerInterruptHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x20);
   InstallIDTEntry(KeyboardHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x21);
+  InstallIDTEntry(HPETInterruptHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x22);
   InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2E);
   InstallIDTEntry(ATAHandler, {INTERRUPT_GATE_32_BIT, 0, 1}, 0x2F);
 

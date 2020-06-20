@@ -29,6 +29,7 @@ class Timer {
   uint64_t GetClock() const { return timer_tick_; }
 
   void Sleep(uint64_t num_tick);
+  void SleepMs(uint64_t ms);
 
   // This is a thread that wakes up the threads in the waiting_threads_.
   // We cannot wake up threads in the timer handler because it is called in an
@@ -51,8 +52,15 @@ class Timer {
     return waiting_threads_;
   }
 
+  uint64_t Calibrate();
   void StartAPICTimer();
   int GetTimerId() const { return timer_id_; }
+
+  void SetNum10NanoSecPerTick(uint64_t ten_ns) {
+    num_10nanosec_per_tick_ = ten_ns;
+  }
+
+  void MarkCalibrationDone() { calibration_done_ = true; }
 
  private:
   // At tick per 0.01 seconds, we will need 1844674407370955.16 seconds to make
@@ -64,6 +72,13 @@ class Timer {
   Semaphore waiting_thread_sema_;
 
   int timer_id_;
+
+  uint64_t* GetTimerConfigRegister(int timer_index);
+  uint64_t* GetTimerComparatorRegister(int timer_index);
+  uint64_t GetHPETMainCount();
+
+  uint64_t num_10nanosec_per_tick_ = 0;
+  volatile bool calibration_done_ = false;
 };
 
 // Class that manages timers. There should be one timer at each core.
@@ -87,6 +102,8 @@ class TimerManager {
 
   void StartAPICTimer();
   void RegisterAlarmClock();
+
+  void Calibrate();
 
  private:
   TimerManager();

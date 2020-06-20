@@ -132,6 +132,7 @@ void KernelMain() {
   kprintf("Timer handler is registered \n");
 
   ACPIManager::GetACPIManager().EnableACPI();
+  ACPIManager::GetACPIManager().ParseHPET();
 
   auto& apic_manager = APICManager::GetAPICManager();
   apic_manager.InitLocalAPIC();
@@ -170,6 +171,8 @@ void KernelMain() {
   apic_manager.RedirectIRQs(0xE, 0);
   apic_manager.RedirectIRQs(0xF, 0);
 
+  timer_manager.Calibrate();
+
   auto& ata_driver = ATADriver::GetATADriver();
   (void)(ata_driver);
 
@@ -186,7 +189,7 @@ void KernelMain() {
   process->Start();
   */
   KernelConsole::InitKernelConsole();
-  //VGAOutput::GetVGAOutput().ClearScreen();
+  // VGAOutput::GetVGAOutput().ClearScreen();
 
   KernelConsole::GetKernelConsole().ShowWelcome();
 
@@ -255,7 +258,9 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   // volatile uint64_t k = 0;
   while (1) {
     // void* data = kmalloc(1 << 12);
-    spin_lock.lock();
+    kprintf("hi %d", CPUContextManager::GetCurrentCPUId());
+    TimerManager::GetCurrentTimer().SleepMs(
+        500 * CPUContextManager::GetCurrentCPUId());
     /*
     kprintf("CPU [%d] %lx %lx \n", CPUContextManager::GetCurrentCPUId(), addr,
             addr2);
@@ -263,7 +268,6 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
             cpu_context_manager.GetCPUContext()->cpu_id,
             APICManager::GetAPICManager().ReadRegister(0x390),
             APICManager::GetAPICManager().ReadRegister(0x80));*/
-    spin_lock.unlock();
     // kfree(data);
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }

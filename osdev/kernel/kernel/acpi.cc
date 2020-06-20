@@ -171,4 +171,40 @@ void ACPIManager::ParseRSDT() {
   }
 }
 
+struct HPETAddressStructure {
+  uint8_t address_space_id;  // 0 - system memory, 1 - system I/O
+  uint8_t register_bit_width;
+  uint8_t register_bit_offset;
+  uint8_t reserved;
+  uint64_t address;
+} __attribute__((packed));
+
+struct HPET {
+  uint8_t hardware_rev_id;
+  uint8_t comparator_count : 5;
+  uint8_t counter_size : 1;
+  uint8_t reserved : 1;
+  uint8_t legacy_replacement : 1;
+  uint16_t pci_vendor_id;
+  HPETAddressStructure address;
+  uint8_t hpet_number;
+  uint16_t minimum_tick;
+  uint8_t page_protection;
+} __attribute__((packed));
+
+void ACPIManager::ParseHPET() {
+  auto* entry = GetEntry("HPET");
+  kprintf("entry : %lx ", entry);
+
+  HPET hpet = ReadAndAdvance<HPET>(entry->data);
+  QemuSerialLog::Logf("addr space id %d \n", hpet.address.address_space_id);
+  QemuSerialLog::Logf("addr %lx \n", hpet.address.address);
+  QemuSerialLog::Logf("pci_vendor_id %x \n", hpet.pci_vendor_id);
+
+  hpet_reg_addr_ = reinterpret_cast<uint8_t*>(kaligned_alloc(FourKB, FourKB));
+  PageTableManager::GetPageTableManager().AllocateKernelPage(
+      (uint64_t)hpet_reg_addr_, FourKB, hpet.address.address);
+  QemuSerialLog::Logf("Regisetr : %lx\n", *(uint64_t*)(hpet_reg_addr_));
+}
+
 }  // namespace Kernel

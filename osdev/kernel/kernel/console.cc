@@ -299,7 +299,6 @@ void KernelConsole::PrintTermOutputBuffer() {
                                 kTerminalOutputBufferSize];
       }
     }
-
     // Add NULL terminator.
     term_output_buffer_to_print_[num_to_read] = 0;
 
@@ -308,7 +307,12 @@ void KernelConsole::PrintTermOutputBuffer() {
       term_output_read_index_ -= kTerminalOutputBufferSize;
     }
 
-    kprintf("%s", term_output_buffer_to_print_);
+    VGAOutput::GetVGAOutput().PrintLock();
+    for (int i = 0; i < num_to_read; i++) {
+      VGAOutput::GetVGAOutput().PutCharWithoutLock(
+          term_output_buffer_to_print_[i]);
+    }
+    VGAOutput::GetVGAOutput().PrintUnlock();
   }
 }
 

@@ -1,6 +1,8 @@
 #include <printf.h>
 #include <syscall.h>
 
+static int data[10][100];
+
 int main() {
   /*
   //const char* s = "abc";
@@ -74,5 +76,10 @@ int main() {
   waitpid(pid, &status);
   printf("child exit code : %d\n", status);
 
+  for (int i = 0; i < 10; i++) {
+    for (int j = 0; j < 100; j++) {
+      printf("%d", data[i][j]);
+    }
+  }
   return 0;
 }
