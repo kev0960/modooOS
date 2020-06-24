@@ -242,8 +242,9 @@ void IDTManager::LoadIDT() {
   idt_ptr.limit = sizeof(IDTEntry) * 256 - 1;
   idt_ptr.base_addr = reinterpret_cast<uint64_t>(idt_entries);
   asm volatile("lidt %0" ::"m"(idt_ptr) :);
-  asm volatile("sti");
+  // asm volatile("sti");
 }
+
 void IDTManager::InitializeIDTForIRQ() {
   TimerManager::GetTimerManager().InstallPICTimer();
 
