@@ -7,6 +7,8 @@
 #include "cpu.h"
 #include "cpu_context.h"
 #include "descriptor_table.h"
+#include "fonts.h"
+#include "graphic.h"
 #include "interrupt.h"
 #include "kthread.h"
 #include "paging.h"
@@ -23,7 +25,7 @@ using namespace Kernel;
 
 MultiCoreSpinLock spin_lock;
 
-extern "C" void KernelMain(void);
+extern "C" void KernelMain(void*);
 extern "C" void KernelMainForAP(uint32_t, uint32_t);
 extern "C" void __cxa_atexit(void) {}
 
@@ -77,7 +79,8 @@ void Sleep3() {
 // Waking up other cores.
 // Set up IOAPIC.
 // Set up filesystem.
-void KernelMain() {
+void KernelMain(void* multiboot_info) {
+  QemuSerialLog::Logf("Multiboot info : %lx \n", multiboot_info);
   CPURegsAccessProvider::DisableInterrupt();
 
   CPUContextManager::GetCPUContextManager().SetCPUContext((uint32_t)0);
@@ -183,6 +186,15 @@ void KernelMain() {
 
   kprintf("Filesystem setup is done! \n");
 
+  ParseMultibootInfo(multiboot_info);
+  for (int i = 0; i < 400; i++) {
+    for (int j = 100; j < 105; j++) {
+      GraphicManager::GetGraphicManager().DrawAt(i, j, 0xff00ff);
+    }
+  }
+
+  FontManager::GetFrontManager().Init();
+
   /*
   auto& process_manager = ProcessManager::GetProcessManager();
   auto* process = process_manager.CreateProcess("/hello");
@@ -257,10 +269,8 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   */
   // volatile uint64_t k = 0;
   while (1) {
+    KernelThreadScheduler::GetKernelThreadScheduler().Yield();
     // void* data = kmalloc(1 << 12);
-    kprintf("hi %d", CPUContextManager::GetCurrentCPUId());
-    TimerManager::GetCurrentTimer().SleepMs(
-        500 * CPUContextManager::GetCurrentCPUId());
     /*
     kprintf("CPU [%d] %lx %lx \n", CPUContextManager::GetCurrentCPUId(), addr,
             addr2);

@@ -175,7 +175,6 @@ void PageTable::AllocateTable(uint64_t* pml4e_base_addr_phys,
   } else {
     ASSERT(vm_start_addr < 0xFFFFFFFF80000000LL);
   }
-
   // Allocate pages.
   SetPML4E(vm_start_addr, bytes, PhysToKernel<uint64_t*>(pml4e_base_addr_phys),
            is_kernel, physical_addr_start);

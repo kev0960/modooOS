@@ -2,6 +2,8 @@
 #include "gdt.h"
 #include "multiboot2.h"
 
+#define MULTIBOOT_FLAG_USE_VGA 4
+
 .set MULTIBOOT_HEADER_LENGTH, header_end - header_start
 .set CHECKSUM, -(MULTIBOOT2_HEADER_MAGIC + MULTIBOOT_ARCHITECTURE_I386 + MULTIBOOT_HEADER_LENGTH)
 
@@ -13,6 +15,14 @@ header_start:
   .long CHECKSUM
 
   # set multiboot tags
+  .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER
+  .short 0
+  .long 20
+  .long 800 # width
+  .long 600 # height
+  .long 32 # depth
+
+  .align 0x8
   .short MULTIBOOT_HEADER_TAG_END
   .short 0
   .long 8
@@ -51,18 +61,8 @@ gdt_ptr:
 
 .global _start
 .type _start, @function
+ # Now EBX holds multiboot info.
 _start:
-  cmp $0x36d76289, %eax
-  jne multiboot_error
-  jmp multiboot_success
-
-multiboot_error:
-  movl $0x4641494C, %eax
-  movl $0xb8000, %ebx
-  movb %al, (%ebx)
-  hlt
-
-multiboot_success:
   movl $TMP_STACK + KERNEL_BOOT_STACK_SIZE, %esp
 
   # Start initializing the PML4.
@@ -122,6 +122,7 @@ _start64:
   addq $0xffffffff80000000, %rsp
 
   call _init
+  mov %ebx, %edi # Pass multiboot info to the kernel.
   call KernelMain
   cli
   hlt

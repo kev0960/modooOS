@@ -22,6 +22,7 @@ SRCS += $(notdir $(wildcard $(STD_DIR)/*.cc $(STD_DIR)/*.S))
 
 # Add test here.
 SRCS += kernel_test.cc
+$(info $(SRCS))
 
 OBJS := $(addsuffix .o, $(basename $(SRCS)))
 
@@ -44,12 +45,18 @@ $(info $(OBJS))
 
 clean:
 	find -name "*~" -delete
-	rm -rf $(OBJS) $(DFILES)
+	rm -rf $(OBJS_IN_OBJ_DIR) $(DFILES)
 
 $(OBJDIR)/%.o: %.cc
 	$(CC) $(CXXFLAGS) -c $< -o $@
 
-%(OBJDIR)/%.o: %.S
+obj/boot_ap.o: boot_ap.S
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+obj/boot.o: boot.S
+	$(CC) $(ASFLAGS) -c $< -o $@
+
+obj/interrupt_handler.o: interrupt_handler.S
 	$(CC) $(ASFLAGS) -c $< -o $@
 
 -include $(DFILES)
