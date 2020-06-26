@@ -144,6 +144,8 @@ class vector {
   }
 
   vector& operator=(vector&& v) {
+    Destroy();
+
     size_ = v.size_;
     alloc_size_ = v.alloc_size_;
     data_ = v.data_;

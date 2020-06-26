@@ -41,6 +41,10 @@ void FontManager::Init() {
     QemuSerialLog::Logf("Has unicode table\n");
   }
 
+  for (int i = 0; i < 128; i++) {
+    char_to_font_[i] = (char*)kmalloc(header->charsize);
+  }
+
   QemuSerialLog::Logf("font size : %x width : %d height : %d\n",
                       header->charsize, header->width, header->height);
 
@@ -59,6 +63,7 @@ void FontManager::Init() {
   }
 
   // Read table.
+
   /*
   uint32_t num_glyph = header->length;
   uint32_t len = 0;
@@ -66,7 +71,6 @@ void FontManager::Init() {
       data + header->headersize + header->length * header->charsize;
   while (len < num_glyph) {
     uint8_t* line_end = current;
-    QemuSerialLog::Logf("%d : ", len);
     while (*line_end != 0xFF) {
       QemuSerialLog::Logf("%x ", *line_end);
       line_end++;

@@ -22,6 +22,8 @@ class FontManager {
   uint32_t width_;
 
   bool font_loaded_ = false;
+
+  char* char_to_font_[128];
 };
 
 }  // namespace Kernel
