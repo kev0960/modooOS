@@ -141,6 +141,7 @@ class HashSet {
 
   // Returns nullptr if Key is not found.
   const Key* find(const value_type& v) const { return hash_set_.SearchKey(&v); }
+  Key* find(const value_type& v) { return hash_set_.SearchKey(&v); }
 
  private:
   HashSetInternal<Key> hash_set_;

@@ -42,7 +42,7 @@ void FontManager::Init() {
   }
 
   for (int i = 0; i < 128; i++) {
-    char_to_font_[i] = (char*)kmalloc(header->charsize);
+  //  char_to_font_[i] = (char*)kmalloc(header->charsize);
   }
 
   QemuSerialLog::Logf("font size : %x width : %d height : %d\n",

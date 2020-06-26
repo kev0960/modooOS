@@ -21,7 +21,7 @@ SRCS += $(notdir $(wildcard $(SYS_DIR)/*.cc $(SYS_DIR)/*.S))
 SRCS += $(notdir $(wildcard $(STD_DIR)/*.cc $(STD_DIR)/*.S))
 
 # Add test here.
-SRCS += kernel_test.cc
+SRCS += kernel_test.cc hash_set_test.cc
 $(info $(SRCS))
 
 OBJS := $(addsuffix .o, $(basename $(SRCS)))
