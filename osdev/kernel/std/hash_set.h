@@ -20,8 +20,8 @@ class HashSetInternal {
  public:
   constexpr static size_t kInitNumSlots = 1024;
 
-  // Load factor = 1 / 2
-  constexpr static size_t kInverseLoadFactor = 2;
+  // Load factor = 1 / 3
+  constexpr static size_t kInverseLoadFactor = 3;
 
   HashSetInternal() : slots_(kInitNumSlots), num_elements_(0) {}
 

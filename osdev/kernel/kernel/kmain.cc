@@ -193,7 +193,19 @@ void KernelMain(void* multiboot_info) {
     }
   }
 
-  FontManager::GetFrontManager().Init();
+  auto& font_manager = FontManager::GetFontManager();
+  font_manager.Init();
+
+  for (int i = 0; i < 0x7f; i++) {
+    font_manager.Draw(i, i * 10 / 800 * 20, i * 10 % 800);
+  }
+  for (int i = 0xc200; i < 0xc400; i++) {
+    int j = (i - 0xc200) + 0x7f;
+    font_manager.Draw(i, j * 10 / 800 * 20, j * 10 % 800);
+  }
+  // font_manager.Draw('A', 0, 20);
+  // font_manager.Draw('B', 0, 40);
+  // font_manager.Draw('C', 0, 60);
 
   /*
   auto& process_manager = ProcessManager::GetProcessManager();

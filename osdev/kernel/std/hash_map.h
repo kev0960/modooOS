@@ -7,20 +7,20 @@ namespace Kernel {
 namespace std {
 
 template <typename Key, typename Value>
-struct KeyVal {
+struct KeyValHashMap {
   Key key;
   Value value;
 
-  KeyVal() {}
-  KeyVal(const Key& k) : key(k) {}
-  KeyVal(const Key& k, const Value& v) : key(k), value(v) {}
+  KeyValHashMap() {}
+  KeyValHashMap(const Key& k) : key(k) {}
+  KeyValHashMap(const Key& k, const Value& v) : key(k), value(v) {}
 
-  bool operator==(const KeyVal& kv) { return key == kv.key; }
+  bool operator==(const KeyValHashMap& kv) { return key == kv.key; }
 };
 
 template <typename Key, typename Value>
-struct hash<KeyVal<Key, Value>> {
-  size_t operator()(const KeyVal<Key, Value>& kv) const {
+struct hash<KeyValHashMap<Key, Value>> {
+  size_t operator()(const KeyValHashMap<Key, Value>& kv) const {
     return std::hash<Key>()(kv.key);
   }
 };
@@ -29,20 +29,22 @@ template <typename Key, typename Value>
 class HashMap {
  public:
   void insert(const Key& key, const Value& val) {
-    hash_set_.insert(KeyVal<Key, Value>(key, val));
+    hash_set_.insert(KeyValHashMap<Key, Value>(key, val));
   }
 
-  void insert(const Key& key) { hash_set_.insert(KeyVal<Key, Value>(key)); }
+  void insert(const Key& key) {
+    hash_set_.insert(KeyValHashMap<Key, Value>(key));
+  }
 
   size_t erase(const Key& key) {
-    KeyVal<Key, Value> kv;
+    KeyValHashMap<Key, Value> kv;
     kv.key = key;
 
     return hash_set_.erase(kv);
   }
 
   const Value* find(const Key& key) const {
-    KeyVal<Key, Value> kv;
+    KeyValHashMap<Key, Value> kv;
     kv.key = key;
 
     auto* key_val = hash_set_.find(kv);
@@ -54,7 +56,7 @@ class HashMap {
   }
 
   Value& operator[](const Key& key) {
-    KeyVal<Key, Value> kv;
+    KeyValHashMap<Key, Value> kv;
     kv.key = key;
 
     auto* key_val = hash_set_.find(kv);
@@ -67,7 +69,7 @@ class HashMap {
   }
 
  private:
-  HashSet<KeyVal<Key, Value>> hash_set_;
+  HashSet<KeyValHashMap<Key, Value>> hash_set_;
 };
 
 }  // namespace std
