@@ -110,4 +110,12 @@ void FontManager::Draw(int font, int row, int col) {
   }
 }
 
+char* FontManager::GetFont(int c) {
+  const int* pos = fonts_.find(c);
+  if (pos == nullptr) {
+    return nullptr;
+  }
+  return fonts_data_[*pos];
+}
+
 }  // namespace Kernel

@@ -33,14 +33,17 @@
 
 #include "printf.h"
 
-#include "../kernel/vga_output.h"
+#include "../kernel/graphic.h"
+#include "../kernel/qemu_log.h"
 #include "stdint.h"
 
 #define PRINTF_DISABLE_SUPPORT_FLOAT  // Disable float.
 #define PRINTF_SUPPORT_LONG_LONG
 
 void _putchar(char character) {
-  Kernel::VGAOutput::GetVGAOutput().PutCharWithoutLock(character);
+  if (Kernel::GraphicManager::GetGraphicManager().IsReady()) {
+    Kernel::GraphicManager::GetGraphicManager().PutChar(character);
+  }
 }
 
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
@@ -917,14 +920,14 @@ static int _vsnprintf(out_fct_type out, char* buffer, const size_t maxlen,
 ///////////////////////////////////////////////////////////////////////////////
 
 int printf_(const char* format, ...) {
-  auto& vga_output = Kernel::VGAOutput::GetVGAOutput();
-  vga_output.PrintLock();
+  auto& m = Kernel::GraphicManager::GetGraphicManager();
+  m.PrintLock();
   va_list va;
   va_start(va, format);
   char buffer[1];
   const int ret = _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
   va_end(va);
-  vga_output.PrintUnlock();
+  m.PrintUnlock();
   return ret;
 }
 

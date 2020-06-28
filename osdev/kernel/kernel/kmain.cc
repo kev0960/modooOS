@@ -187,22 +187,21 @@ void KernelMain(void* multiboot_info) {
   kprintf("Filesystem setup is done! \n");
 
   ParseMultibootInfo(multiboot_info);
-  for (int i = 0; i < 400; i++) {
-    for (int j = 100; j < 105; j++) {
-      GraphicManager::GetGraphicManager().DrawAt(i, j, 0xff00ff);
-    }
-  }
 
   auto& font_manager = FontManager::GetFontManager();
   font_manager.Init();
 
-  for (int i = 0; i < 0x7f; i++) {
-    font_manager.Draw(i, i * 10 / 800 * 20, i * 10 % 800);
+  /*
+  auto& graphic_manager = GraphicManager::GetGraphicManager();
+  for (int i = 0; i < 2500; i++) {
+    graphic_manager.PutChar('A');
   }
-  for (int i = 0xc200; i < 0xc400; i++) {
-    int j = (i - 0xc200) + 0x7f;
-    font_manager.Draw(i, j * 10 / 800 * 20, j * 10 % 800);
+  for (int i = 0; i < 2000; i++) {
+    graphic_manager.PutChar('B');
+    TimerManager::GetTimerManager().GetCurrentTimer().SleepMs(50);
   }
+  */
+  // graphic_manager.SyncScreen();
   // font_manager.Draw('A', 0, 20);
   // font_manager.Draw('B', 0, 40);
   // font_manager.Draw('C', 0, 60);
@@ -294,3 +293,4 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
     // kprintf("[%d] ", cpu_context_manager.GetCPUContext()->cpu_id);
   }
 }
+

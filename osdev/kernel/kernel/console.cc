@@ -2,6 +2,7 @@
 
 #include "../std/string_view.h"
 #include "./fs/ext2.h"
+#include "graphic.h"
 #include "process.h"
 #include "scheduler.h"
 #include "string.h"
@@ -128,13 +129,13 @@ int KernelConsole::ReadKeyStroke(std::vector<KeyStroke>* strokes) {
 void KernelConsole::Run() {
   is_running_ = true;
 
-  auto& vga_output = VGAOutput::GetVGAOutput();
-
   QemuSerialLog::Logf("STart Kernel console!");
 
   while (true) {
     if (should_show_shell_prefix_) {
-      kprintf("root:%s# ", working_dir_.c_str());
+      char prefix[1024];
+      sprintf(prefix, "root:%s# ", working_dir_.c_str());
+      GraphicManager::GetGraphicManager().PrintAnchorString(prefix);
       should_show_shell_prefix_ = false;
     }
 
@@ -146,7 +147,8 @@ void KernelConsole::Run() {
     }
 
     // Print key strokes to the console.
-    vga_output.PrintKeyStrokes(received_keyinfo_queue, 0, num_received);
+    GraphicManager::GetGraphicManager().PrintKeyStrokes(received_keyinfo_queue,
+                                                        0, num_received);
 
     // Fill buffer and parse if needed.
     FillInputBufferAndParse(num_received);
@@ -307,12 +309,21 @@ void KernelConsole::PrintTermOutputBuffer() {
       term_output_read_index_ -= kTerminalOutputBufferSize;
     }
 
+    /*
     VGAOutput::GetVGAOutput().PrintLock();
     for (int i = 0; i < num_to_read; i++) {
       VGAOutput::GetVGAOutput().PutCharWithoutLock(
           term_output_buffer_to_print_[i]);
     }
     VGAOutput::GetVGAOutput().PrintUnlock();
+    */
+
+    auto& gm = GraphicManager::GetGraphicManager();
+    gm.PrintLock();
+    for (int i = 0; i < num_to_read; i++) {
+      gm.PutChar(term_output_buffer_to_print_[i]);
+    }
+    gm.PrintUnlock();
   }
 }
 
@@ -352,7 +363,7 @@ void KernelConsole::ShowWelcome() {
        `--..__)8888P`._.'
 )";
 
-  VGAOutput::GetVGAOutput().PrintString(welcome, VGAColor::Green);
+  GraphicManager::GetGraphicManager().PrintString(welcome, 0x39ff14);
 }
 
 }  // namespace Kernel

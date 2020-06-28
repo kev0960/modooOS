@@ -15,6 +15,7 @@ class FontManager {
 
   void Init();
   void Draw(int font, int row, int col);
+  char* GetFont(int c);
 
  private:
   FontManager() = default;
