@@ -96,3 +96,7 @@ int get_dents(int fd, struct linux_dirent* dirp, size_t count) {
 char* getcwd(char* buf, size_t size) {
   return (char*)syscall_2(13, (int64_t)buf, size);
 }
+
+int console(enum ConsoleCommand command) {
+  return syscall_1(14, (int64_t)command);
+}

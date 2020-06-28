@@ -16,7 +16,8 @@ enum SyscallNumbers {
   SYS_STAT = 10,
   SYS_SBRK,
   SYS_GETDENTS,
-  SYS_GETCWD
+  SYS_GETCWD,
+  SYS_CONSOLE = 14
 };
 
 class SyscallManager {

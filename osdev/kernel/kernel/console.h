@@ -19,6 +19,8 @@ class KernelConsole {
   // Start the kernel console.
   static void InitKernelConsole();
 
+  enum ConsoleBufferingModes { NO_BUFFER, LINE_BUFFER };
+
   static KernelConsole& GetKernelConsole() {
     static KernelConsole console;
     return console;
@@ -46,6 +48,8 @@ class KernelConsole {
   Process* GetForegroundProcess() { return fg_process_; }
   void SetForegroundProcess(Process* fg_process) { fg_process_ = fg_process; }
   void ShowShellPrefix() { should_show_shell_prefix_ = true; }
+
+  void SetBufferingMode(ConsoleBufferingModes mode) { buffering_mode_ = mode; }
 
  private:
   static constexpr int kInputLineBufferSize = 1024;
@@ -98,6 +102,9 @@ class KernelConsole {
 
   // Current working directory of the console.
   KernelString working_dir_;
+
+  // Buffering mode of the current fg process.
+  ConsoleBufferingModes buffering_mode_ = LINE_BUFFER;
 };
 
 }  // namespace Kernel

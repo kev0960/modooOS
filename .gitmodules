@@ -1,3 +1,6 @@
 [submodule "osdev/user/python"]
 	path = osdev/user/python
 	url = https://github.com/kev0960/micropython.git
+[submodule "osdev/user/doomgeneric"]
+	path = osdev/user/doomgeneric
+	url = https://github.com/kev0960/doomgeneric

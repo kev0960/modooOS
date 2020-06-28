@@ -2,6 +2,7 @@
 
 #include "../std/printf.h"
 #include "./fs/ext2.h"
+#include "./sys/sys_console.h"
 #include "./sys/sys_dup2.h"
 #include "./sys/sys_exit.h"
 #include "./sys/sys_getcwd.h"
@@ -176,6 +177,11 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
     case SYS_GETCWD:  // 13
       ret = reinterpret_cast<uint64_t>(SysGetCWDHandler::GetHandler().SysGetCWD(
           reinterpret_cast<char*>(arg1), arg2));
+      break;
+    case SYS_CONSOLE:
+      ret =
+          reinterpret_cast<uint64_t>(SysConsoleHandler::GetHandler().SysConsole(
+              static_cast<SysConsoleCommands>(arg1)));
       break;
   }
 

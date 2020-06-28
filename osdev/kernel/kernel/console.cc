@@ -184,6 +184,12 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
         input_buffer_[input_buffer_size_] = c;
         input_buffer_size_++;
       }
+
+      // If no buffering is enabled, then we immediately send input keystroke to
+      // the running process.
+      if (fg_process_ != nullptr && buffering_mode_ == NO_BUFFER) {
+        SendInputBufferToFgProcess(input_buffer_size_);
+      }
     }
 
     if (input_buffer_size_ >= kInputLineBufferSize) {
@@ -227,6 +233,10 @@ void KernelConsole::DoParse() {
   for (auto s : input) {
     argv.push_back(s);
   }
+
+  // Set the bufering mode for this new process as a line buffer.
+  // (Inputs will not be passed to the user process until the ENTER has hit).
+  buffering_mode_ = LINE_BUFFER;
 
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
   auto file_path = ext2.GetCanonicalAbsolutePath(

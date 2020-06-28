@@ -6,7 +6,7 @@ INCLUDE = -I$(LIBC_PATH)
 
 OBJ_PATH = ./bin
 
-TARGET = hello input malloc_test print_simple string_test
+TARGET = hello input malloc_test print_simple string_test noblock
 
 TARGET_PATH = $(addprefix $(OBJ_PATH)/,$(TARGET))
 DEPS = $(addsuffix .d,$(TARGET_PATH))
@@ -41,6 +41,9 @@ $(OBJ_PATH)/print_simple: $(OBJ_PATH)/print_simple.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
 $(OBJ_PATH)/string_test: $(OBJ_PATH)/string_test.o $(LIBC_OBJS)
+	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
+
+$(OBJ_PATH)/noblock: $(OBJ_PATH)/noblock.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
 .PHONY: clean

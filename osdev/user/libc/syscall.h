@@ -35,3 +35,7 @@ struct linux_dirent {
 int get_dents(int fd, struct linux_dirent* dirp, size_t count);
 
 char* getcwd(char* buf, size_t size);
+
+enum ConsoleCommand { SET_NO_BUFFER, SET_LINE_BUFFER };
+
+int console(enum ConsoleCommand command);
