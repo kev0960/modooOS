@@ -28,6 +28,10 @@ class Timer {
 
   uint64_t GetClock() const { return timer_tick_; }
 
+  // Return how many milliseconds have passed (in terms of tick).
+  // 1 tick = 1 ms.
+  uint64_t GetMsTick() const;
+
   void Sleep(uint64_t num_tick);
   void SleepMs(uint64_t ms);
 

@@ -18,6 +18,10 @@ class ActualFileDescriptor : public FileDescriptor {
 
   size_t Read(void* buf, int count);
   size_t Write(void* buf, int count);
+
+  enum Whence { SEEK_SET, SEEK_CUR, SEEK_END };
+  off_t Seek(off_t offset, Whence whence);
+
   FileInfo Stat();
 
  private:

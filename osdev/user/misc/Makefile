@@ -6,7 +6,7 @@ INCLUDE = -I$(LIBC_PATH)
 
 OBJ_PATH = ./bin
 
-TARGET = hello input malloc_test print_simple string_test noblock
+TARGET = hello input malloc_test print_simple string_test noblock graphic timer snake
 
 TARGET_PATH = $(addprefix $(OBJ_PATH)/,$(TARGET))
 DEPS = $(addsuffix .d,$(TARGET_PATH))
@@ -44,6 +44,15 @@ $(OBJ_PATH)/string_test: $(OBJ_PATH)/string_test.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
 $(OBJ_PATH)/noblock: $(OBJ_PATH)/noblock.o $(LIBC_OBJS)
+	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
+
+$(OBJ_PATH)/graphic: $(OBJ_PATH)/graphic.o $(LIBC_OBJS)
+	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
+
+$(OBJ_PATH)/timer: $(OBJ_PATH)/timer.o $(LIBC_OBJS)
+	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
+
+$(OBJ_PATH)/snake: $(OBJ_PATH)/snake.o $(LIBC_OBJS)
 	$(CC) $(LIBC_OBJS) $< $(CFLAGS) $(LDFLAGS) -o $@
 
 .PHONY: clean

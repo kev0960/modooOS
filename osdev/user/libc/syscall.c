@@ -2,6 +2,26 @@
 
 #include <string.h>
 
+int64_t syscall_0(int64_t sysnum) {
+  int64_t ret;
+  asm volatile(
+      "push %%rbx\n"
+      "push %%r12\n"
+      "push %%r13\n"
+      "push %%r14\n"
+      "push %%r15\n"
+      "syscall\n"
+      "pop %%r15\n"
+      "pop %%r14\n"
+      "pop %%r13\n"
+      "pop %%r12\n"
+      "pop %%rbx\n"
+      : "=a"(ret)
+      : "a"(sysnum)
+      :);
+  return ret;
+}
+
 int64_t syscall_1(int64_t sysnum, int64_t arg1) {
   int64_t ret;
   asm volatile(
@@ -62,10 +82,37 @@ int64_t syscall_3(int64_t sysnum, int64_t arg1, int64_t arg2, int64_t arg3) {
   return ret;
 }
 
+int64_t syscall_4(int64_t sysnum, int64_t arg1, int64_t arg2, int64_t arg3,
+                  int64_t arg4) {
+  int64_t ret;
+  register long r10 __asm__("r10") = arg4;
+
+  asm volatile(
+      "push %%rbx\n"
+      "push %%r12\n"
+      "push %%r13\n"
+      "push %%r14\n"
+      "push %%r15\n"
+      "syscall\n"
+      "pop %%r15\n"
+      "pop %%r14\n"
+      "pop %%r13\n"
+      "pop %%r12\n"
+      "pop %%rbx\n"
+      : "=a"(ret)
+      : "a"(sysnum), "D"(arg1), "S"(arg2), "d"(arg3), "r"(r10)
+      :);
+  return ret;
+}
+
 int open(const char* pathname) { return syscall_1(7, (int64_t)pathname); }
 
 size_t read(int64_t fd, char* buf, size_t count) {
   return syscall_3(1, fd, (int64_t)buf, count);
+}
+
+size_t pread(int64_t fd, char* buf, size_t count, off_t offset) {
+  return syscall_4(1, fd, (int64_t)buf, count, offset);
 }
 
 size_t write(int fd, const char* s, size_t count) {
@@ -100,3 +147,11 @@ char* getcwd(char* buf, size_t size) {
 int console(enum ConsoleCommand command) {
   return syscall_1(14, (int64_t)command);
 }
+
+int screen(enum ScreenCommands command, void* arg1, void* arg2) {
+  return syscall_3(15, (int64_t)command, (int64_t)arg1, (int64_t)arg2);
+}
+
+int usleep(size_t microseconds) { return syscall_1(16, (int64_t)microseconds); }
+
+size_t mstick() { return syscall_0(17); }

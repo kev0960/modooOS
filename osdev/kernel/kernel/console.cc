@@ -6,6 +6,7 @@
 #include "process.h"
 #include "scheduler.h"
 #include "string.h"
+#include "utf8.h"
 #include "vga_output.h"
 
 namespace Kernel {
@@ -88,8 +89,13 @@ void KernelConsole::AddKeyStroke(const KeyStroke& key) {
     }
   }
 
+  // We only record "Up" only when RECORD_UP is enabled.
   if (current_write_index_ == kKeyStrokeBufferSize) {
     current_write_index_ = 0;
+  }
+
+  if (key.action == KEY_UP && !(keystroke_mode_ & RECORD_UP)) {
+    return;
   }
 
   received_keyinfo_queue[current_write_index_] = key;
@@ -180,9 +186,26 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
       }
     } else {
       char c = received_keyinfo_queue[i].ToChar();
+
+      // KEY status is recorded as a prefix.
+      if (keystroke_mode_ & RECORD_UP) {
+        if (received_keyinfo_queue[i].action == KEY_UP) {
+          input_buffer_[input_buffer_size_++] = 1;
+        } else if (received_keyinfo_queue[i].action == KEY_DOWN) {
+          input_buffer_[input_buffer_size_++] = 2;
+        }
+      }
+
       if (c != 0) {
         input_buffer_[input_buffer_size_] = c;
         input_buffer_size_++;
+      } else if (keystroke_mode_ & EVERYTHING) {
+        // Even if 'c' is not ASCII character, we should keep in in EVERYTHING
+        // mode. Here, we convert c using UTF-8 encoding.
+        // TODO Keystorke code actually does not match real UNICODE value.
+        // Figure out the way to actually send the scan code.
+        input_buffer_size_ += SetUnicodeToUTF8(
+            received_keyinfo_queue[i].c, input_buffer_ + input_buffer_size_);
       }
 
       // If no buffering is enabled, then we immediately send input keystroke to
@@ -237,6 +260,10 @@ void KernelConsole::DoParse() {
   // Set the bufering mode for this new process as a line buffer.
   // (Inputs will not be passed to the user process until the ENTER has hit).
   buffering_mode_ = LINE_BUFFER;
+  keystroke_mode_ = ASCII_ONLY;
+
+  // Default is blocking IO.
+  console_pipe_->SetBlocking(true);
 
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
   auto file_path = ext2.GetCanonicalAbsolutePath(

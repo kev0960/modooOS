@@ -20,6 +20,11 @@ class KernelConsole {
   static void InitKernelConsole();
 
   enum ConsoleBufferingModes { NO_BUFFER, LINE_BUFFER };
+  enum ConsoleKeystrokeSettings {
+    ASCII_ONLY = 1,
+    EVERYTHING = 2,
+    RECORD_UP = 4  // Record "Key stroke Up" too.
+  };
 
   static KernelConsole& GetKernelConsole() {
     static KernelConsole console;
@@ -50,6 +55,13 @@ class KernelConsole {
   void ShowShellPrefix() { should_show_shell_prefix_ = true; }
 
   void SetBufferingMode(ConsoleBufferingModes mode) { buffering_mode_ = mode; }
+  void SetKeystrokeMode(ConsoleKeystrokeSettings mode) {
+    keystroke_mode_ =
+        static_cast<ConsoleKeystrokeSettings>((int)keystroke_mode_ | (int)mode);
+  }
+  void SetBlockingMode(bool is_blocking) {
+    console_pipe_->SetBlocking(is_blocking);
+  }
 
  private:
   static constexpr int kInputLineBufferSize = 1024;
@@ -105,6 +117,11 @@ class KernelConsole {
 
   // Buffering mode of the current fg process.
   ConsoleBufferingModes buffering_mode_ = LINE_BUFFER;
+
+  // What kind of characters should we pass to the user program.
+  // - ASCII_ONLY : Only pass printable characters.
+  // - EVERYTHING : Pass everything, which includes ARROW_KEY, CTRL and so on.
+  ConsoleKeystrokeSettings keystroke_mode_ = ASCII_ONLY;
 };
 
 }  // namespace Kernel

@@ -7,12 +7,16 @@
 #include "./sys/sys_exit.h"
 #include "./sys/sys_getcwd.h"
 #include "./sys/sys_getdents.h"
+#include "./sys/sys_mstick.h"
 #include "./sys/sys_open.h"
 #include "./sys/sys_pipe.h"
+#include "./sys/sys_pread.h"
 #include "./sys/sys_read.h"
 #include "./sys/sys_sbrk.h"
+#include "./sys/sys_screen.h"
 #include "./sys/sys_spawn.h"
 #include "./sys/sys_stat.h"
+#include "./sys/sys_usleep.h"
 #include "./sys/sys_waitpid.h"
 #include "./sys/sys_write.h"
 #include "cpp_macro.h"
@@ -178,15 +182,39 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
       ret = reinterpret_cast<uint64_t>(SysGetCWDHandler::GetHandler().SysGetCWD(
           reinterpret_cast<char*>(arg1), arg2));
       break;
-    case SYS_CONSOLE:
+    case SYS_CONSOLE:  // 14
       ret =
           reinterpret_cast<uint64_t>(SysConsoleHandler::GetHandler().SysConsole(
               static_cast<SysConsoleCommands>(arg1)));
+      break;
+    case SYS_SCREEN:  // 15
+      ret = reinterpret_cast<uint64_t>(SysScreenHandler::GetHandler().SysScreen(
+          static_cast<SysScreenCommands>(arg1), reinterpret_cast<void*>(arg2),
+          reinterpret_cast<void*>(arg3)));
+      break;
+    case SYS_USLEEP:  // 16
+      ret = reinterpret_cast<uint64_t>(
+          SysUSleepHandler::GetHandler().SysUSleep(arg1));
+      break;
+    case SYS_MSTICK:  // 17
+      ret = reinterpret_cast<uint64_t>(
+          SysMsTickHandler::GetHandler().SysMsTick());
+      break;
+    case SYS_PREAD:  // 18
+      ret = reinterpret_cast<uint64_t>(SysPreadHandler::GetHandler().SysPread(
+          arg1, reinterpret_cast<char*>(arg2), arg3, arg4));
       break;
   }
 
   TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(
       KernelThread::CurrentThread()->GetKernelStackTop());
+
+  // If current kernel thread is terminate ready, then we just terminate instead
+  // of returning from the syscall handler.
+  KernelThread* current_thread = KernelThread::CurrentThread();
+  if (current_thread->IsTerminateReady()) {
+    current_thread->MakeTerminate();
+  }
 
   UNUSED(syscall_num);
   UNUSED(arg1);

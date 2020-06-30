@@ -28,6 +28,31 @@ size_t ActualFileDescriptor::Write(void* buf, int count) {
   return count;
 }
 
+off_t ActualFileDescriptor::Seek(off_t offset, Whence whence) {
+  if (whence == SEEK_SET) {
+    if (offset >= 0) {
+      offset_ = offset;
+    } else {
+      return -1;
+    }
+  } else if (whence == SEEK_CUR) {
+    if ((off_t)offset_ + offset >= 0) {
+      offset_ += offset;
+    } else {
+      return -1;
+    }
+  } else if (whence == SEEK_END) {
+    FileInfo stat = Stat();
+    if ((off_t)stat.file_size + offset >= 0) {
+      offset_ = stat.file_size + offset;
+    } else {
+      return -1;
+    }
+  }
+
+  return offset_;
+}
+
 FileInfo ActualFileDescriptor::Stat() {
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
   return ext2.Stat(inode_num_);

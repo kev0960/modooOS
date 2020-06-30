@@ -26,7 +26,7 @@ void Semaphore::Up() {
     }*/
 
     // Mark it as a runnable thread.
-    elem->Get()->MakeRun();
+    elem->Get()->WakeUp();
 
     // Put back it into the scheuduling queue.
     KernelThreadScheduler::GetKernelThreadScheduler().EnqueueThread(elem);

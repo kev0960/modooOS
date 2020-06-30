@@ -61,6 +61,7 @@ struct KeyStroke {
   bool is_ctrl_down;
   bool is_alt_down;
   bool is_shift_down;
+  KEY_ACTION action;
 
   char ToChar() const;
 };

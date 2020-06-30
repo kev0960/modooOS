@@ -78,6 +78,13 @@ void Timer::SleepMs(uint64_t ms) {
   Sleep(ms * 100000 / num_10nanosec_per_tick_);
 }
 
+uint64_t Timer::GetMsTick() const {
+  while (!calibration_done_) {
+  }
+
+  return (timer_tick_ / 10) * num_10nanosec_per_tick_ / 10000;
+}
+
 void HandleWaitingThreads() {
   while (true) {
     auto& timer = TimerManager::GetTimerManager().GetTimer();

@@ -22,6 +22,8 @@ class Pipe {
   Pipe() = default;
   ~Pipe() = default;
 
+  void SetBlocking(bool is_blocking) { is_blocking_ = is_blocking; }
+
  private:
   static constexpr int kPipeMaxSize = 4096;
 
@@ -32,6 +34,8 @@ class Pipe {
   int size_;
 
   MultiCoreSpinLock buf_access_lock_;
+
+  bool is_blocking_ = true;
 };
 
 class PipeDescriptorReadEnd : public FileDescriptor {

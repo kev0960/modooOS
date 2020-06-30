@@ -206,6 +206,22 @@ void GraphicManager::SyncScreen() {
   }
 }
 
+void GraphicManager::SyncScreenWith(uint32_t* buffer, FrameBufferInfo* info) {
+  for (int i = 0; i < info->buffer_height; i++) {
+    for (int j = 0; j < info->buffer_width; j++) {
+      int screen_index =
+          (i + info->screen_row) * width_ + (j + info->screen_col);
+      int buffer_index = i * info->buffer_width + j;
+      if (last_sync_[screen_index] != buffer[buffer_index]) {
+        buffer_[screen_index] = buffer[buffer_index];
+        last_sync_[screen_index] = buffer_[screen_index];
+        video_mem_[screen_index] = buffer_[screen_index];
+      }
+    }
+  }
+  is_synced_ = true;
+}
+
 void GraphicManager::Backspace() {
   QemuSerialLog::Logf("backsp %d %d %d %d \n", cur_row_, cur_col_, anchor_row_,
                       anchor_col_);

@@ -17,7 +17,11 @@ enum SyscallNumbers {
   SYS_SBRK,
   SYS_GETDENTS,
   SYS_GETCWD,
-  SYS_CONSOLE = 14
+  SYS_CONSOLE,
+  SYS_SCREEN = 15,
+  SYS_USLEEP,
+  SYS_MSTICK,
+  SYS_PREAD,
 };
 
 class SyscallManager {

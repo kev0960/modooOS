@@ -79,11 +79,17 @@ class KernelThread {
   // Wait until this thread finishes.
   void Join();
 
-  void MakeSleep() { status_ = THREAD_SLEEP; }
-  void MakeRun() { status_ = THREAD_RUN; }
+  void MakeSleep() {
+    status_before_sleep_ = status_;
+    status_ = THREAD_SLEEP;
+  }
+  void WakeUp() { status_ = status_before_sleep_; }
 
   void MakeTerminate() { status_ = THREAD_TERMINATE; }
-  void MakeTerminateReady() { status_ = THREAD_TERMINATE_READY; }
+  void MakeTerminateReady() {
+    status_ = THREAD_TERMINATE_READY;
+    status_before_sleep_ = THREAD_TERMINATE_READY;
+  }
   bool IsTerminateReady() const { return status_ == THREAD_TERMINATE_READY; }
 
   void SetInQueue(bool in_queue) { in_queue_ = in_queue; }
@@ -122,6 +128,8 @@ class KernelThread {
 
   bool in_queue_;
   bool in_same_cpu_id_;
+
+  ThreadStatus status_before_sleep_;
 };
 
 }  // namespace Kernel

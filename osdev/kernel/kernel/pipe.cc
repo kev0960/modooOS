@@ -37,6 +37,12 @@ int Pipe::Read(char* data, size_t count) {
     buf_access_lock_.lock();
     if (size_ == 0) {
       buf_access_lock_.unlock();
+
+      // Immediately return if it is a non-blocking IO.
+      if (!is_blocking_) {
+        return 0;
+      }
+
       KernelThreadScheduler::GetKernelThreadScheduler().Yield();
       continue;
     }
@@ -47,7 +53,7 @@ int Pipe::Read(char* data, size_t count) {
     }
 
     size_ -= actually_read;
-    for (int i = 0; i < size_; i ++) {
+    for (int i = 0; i < size_; i++) {
       buf_[i] = buf_[i + actually_read];
     }
 

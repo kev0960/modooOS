@@ -34,6 +34,17 @@ class GraphicManager {
   void PrintKeyStrokes(const std::vector<KeyStroke>& ks, int start, int end);
 
   bool ShouldSync() const { return !is_synced_; }
+
+  struct FrameBufferInfo {
+    // Location to draw at.
+    int screen_row;
+    int screen_col;
+
+    // Size of the buffer.
+    int buffer_width;
+    int buffer_height;
+  };
+  void SyncScreenWith(uint32_t* buffer, FrameBufferInfo* info);
   void SyncScreen();
 
   void PrintLock();
@@ -43,6 +54,10 @@ class GraphicManager {
     anchor_row_ = anchor_row;
     anchor_col_ = anchor_col;
   }
+
+  int GetWidth() const { return width_; }
+  int GetHeight() const { return height_; }
+  int GetPixelSize() const { return pixel_size_; }
 
  private:
   GraphicManager() = default;

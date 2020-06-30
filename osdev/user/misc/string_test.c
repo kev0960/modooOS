@@ -77,6 +77,34 @@ void test_strchr() {
   ASSERT_TRUE((strchr(s, '\0') == (s + 4)));
 }
 
+void test_utf8_to_unicode() {
+  // Examples copied from Wikipedia :)
+  int unicode;
+  char c1 = 0x24;
+  ASSERT_TRUE(utf8_str_to_unicode_num(&c1, &unicode) == 1);
+  ASSERT_TRUE(unicode == 0x24);
+
+  char c2[] = {0xC2, 0xA2};
+  ASSERT_TRUE(utf8_str_to_unicode_num(c2, &unicode) == 2);
+  ASSERT_TRUE(unicode == 0xA2);
+
+  char c3[] = {0xE0, 0xA4, 0xB9};
+  ASSERT_TRUE(utf8_str_to_unicode_num(c3, &unicode) == 3);
+  ASSERT_TRUE(unicode == 0x939);
+
+  char c4[] = {0xE2, 0x82, 0xAC};
+  ASSERT_TRUE(utf8_str_to_unicode_num(c4, &unicode) == 3);
+  ASSERT_TRUE(unicode == 0x20AC);
+
+  char c5[] = {0xED, 0x95, 0x9C};
+  ASSERT_TRUE(utf8_str_to_unicode_num(c5, &unicode) == 3);
+  ASSERT_TRUE(unicode == 0xD55C);
+
+  char c6[] = {0xF0, 0x90, 0x8D, 0x88};
+  ASSERT_TRUE(utf8_str_to_unicode_num(c6, &unicode) == 4);
+  ASSERT_TRUE(unicode == 0x10348);
+}
+
 int main() {
   REGISTER_TEST(test_memcmp);
   REGISTER_TEST(test_memcpy);
@@ -85,6 +113,7 @@ int main() {
   REGISTER_TEST(test_strncmp);
   REGISTER_TEST(test_strlen);
   REGISTER_TEST(test_strchr);
+  REGISTER_TEST(test_utf8_to_unicode);
 
   RunTest();
 

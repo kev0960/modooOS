@@ -167,6 +167,19 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
   auto& console = KernelConsole::GetKernelConsole();
   bool is_console_up = console.IsRunning();
 
+  if (is_console_up) {
+    KeyStroke ks;
+    ks.c = key_info.key;
+    ks.action = key_info.action;
+
+    ks.is_alt_down = IsAltDown();
+    ks.is_ctrl_down = IsControlDown();
+    ks.is_shift_down = IsShiftDown();
+
+    console.AddKeyStroke(ks);
+    return;
+  }
+
   if (key_info.action == KEY_DOWN) {
     char c = 0;
     if (key_info.key < 128) {
@@ -181,17 +194,7 @@ void PS2Keyboard::MainKeyboardHandler(uint8_t scan_code) {
       }
     }
 
-    if (is_console_up) {
-      KeyStroke ks;
-      ks.c = key_info.key;
-      ks.is_alt_down = IsAltDown();
-      ks.is_ctrl_down = IsControlDown();
-      ks.is_shift_down = IsShiftDown();
-
-      console.AddKeyStroke(ks);
-    } else {
-      VGAOutput::GetVGAOutput() << c;
-    }
+    VGAOutput::GetVGAOutput() << c;
   }
 }
 
