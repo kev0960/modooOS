@@ -65,7 +65,6 @@ SECTIONS
   .data : AT ( (LOADADDR (.rodata) + SIZEOF (.rodata) + 0xFFF) & 0xFFFFFFFFFFFFF000 )
   {
     *(.data)
-    *(.eh_frame)
   }
 
   . = ALIGN(0x1000);
@@ -74,6 +73,7 @@ SECTIONS
   {
     *(COMMON)
     *(.bss)
+    *(.eh_frame)
   }
 
   _kernel_virtual_end = .;

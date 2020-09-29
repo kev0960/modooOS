@@ -222,6 +222,14 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
 }
 
 void KernelConsole::DoParse() {
+  bool run_as_background = false;
+  if (input_buffer_size_ >= 1 && input_buffer_[input_buffer_size_ - 1] == '&') {
+    run_as_background = true;
+
+    // Remove the last & from parsing.
+    input_buffer_size_--;
+  }
+
   auto input = Split(std::string_view(input_buffer_, input_buffer_size_), ' ');
 
   // Clear the input buffer.
@@ -250,6 +258,16 @@ void KernelConsole::DoParse() {
     }
     kprintf("\n");
     return;
+  } else if (input[0] == "jobs") {
+    kprintf("[#] [TID] [CPU] [Status] [Name] \n");
+    for (size_t i = 0; i < bg_process_list_.size(); i++) {
+      const KernelString& name = bg_process_list_[i].first;
+      Process* process = bg_process_list_[i].second;
+
+      kprintf("[%d] [%d] [%d] [%s] [%s] \n", i + 1, process->Id(),
+              process->CpuId(), process->GetStatusName(), name.c_str());
+    }
+    return;
   }
 
   std::vector<KernelString> argv;
@@ -269,28 +287,34 @@ void KernelConsole::DoParse() {
   auto file_path = ext2.GetCanonicalAbsolutePath(
       ext2.GetAbsolutePath(input[0], working_dir_));
 
-  fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
+  Process* process = ProcessManager::GetProcessManager().CreateProcess(
       file_path.c_str(), working_dir_.c_str(), argv);
-  if (fg_process_ == nullptr) {
+  if (process == nullptr) {
     // Try again with input[0] with /usr/bin path.
     // TODO Later we have to introduce env variables.
     auto file_path = ext2.GetAbsolutePath(input[0], "/usr/bin");
-    fg_process_ = ProcessManager::GetProcessManager().CreateProcess(
+    process = ProcessManager::GetProcessManager().CreateProcess(
         file_path.c_str(), working_dir_.c_str(), argv);
 
-    if (fg_process_ == nullptr) {
+    if (process == nullptr) {
       kprintf("%s is not found. \n", KernelString(input[0]).c_str());
       return;
     }
   }
 
   // Associate fore ground process's output buffer to console's pipe.
-  FileDescriptorTable& table = fg_process_->GetFileDescriptorTable();
+  FileDescriptorTable& table = process->GetFileDescriptorTable();
   table.SetDescriptor(FileDescriptorTable::STDIO::STDIN,
                       &console_pipe_read_end_);
 
-  fg_process_->Start();
-  fg_process_started_ = true;
+  if (!run_as_background) {
+    fg_process_ = process;
+    fg_process_->Start();
+    fg_process_started_ = true;
+  } else {
+    process->Start();
+    bg_process_list_.push_back(std::make_pair(KernelString(input[0]), process));
+  }
 
   // By yielding here, print_terminal_thread will be enqueued. This will give a
   // chance to flush every remaining output buffer before printing the prompt

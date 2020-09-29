@@ -20,6 +20,7 @@ struct Snake {
   struct Pos pos[MAX_LEN];
   int current_len;
   enum Direction dir;
+  struct Pos food;
 };
 
 void Draw(struct Snake* snake, int* vm) {
@@ -35,6 +36,15 @@ void Draw(struct Snake* snake, int* vm) {
       for (int w = 0; w < RECT_SIZE; w++) {
         vm[(draw_row + h) * MAP_WIDTH + (draw_col + w)] = 0xff00ff;
       }
+    }
+  }
+
+  int draw_row = snake->food.row * RECT_SIZE;
+  int draw_col = snake->food.col * RECT_SIZE;
+
+  for (int h = 0; h < RECT_SIZE; h++) {
+    for (int w = 0; w < RECT_SIZE; w++) {
+      vm[(draw_row + h) * MAP_WIDTH + (draw_col + w)] = 0x00ffff;
     }
   }
 
@@ -106,7 +116,7 @@ bool MakeLonger(struct Snake* snake) {
     return false;
   }
 
-  snake->current_len ++;
+  snake->current_len++;
   return true;
 }
 
@@ -119,6 +129,9 @@ int main() {
   snake.pos[0].row = 4;
   snake.pos[0].col = 4;
   snake.current_len = 1;
+
+  snake.food.row = 9;
+  snake.food.col = 9;
 
   size_t last_action = mstick();
   size_t last_draw = mstick();
@@ -146,13 +159,16 @@ int main() {
       }
     }
 
-    if (snake.pos[0].col == 5 && snake.pos[0].row == 5) {
+    if (snake.pos[0].col == snake.food.col &&
+        snake.pos[0].row == snake.food.row) {
       bool res = MakeLonger(&snake);
+      snake.food.col = (snake.food.col + 3) % (MAP_WIDTH / RECT_SIZE);
+      snake.food.row = (snake.food.row + 7) % (MAP_WIDTH / RECT_SIZE);
       if (!res) break;
     }
 
     size_t cur = mstick();
-    if (cur - last_action >= 1000) {
+    if (cur - last_action >= 600) {
       bool res = MoveSnake(&snake, snake.dir);
       if (!res) {
         break;

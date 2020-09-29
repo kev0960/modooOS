@@ -3,4 +3,6 @@
 
 #include <malloc.h>
 
+int atoi(const char *str);
+
 #endif

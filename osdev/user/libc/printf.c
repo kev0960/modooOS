@@ -33,6 +33,7 @@
 
 #include "printf.h"
 
+#include "float.h"
 #include "stdint.h"
 #include "syscall.h"
 #include "unistd.h"
@@ -62,7 +63,7 @@ void _putchar(char c) { (void)c; }
 
 // support for the floating point type (%f)
 // default: activated
-#define PRINTF_DISABLE_SUPPORT_FLOAT
+#define PRINTF_SUPPORT_FLOAT
 
 #ifndef PRINTF_DISABLE_SUPPORT_FLOAT
 #define PRINTF_SUPPORT_FLOAT

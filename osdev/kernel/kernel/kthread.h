@@ -92,6 +92,20 @@ class KernelThread {
   }
   bool IsTerminateReady() const { return status_ == THREAD_TERMINATE_READY; }
 
+  const char* GetStatusName() const {
+    switch (status_) {
+      case THREAD_RUN:
+        return "Running";
+      case THREAD_SLEEP:
+        return "Sleeping";
+      case THREAD_TERMINATE:
+        return "Terminated";
+      case THREAD_TERMINATE_READY:
+        return "Terminate ready";
+    }
+    return "";
+  }
+
   void SetInQueue(bool in_queue) { in_queue_ = in_queue; }
   bool IsInQueue() const { return in_queue_; }
 

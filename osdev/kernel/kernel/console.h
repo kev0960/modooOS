@@ -81,7 +81,7 @@ class KernelConsole {
   Process* fg_process_;
 
   // List of background processes.
-  std::vector<Process*> bg_process_list_;
+  std::vector<std::pair<KernelString, Process*>> bg_process_list_;
 
   // This is the lock-free version of the list of the received key strokes from
   // the keyboard.

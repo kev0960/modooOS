@@ -1,6 +1,7 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#include "../std/array.h"
 #include "../std/string_view.h"
 #include "elf.h"
 #include "file_descriptor.h"
@@ -123,6 +124,10 @@ class Process : public KernelThread {
 
   // Heap size.
   uint64_t heap_size_;
+
+  // Region where x87 FPU, XMM registers are saved.
+  // This must be aligned to 16-byte boundary.
+  alignas(16) std::array<uint64_t, 64> fxsaved_region_;
 };
 
 class ProcessManager {

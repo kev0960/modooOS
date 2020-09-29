@@ -8,6 +8,7 @@
 #include "cpu_context.h"
 #include "descriptor_table.h"
 #include "fonts.h"
+#include "fpu.h"
 #include "graphic.h"
 #include "interrupt.h"
 #include "kthread.h"
@@ -186,6 +187,9 @@ void KernelMain(void* multiboot_info) {
 
   kprintf("Filesystem setup is done! \n");
 
+  // Initialize FPU
+  FPUManager::GetFPUManager().InitFPU();
+
   ParseMultibootInfo(multiboot_info);
 
   auto& font_manager = FontManager::GetFontManager();
@@ -266,6 +270,9 @@ void KernelMainForAP(uint32_t cpu_context_lo, uint32_t cpu_context_hi) {
   thread2.Start();
   */
   // thread1.Join();
+
+  // Initialize FPU
+  FPUManager::GetFPUManager().InitFPU();
 
   auto& syscall_manager = SyscallManager::GetSyscallManager();
   syscall_manager.InitSyscall();

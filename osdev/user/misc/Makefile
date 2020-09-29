@@ -1,5 +1,5 @@
 CC=~/opt/cross/bin/x86_64-elf-gcc
-CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -mgeneral-regs-only -MMD
+CFLAGS= -fno-builtin -O0 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -MMD
 LDFLAGS = -nostdlib
 LIBC_PATH = ../libc
 INCLUDE = -I$(LIBC_PATH)
