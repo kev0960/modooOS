@@ -3,6 +3,13 @@
 
 #include <malloc.h>
 
-int atoi(const char *str);
+int abs(int n);
+long labs(long n);
+
+int atoi(const char* str);
+double atof(const char* s);
+
+// Do nothing.
+void exit(int exit_code);
 
 #endif

@@ -92,6 +92,12 @@ class Process : public KernelThread {
 
   void ZeroInitIfNeeded(uint64_t boundary);
 
+  // Save the vector and FPU registers.
+  void SaveVectorAndFPURegisters();
+
+  // Load the vector and FPU registers from the saved data.
+  void LoadVectorAndFPURegisters();
+
  private:
   bool in_kernel_space_;
   SavedRegisters user_regs_;
@@ -127,7 +133,7 @@ class Process : public KernelThread {
 
   // Region where x87 FPU, XMM registers are saved.
   // This must be aligned to 16-byte boundary.
-  alignas(16) std::array<uint64_t, 64> fxsaved_region_;
+  void* fxsaved_region_;
 };
 
 class ProcessManager {

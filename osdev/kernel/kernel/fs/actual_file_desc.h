@@ -10,8 +10,14 @@ namespace Kernel {
 // File descriptor that points to the real file.
 class ActualFileDescriptor : public FileDescriptor {
  public:
-  ActualFileDescriptor(int inode_num)
-      : inode_num_(inode_num), offset_(0), inode_(nullptr) {}
+  static constexpr int O_APPEND = (1 << 0);
+  static constexpr int O_CREAT = (1 << 1);
+  static constexpr int O_DIRECTORY = (1 << 2);
+  static constexpr int O_TRUNC = (1 << 3);
+  static constexpr int O_RDONLY = (1 << 4);
+  static constexpr int O_WRONLY = (1 << 5);
+
+  ActualFileDescriptor(int inode_num, int modes);
 
   int GetInodeNum() const { return inode_num_; }
   DescriptorType GetDescriptorType() final { return ACTUAL_FILE; }
@@ -27,10 +33,10 @@ class ActualFileDescriptor : public FileDescriptor {
  private:
   int inode_num_;
   size_t offset_;
+  int open_modes_;
 
   Ext2Inode* inode_;
-};
-
+};  // namespace Kernel
 };  // namespace Kernel
 
 #endif

@@ -573,10 +573,13 @@ void PageTableManager::PageFaultHandler(CPUInterruptHandlerArgs* args,
 
     uint64_t file_read_start_offset =
         header.p_offset + (max(header.p_vaddr, boundary) - header.p_vaddr);
-    uint64_t file_read_end_offset =
-        header.p_offset +
-        min(header.p_filesz, boundary + FourKB - header.p_vaddr);
-    uint64_t num_read = file_read_end_offset - file_read_start_offset;
+
+    uint64_t num_read = 0;
+    if (boundary > header.p_vaddr) {
+      num_read = min(FourKB, header.p_vaddr + header.p_memsz - boundary);
+    } else {
+      num_read = min(FourKB, header.p_memsz);
+    }
 
     // If the address was ELF section, then we need to copy it from the file.
     auto& file_system = Ext2FileSystem::GetExt2FileSystem();

@@ -3,7 +3,10 @@
 
 int main() {
   float a = 3.1;
-  printf("Float : %f \n", a);
+  for (int i = 0; i < 10; i++) {
+    printf("Float : %f \n", a);
+    a = a * 1.7;
+  }
 
   for (int i = 0; i < 4; i++) {
     char buf[100];

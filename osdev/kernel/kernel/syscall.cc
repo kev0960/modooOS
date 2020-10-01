@@ -7,6 +7,7 @@
 #include "./sys/sys_exit.h"
 #include "./sys/sys_getcwd.h"
 #include "./sys/sys_getdents.h"
+#include "./sys/sys_lseek.h"
 #include "./sys/sys_mstick.h"
 #include "./sys/sys_open.h"
 #include "./sys/sys_pipe.h"
@@ -157,7 +158,7 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
       break;
     case SYS_OPEN:  // 7
       ret = SysOpenHandler::GetHandler().SysOpen(
-          reinterpret_cast<const char*>(arg1));
+          reinterpret_cast<const char*>(arg1), arg2);
       break;
     case SYS_PIPE:  // 8
       ret = SysPipeHandler::GetHandler().SysPipe(reinterpret_cast<int*>(arg1));
@@ -203,6 +204,10 @@ int SyscallManager::SyscallHandler(uint64_t syscall_num, uint64_t arg1,
     case SYS_PREAD:  // 18
       ret = reinterpret_cast<uint64_t>(SysPreadHandler::GetHandler().SysPread(
           arg1, reinterpret_cast<char*>(arg2), arg3, arg4));
+      break;
+    case SYS_LSEEK:  // 19
+      ret = reinterpret_cast<uint64_t>(
+          SysLseekHandler::GetHandler().SysLseek(arg1, arg2, arg3));
       break;
   }
 

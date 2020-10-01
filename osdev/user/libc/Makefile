@@ -1,7 +1,7 @@
 CC=~/opt/cross/bin/x86_64-elf-gcc
 LD=~/opt/cross/bin/x86_64-elf-ld
 
-CFLAGS= -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I. -mgeneral-regs-only -MMD 
+CFLAGS= -fno-builtin -O2 -nostdinc -nostdlib -ffreestanding -g -Wall -Wextra -Werror -I. -MMD 
 LDFLAGS = -nostdlib
 
 LIBC_PATH = .

@@ -11,7 +11,7 @@ int main() {
 
   printf("Hello, world!\n");
 
-  int fd = open("/temp.txt");
+  int fd = open("/temp.txt", 0);
   printf("fd:%d\n", fd);
 
   char buf[30];
@@ -23,7 +23,7 @@ int main() {
   printf("%s", buf);
 
   char buf2[100];
-  int fd2 = open("/temp.txt");
+  int fd2 = open("/temp.txt", 0);
   read(fd2, buf2, 99);
   buf2[99] = 0;
   printf("%s", buf2);

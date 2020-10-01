@@ -105,14 +105,16 @@ int64_t syscall_4(int64_t sysnum, int64_t arg1, int64_t arg2, int64_t arg3,
   return ret;
 }
 
-int open(const char* pathname) { return syscall_1(7, (int64_t)pathname); }
+int open(const char* pathname, int flag) {
+  return syscall_2(7, (int64_t)pathname, flag);
+}
 
 size_t read(int64_t fd, char* buf, size_t count) {
   return syscall_3(1, fd, (int64_t)buf, count);
 }
 
 size_t pread(int64_t fd, char* buf, size_t count, off_t offset) {
-  return syscall_4(1, fd, (int64_t)buf, count, offset);
+  return syscall_4(18, fd, (int64_t)buf, count, offset);
 }
 
 size_t write(int fd, const char* s, size_t count) {
@@ -155,3 +157,7 @@ int screen(enum ScreenCommands command, void* arg1, void* arg2) {
 int usleep(size_t microseconds) { return syscall_1(16, (int64_t)microseconds); }
 
 size_t mstick() { return syscall_0(17); }
+
+off_t lseek(int fd, off_t offset, int whence) {
+  return syscall_3(19, fd, offset, whence);
+}

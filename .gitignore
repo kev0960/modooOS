@@ -8,3 +8,4 @@ temp
 !crtn.o
 *.d
 serial.log
+.clangd/**

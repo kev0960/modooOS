@@ -9,7 +9,7 @@ namespace Kernel {
 
 class SysOpenHandler : public SyscallHandler<SysOpenHandler> {
  public:
-  int SysOpen(const char* pathname) {
+  int SysOpen(const char* pathname, int flag) {
     ASSERT(!KernelThread::CurrentThread()->IsKernelThread());
     Process* process = static_cast<Process*>(KernelThread::CurrentThread());
 
@@ -23,7 +23,7 @@ class SysOpenHandler : public SyscallHandler<SysOpenHandler> {
       return -1;
     }
 
-    ActualFileDescriptor* desc = new ActualFileDescriptor(inode_num);
+    ActualFileDescriptor* desc = new ActualFileDescriptor(inode_num, flag);
 
     FileDescriptorTable& table = process->GetFileDescriptorTable();
     return table.AddDescriptor(desc);

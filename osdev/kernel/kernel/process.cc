@@ -78,6 +78,9 @@ Process::Process(KernelThread* parent, const KernelString& file_name,
 
   // Make sure the descriptors recognizes this process.
   fd_table_.AddProcessIdToDescriptors(Id());
+
+  // Create a region for saving MMX, SSE registers on context switch.
+  fxsaved_region_ = kaligned_alloc(16, 512);
 }
 
 ProcessAddressInfo Process::GetAddressInfo(uint64_t addr) const {
@@ -252,6 +255,14 @@ bool Process::ReadExitCode(pid_t pid, uint64_t* exit_code) {
     return true;
   }
   return false;
+}
+
+void Process::SaveVectorAndFPURegisters() {
+  __builtin_ia32_fxsave(fxsaved_region_);
+}
+
+void Process::LoadVectorAndFPURegisters() {
+  __builtin_ia32_fxrstor(fxsaved_region_);
 }
 
 }  // namespace Kernel

@@ -259,7 +259,8 @@ size_t Ext2FileSystem::ReadFile(Ext2Inode* file_inode, uint8_t* buf,
     if (iter.Pos() < offset) {
       current_block_offset = (offset - iter.Pos());
     }
-    for (; read < num_read && current_block_offset < kBlockSize;
+    for (; read < num_read && current_block_offset < kBlockSize &&
+           offset + read < file_inode->size;
          read++, current_block_offset++) {
       buf[read] = block[current_block_offset];
     }

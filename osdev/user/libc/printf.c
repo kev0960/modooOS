@@ -922,6 +922,18 @@ int printf_(const char* format, ...) {
   return ret;
 }
 
+int fprintf_(FILE* stream, const char* format, ...) {
+  va_list va;
+  va_start(va, format);
+  char buffer[1024];
+  const int ret = vsnprintf(buffer, 1024, format, va);
+  buffer[ret] = 0;
+  va_end(va);
+
+  write(stream->fd, buffer, ret);
+  return ret;
+}
+
 int sprintf_(char* buffer, const char* format, ...) {
   va_list va;
   va_start(va, format);
@@ -939,6 +951,13 @@ int snprintf_(char* buffer, size_t count, const char* format, ...) {
 }
 
 int vprintf_(const char* format, va_list va) {
+  char buffer[1];
+  return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+}
+
+int vfprintf_(FILE* stream, const char* format, va_list va) {
+  (void)stream;
+
   char buffer[1];
   return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
 }

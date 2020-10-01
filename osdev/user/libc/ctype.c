@@ -14,3 +14,25 @@ int toupper(int ch) {
 
   return ch;
 }
+
+int isdigit(int ch) {
+  if ('0' <= ch && ch <= '9') {
+    return 1;
+  }
+
+  return 0;
+}
+
+int isspace(int ch) {
+  switch (ch) {
+    case ' ':
+    case '\t':
+    case '\n':
+    case '\v':
+    case '\f':
+    case '\r':
+      return 1;
+  }
+
+  return 0;
+}

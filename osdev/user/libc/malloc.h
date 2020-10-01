@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 void* malloc(unsigned long int bytes);
+void* calloc(unsigned long int num, unsigned long int size);
 void* realloc(void* ptr, unsigned long int bytes);
 void free(void* mem);
 

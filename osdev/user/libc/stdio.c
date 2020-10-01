@@ -1,38 +1,49 @@
 #include "stdio.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <syscall.h>
 
-static bool CheckReadInBuffer(FILE *f, off_t offset) {
-  off_t offset_in_buffer = offset - f->read_buf_start_offset;
-  return (0 <= offset_in_buffer && offset_in_buffer < f->read_buffer_size);
-}
+#define O_APPEND 1
+#define O_CREAT 2
+#define O_DIRECTORY 4
+#define O_TRUNC 8
 
-static bool CheckInWriteBuffer(FILE *f, off_t offset) {
-  off_t offset_in_buffer = offset - f->write_buf_start_offset;
-  return (0 <= offset_in_buffer && offset_in_buffer < f->write_buffer_size);
-}
+FILE _f_stdin = {.fd = 0};
+FILE _f_stdout = {.fd = 1};
+FILE _f_stderr = {.fd = 2};
 
 FILE *fopen(const char *pathname, const char *mode) {
   FILE *file = (FILE *)malloc(sizeof(FILE));
-  int fd = open(pathname);
+
+  int fd;
+  if (strcmp(mode, "w") == 0) {
+    fd = open(pathname, O_TRUNC);
+  } else {
+    fd = open(pathname, 0);
+  }
 
   if (fd == -1) {
     return NULL;
   }
 
   file->fd = fd;
-  file->read_buf_start_offset = 0;
-  file->read_buffer_size = 0;
-  file->current_read = 0;
-
-  file->write_buf_start_offset = 0;
-  file->current_write = 0;
-  file->write_buffer_size = 0;
+  file->buf_size = 0;
+  file->buf_pos = 0;
 
   (void)mode;
 
   return file;
+}
+
+int fclose(FILE *stream) {
+  (void)stream;
+  return 0;
+}
+
+int fflush(FILE *stream) {
+  (void)stream;
+  return 0;
 }
 
 size_t fread(void *ptr, size_t size, size_t count, FILE *stream) {
@@ -64,25 +75,53 @@ int fgetc(FILE *stream) {
     return EOF;
   }
 
-  if (CheckReadInBuffer(stream, stream->current_read)) {
-    // Simple read current buffer.
-    int index = stream->current_read - stream->read_buf_start_offset;
-    stream->current_read++;
-    return stream->read_buffer[index];
+  // If the buffer is all read.
+  if (stream->buf_size == stream->buf_pos) {
+    // Then we need to fill up the buffer.
+    int read_cnt = read(stream->fd, stream->buffer, BUF_SIZE);
+    stream->buf_size = read_cnt;
+    stream->buf_pos = 0;
   }
 
-  // If not, then let's fill the buffer!
-  int num_read =
-      pread(stream->fd, stream->read_buffer, BUF_SIZE, stream->current_read);
-  if (num_read == 0) {
+  // Even after try filling the buffer, if the buffer is still empty.
+  if (stream->buf_size == 0) {
     return EOF;
   }
 
-  stream->read_buf_start_offset = stream->current_read;
-  stream->read_buffer_size = num_read;
-  stream->current_read++;
+  return stream->buffer[stream->buf_pos++];
+}
 
-  return stream->read_buffer[0];
+char *fgets(char *str, int count, FILE *stream) {
+  if (stream == NULL) {
+    return NULL;
+  }
+
+  if (count < 1) {
+    return NULL;
+  }
+
+  for (int i = 0; i < count - 1; i++) {
+    int ch = fgetc(stream);
+    if (ch == EOF) {
+      // No bytes are read.
+      if (i == 0) {
+        return NULL;
+      }
+
+      str[i] = 0;
+      return str;
+    } else {
+      str[i] = ch;
+    }
+
+    if (ch == '\n') {
+      str[i + 1] = 0;
+      return str;
+    }
+  }
+
+  str[count - 1] = 0;
+  return str;
 }
 
 int fputc(int ch, FILE *stream) {
@@ -90,44 +129,51 @@ int fputc(int ch, FILE *stream) {
     return EOF;
   }
 
-  off_t written_index;
-
-  if (CheckInWriteBuffer(stream, stream->current_write)) {
-    off_t index = stream->current_write - stream->write_buf_start_offset;
-    stream->current_write++;
-
-    stream->write_buffer[index] = ch;
-    goto check_overlap;
+  // If the buffer is full, then we should flush.
+  if (stream->buf_size == BUF_SIZE) {
+    write(stream->fd, stream->buffer, stream->buf_size);
+    stream->buf_size = 0;
+    stream->buf_pos = 0;
   }
 
-  // If write buffer size is not BUF_SIZE, then the write buffer touching EOF.
-  // In that case, we don't have to really call pread.
-  if (stream->write_buffer_size < BUF_SIZE) {
-    stream->write_buffer_size++;
+  stream->buffer[stream->buf_pos] = ch;
+  stream->buf_size++;
+  stream->buf_pos++;
 
-    off_t index = stream->current_write - stream->write_buf_start_offset;
-    stream->current_write++;
-
-    stream->write_buffer[index] = ch;
-    goto check_overlap;
+  bool should_flush = false;
+  if (stream->mode & _IO_UNBUFFERED) {
+    should_flush = true;
+  } else if ((stream->mode & _IO_LINE_BUFFERED) && ch == '\n') {
+    should_flush = true;
+  } else if ((stream->mode & _IO_BLOCK_BUFFERED) &&
+             stream->buf_size == BUF_SIZE) {
+    should_flush = true;
   }
 
-  int num_read =
-      pread(stream->fd, stream->write_buffer, BUF_SIZE, stream->current_write);
-  stream->write_buf_start_offset = stream->current_write;
-  stream->write_buffer_size = (num_read > 0 ? num_read : 1);
-
-  stream->current_write++;
-  stream->write_buffer[0] = ch;
-
-  // Check if there is an overlap between read buffer and write buffer.
-  // If it is, then we have to write at the read buffer too.
-check_overlap:
-  written_index = stream->current_write - 1;
-  if (CheckReadInBuffer(stream, written_index)) {
-    int index = written_index - stream->read_buf_start_offset;
-    stream->read_buffer[index] = ch;
+  if (should_flush) {
+    write(stream->fd, stream->buffer, stream->buf_size);
+    stream->buf_size = 0;
+    stream->buf_pos = 0;
   }
 
   return ch;
 }
+
+long ftell(FILE *stream) {
+  if (stream == NULL) {
+    return EOF;
+  }
+
+  return lseek(stream->fd, 0, SEEK_CUR);
+}
+
+int fseek(FILE *stream, long offset, int origin) {
+  return lseek(stream->fd, offset, origin);
+}
+
+int putchar(int ch) {
+  printf("%c", ch);
+  return ch;
+}
+
+int puts(const char *str) { return printf("%s", str); }

@@ -22,6 +22,7 @@ enum SyscallNumbers {
   SYS_USLEEP,
   SYS_MSTICK,
   SYS_PREAD,
+  SYS_LSEEK
 };
 
 class SyscallManager {

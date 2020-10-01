@@ -9,10 +9,18 @@ int strcmp(const char* lhs, const char* rhs);
 int strncmp(const char* lhs, const char* rhs, size_t count);
 size_t strlen(const char* str);
 char* strchr(const char* str, int ch);
+char* strrchr(const char* str, int ch);
+
+char* strcpy(char* dest, const char* src);
+char* strncpy(char* dest, const char* src, size_t n);
+
+char* strdup(const char* str);
+
+char* strstr(const char* str, const char* substr);
 
 // strings.h
-int strcasecmp(const char *s1, const char *s2);
-int strncasecmp(const char *s1, const char *s2, size_t n);
+int strcasecmp(const char* s1, const char* s2);
+int strncasecmp(const char* s1, const char* s2, size_t n);
 
 // ModooOS Custom functions.
 // Returns the number of bytes written.

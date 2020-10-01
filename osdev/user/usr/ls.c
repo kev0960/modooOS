@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
   char current_dir[100];
   getcwd(current_dir, 100);
 
-  int fd = open(current_dir);
+  int fd = open(current_dir, 0);
 
   char dir_info[1024];
   int cnt = get_dents(fd, (struct linux_dirent*)dir_info, 1024);

@@ -137,7 +137,7 @@ int main() {
   size_t last_draw = mstick();
   while (1) {
     char buf[10];
-    int cnt = read(stdin, buf, 10);
+    int cnt = read(0, buf, 10);
     if (cnt != 0) {
       bool res = true;
       if (buf[0] == 'w') {

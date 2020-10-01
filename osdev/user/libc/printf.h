@@ -33,6 +33,8 @@
 #ifndef _PRINTF_H_
 #define _PRINTF_H_
 
+#include <io.h>
+
 #include "../../kernel/std/stdarg.h"
 #include "stddef.h"
 
@@ -58,6 +60,9 @@ void _putchar(char character);
  */
 #define printf printf_
 int printf_(const char* format, ...);
+
+#define fprintf fprintf_
+int fprintf_(FILE* stream, const char* format, ...);
 
 /**
  * Tiny sprintf implementation
@@ -96,6 +101,9 @@ int vsnprintf_(char* buffer, size_t count, const char* format, va_list va);
  */
 #define vprintf vprintf_
 int vprintf_(const char* format, va_list va);
+
+#define vfprintf vfprintf_
+int vfprintf_(FILE* stream, const char* format, va_list va);
 
 /**
  * printf with output function

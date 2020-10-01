@@ -4,7 +4,7 @@ typedef uint64_t size_t;
 typedef uint64_t pid_t;
 typedef int64_t off_t;
 
-int open(const char* path_name);
+int open(const char* path_name, int flag);
 
 size_t read(int64_t fd, char* buf, size_t count);
 size_t pread(int64_t fd, char* buf, size_t count, off_t offset);
@@ -73,3 +73,5 @@ int screen(enum ScreenCommands command, void* arg1, void* arg2);
 
 int usleep(size_t microseconds);
 size_t mstick();
+
+off_t lseek(int fd, off_t offset, int whence);

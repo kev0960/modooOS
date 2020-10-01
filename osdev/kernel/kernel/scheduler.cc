@@ -79,9 +79,9 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   }
 
   KernelThread* current_thread = KernelThread::CurrentThread();
-  // QemuSerialLog::Logf("Current thread : %d \n", current_thread->Id());
   ASSERT(next_thread_element->Get()->CpuId() ==
          CPUContextManager::GetCurrentCPUId());
+
   // If current RIP is in kernel, then the current thread is in kernel.
   // Otherwise, it is running in the user mode.
   if (!current_thread->IsKernelThread()) {
@@ -111,11 +111,6 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // This problem can be prevented by checking whether the thread is already in
   // queue on step (3).
   if (current_thread->IsRunnable() && !current_thread->IsInQueue()) {
-    /*
-    QemuSerialLog::Logf("[CPU %d]Thread cpu id : %d \n",
-                        CPUContextManager::GetCurrentCPUId(),
-                        current_thread->CpuId());
-                        */
     // Move the current thread to run at the back of the queue.
     GetKernelThreadList().push_back(current_thread->GetKenrelListElem());
     current_thread->SetInQueue(true);
@@ -125,19 +120,16 @@ void KernelThreadScheduler::YieldInInterruptHandler(
     __atomic_fetch_sub(&num_threads_per_core_[current_thread->CpuId()], 1,
                        __ATOMIC_RELAXED);
   }
-  /*
-  QemuSerialLog::Logf("[aft enq]h %lx t %lx sz : %d\n",
-                      GetKernelThreadList().head_, GetKernelThreadList().tail_,
-                      GetKernelThreadList().size_);
-  */
 
   SavedRegisters* current_thread_regs = nullptr;
   if (args->cs == kKernelCodeSegment) {
     current_thread_regs = current_thread->GetSavedKernelRegs();
   } else {
-    current_thread_regs =
-        static_cast<Process*>(current_thread)->GetSavedUserRegs();
+    Process* current_process = static_cast<Process*>(current_thread);
+    current_thread_regs = current_process->GetSavedUserRegs();
+    current_process->SaveVectorAndFPURegisters();
   }
+
   CopyCPUInteruptHandlerArgs(current_thread_regs, args);
   current_thread_regs->regs = *regs;
 
@@ -146,20 +138,6 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   // QemuSerialLog::Logf("Next thread : %d \n", next_thread->Id());
   next_thread->SetInQueue(false);
 
-  /*
-  QemuSerialLog::Logf("[CPU %d] Schedule!(%d) -> (%d) %lx \n",
-                      CPUContextManager::GetCurrentCPUId(),
-                      current_thread->Id(), next_thread->Id(),
-                      next_thread->GetSavedKernelRegs()->rsp);
-  if (CPUContextManager::GetCurrentCPUId() == 1) {
-    sp.lock();
-  kprintf("Schedule!(%d) -> (%d) %lx \n", current_thread->Id(),
-          next_thread->Id(), CPUContextManager::GetCurrentCPUId());
-  sp.unlock();
-  }
-      current_thread->GetSavedKernelRegs()->rflags,
-      current_thread->GetKernelStackTop());
-      */
   // If the target thread is a user process (i.e we are jumping into the user
   // space), we have to set the interrupt frame's RSP as User's RSP (user_rsp)
   // instead of the kernel rsp.
@@ -167,11 +145,11 @@ void KernelThreadScheduler::YieldInInterruptHandler(
   if (next_thread->IsInKernelSpace()) {
     next_thread_regs = next_thread->GetSavedKernelRegs();
     CopyCPUInteruptHandlerArgs(args, next_thread_regs);
-
   } else {
     Process* process = static_cast<Process*>(next_thread);
     next_thread_regs = process->GetSavedUserRegs();
     CopyCPUInteruptHandlerArgs(args, next_thread_regs);
+    process->LoadVectorAndFPURegisters();
 
     // Also set TSS RSP0 as current user process's kernel stack rsp.
     TaskStateSegmentManager::GetTaskStateSegmentManager().SetRSP0(

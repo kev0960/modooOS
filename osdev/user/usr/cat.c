@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 
   printf("File %s size : %d.\n", argv[1], file_info.file_size);
 
-  int fd = open(argv[1]);
+  int fd = open(argv[1], 0);
   char buf[1025];
   size_t cnt = 0;
   while (cnt < file_info.file_size) {

@@ -100,6 +100,60 @@ char* strchr(const char* str, int ch) {
   return (char*)str;
 }
 
+char* strrchr(const char* str, int ch) {
+  char* ret = 0;
+  do {
+    if (*str == (char)ch) {
+      ret = (char*)str;
+    }
+  } while (*str++);
+
+  return ret;
+}
+
+char* strcpy(char* dest, const char* src) {
+  int i = 0;
+
+  while (1) {
+    dest[i] = src[i];
+    if (src[i] == 0) {
+      return dest;
+    }
+    i++;
+  }
+}
+
+char* strncpy(char* dest, const char* src, size_t n) {
+  char* ret = dest;
+  do {
+    if (!n--) {
+      return ret;
+    }
+  } while ((*dest++ = *src++));
+
+  while (n--) {
+    *dest++ = 0;
+  }
+  return ret;
+}
+
+char* strdup(const char* str) {
+  char* copied = malloc(strlen(str) + 1);
+  strcpy(copied, str);
+
+  return copied;
+}
+
+char* strstr(const char* str, const char* substr) {
+  size_t n = strlen(substr);
+  while (*str) {
+    if (!memcmp(str++, substr, n)) {
+      return (char*)(str - 1);
+    }
+  }
+  return 0;
+}
+
 int strcasecmp(const char* lhs, const char* rhs) {
   while (*lhs && (*lhs == *rhs)) {
     lhs++;

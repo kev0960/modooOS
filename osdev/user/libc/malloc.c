@@ -370,6 +370,19 @@ void* realloc(void* ptr, unsigned long int bytes) {
   return malloc(bytes);
 }
 
+void* calloc(unsigned long int num, unsigned long int size) {
+  char* data = (char*)malloc(num * size);
+  if (data == NULL) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < num * size; i++) {
+    data[i] = 0;
+  }
+
+  return data;
+}
+
 void free(void* mem) {
   if (mem == 0) {
     return;

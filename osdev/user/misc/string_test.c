@@ -77,6 +77,12 @@ void test_strchr() {
   ASSERT_TRUE((strchr(s, '\0') == (s + 4)));
 }
 
+void test_strdup() {
+  const char* s = "this is some text";
+  char* copied = strdup(s);
+  ASSERT_TRUE(strcmp(s, copied) == 0);
+}
+
 void test_utf8_to_unicode() {
   // Examples copied from Wikipedia :)
   int unicode;
@@ -113,6 +119,7 @@ int main() {
   REGISTER_TEST(test_strncmp);
   REGISTER_TEST(test_strlen);
   REGISTER_TEST(test_strchr);
+  REGISTER_TEST(test_strdup);
   REGISTER_TEST(test_utf8_to_unicode);
 
   RunTest();

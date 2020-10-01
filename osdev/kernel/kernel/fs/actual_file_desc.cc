@@ -4,6 +4,20 @@
 
 namespace Kernel {
 
+ActualFileDescriptor::ActualFileDescriptor(int inode_num, int modes)
+    : inode_num_(inode_num), offset_(0), open_modes_(modes), inode_(nullptr) {
+  auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
+
+  // Truncate the file.
+  if (open_modes_ & O_TRUNC) {
+    inode_ = new Ext2Inode();
+    *inode_ = ext2.ReadInode(inode_num_);
+
+    inode_->size = 0;
+    ext2.WriteInode(inode_num, *inode_);
+  }
+}
+
 size_t ActualFileDescriptor::Read(void* buf, int count) {
   QemuSerialLog::Logf("Read file : %d \n", inode_num_);
   auto& ext2 = Ext2FileSystem::GetExt2FileSystem();
@@ -12,7 +26,6 @@ size_t ActualFileDescriptor::Read(void* buf, int count) {
     *inode_ = ext2.ReadInode(inode_num_);
   }
 
-  QemuSerialLog::Logf("Read inode : %d \n", inode_num_);
   size_t num_read =
       ext2.ReadFile(inode_, reinterpret_cast<uint8_t*>(buf), count, offset_);
   offset_ += num_read;
