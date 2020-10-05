@@ -9,7 +9,7 @@ void test_fgetc() {
   ASSERT_TRUE(fgetc(file) == 'o');
   ASSERT_TRUE(fgetc(file) == 'm');
   ASSERT_TRUE(fgetc(file) == 'e');
-  ASSERT_TRUE(fgetc(file) == 10); // Line Feed
+  ASSERT_TRUE(fgetc(file) == 10);  // Line Feed
   ASSERT_TRUE(fgetc(file) == EOF);
 }
 
@@ -41,12 +41,21 @@ void test_filesize() {
   ASSERT_TRUE(ftell(stream) == 141695);
 }
 
+void test_doomwad() {
+  FILE* stream = fopen("/DOOM1.WAD", "r");
+  fseek(stream, -4096, SEEK_END);
+  for (int i = 0; i < 4096; i ++) {
+    printf("%x ", fgetc(stream));
+  }
+}
+
 int main() {
   REGISTER_TEST(test_fgetc);
   REGISTER_TEST(test_fgets);
   REGISTER_TEST(test_ftell);
   REGISTER_TEST(test_filesize);
 
+  test_doomwad();
   RunTest();
   return 0;
 }

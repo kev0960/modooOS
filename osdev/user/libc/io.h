@@ -6,7 +6,7 @@
 typedef struct _File_IO {
   int fd;  // Descriptor number of the file.
 
-  char buffer[BUF_SIZE];
+  unsigned char buffer[BUF_SIZE];
 
   // Size of the current buffer.
   int buf_size;

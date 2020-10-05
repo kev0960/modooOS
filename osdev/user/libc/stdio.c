@@ -1,5 +1,6 @@
 #include "stdio.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syscall.h>
@@ -78,7 +79,7 @@ int fgetc(FILE *stream) {
   // If the buffer is all read.
   if (stream->buf_size == stream->buf_pos) {
     // Then we need to fill up the buffer.
-    int read_cnt = read(stream->fd, stream->buffer, BUF_SIZE);
+    int read_cnt = read(stream->fd, (char *)stream->buffer, BUF_SIZE);
     stream->buf_size = read_cnt;
     stream->buf_pos = 0;
   }
@@ -131,7 +132,7 @@ int fputc(int ch, FILE *stream) {
 
   // If the buffer is full, then we should flush.
   if (stream->buf_size == BUF_SIZE) {
-    write(stream->fd, stream->buffer, stream->buf_size);
+    write(stream->fd, (char *)stream->buffer, stream->buf_size);
     stream->buf_size = 0;
     stream->buf_pos = 0;
   }
@@ -151,7 +152,7 @@ int fputc(int ch, FILE *stream) {
   }
 
   if (should_flush) {
-    write(stream->fd, stream->buffer, stream->buf_size);
+    write(stream->fd, (char*)stream->buffer, stream->buf_size);
     stream->buf_size = 0;
     stream->buf_pos = 0;
   }
@@ -168,6 +169,10 @@ long ftell(FILE *stream) {
 }
 
 int fseek(FILE *stream, long offset, int origin) {
+  // Empty the buffer.
+  stream->buf_pos = 0;
+  stream->buf_size = 0;
+
   return lseek(stream->fd, offset, origin);
 }
 

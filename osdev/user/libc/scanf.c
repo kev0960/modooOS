@@ -17,6 +17,18 @@ result) == 1;
 ./doomgeneric_soso.c:        sscanf(myargv[argPosY + 1], "%d", &s_PositionY);
 */
 
+int GetHexValue(char c) {
+  if (isdigit(c)) {
+    return c - '0';
+  }
+
+  if ('a' <= tolower(c) && tolower(c) <= 'f') {
+    return tolower(c) - 'a' + 10;
+  }
+
+  return -1;
+}
+
 int MatchDecimal(const char* buffer, int current, int* num) {
   while (isspace(buffer[current])) {
     current++;
@@ -33,12 +45,77 @@ int MatchDecimal(const char* buffer, int current, int* num) {
   }
 
   for (; buffer[current] != 0; current++) {
-    printf("buf : %c\n", buffer[current]);
     if (!isdigit(buffer[current])) {
       *num = (*num) * sign;
       return current;
     }
     *num = (*num) * 10 + (buffer[current] - '0');
+  }
+
+  *num = (*num) * sign;
+  return current;
+}
+
+int MatchHex(const char* buffer, int current, int* num) {
+  while (isspace(buffer[current])) {
+    current++;
+  }
+
+  *num = 0;
+  int sign = 1;
+
+  if (buffer[current] == '-') {
+    sign = -1;
+    current++;
+  } else if (buffer[current] == '+') {
+    current++;
+  }
+
+  // Ignore prefix "0x"
+  if (buffer[current] == '0' &&
+      (buffer[current + 1] == 'x' || buffer[current + 1] == 'X')) {
+    current += 2;
+  }
+
+  for (; buffer[current] != 0; current++) {
+    int digit = GetHexValue(buffer[current]);
+    if (digit == -1) {
+      *num = (*num) * sign;
+      return current;
+    }
+    *num = (*num) * 16 + digit;
+  }
+
+  *num = (*num) * sign;
+  return current;
+}
+
+int MatchOct(const char* buffer, int current, int* num) {
+  while (isspace(buffer[current])) {
+    current++;
+  }
+
+  *num = 0;
+  int sign = 1;
+
+  if (buffer[current] == '-') {
+    sign = -1;
+    current++;
+  } else if (buffer[current] == '+') {
+    current++;
+  }
+
+  // Ignore prefix "0"
+  if (buffer[current] == '0') {
+    current += 1;
+  }
+
+  for (; buffer[current] != 0; current++) {
+    if (!('0' <= buffer[current] && buffer[current] <= '7')) {
+      *num = (*num) * sign;
+      return current;
+    }
+    *num = (*num) * 8 + (buffer[current] - '0');
   }
 
   *num = (*num) * sign;
@@ -55,7 +132,6 @@ int sscanf(const char* buffer, const char* format, ...) {
   va_start(args, format);
 
   for (size_t i = 0; i < format_length; i++) {
-    printf("format: %c %d\n", format[i], introduced_percent);
     if (isspace(format[i])) {
       // Consume every consecutive spaces in the buffer.
       while (isspace(buffer[buffer_pos])) {
@@ -76,18 +152,25 @@ int sscanf(const char* buffer, const char* format, ...) {
       if (introduced_percent) {
         switch (format[i]) {
           case 'd':
-            printf("Match d : %c\n", format[i]);
             // Match decimals
             buffer_pos = MatchDecimal(buffer, buffer_pos, va_arg(args, int*));
             break;
           case 'x':
             // Match Hex
-            buffer_pos = MatchDecimal(buffer, buffer_pos, va_arg(args, int*));
+            buffer_pos = MatchHex(buffer, buffer_pos, va_arg(args, int*));
             break;
           case 'o':
             // Match Oct
-            buffer_pos = MatchDecimal(buffer, buffer_pos, va_arg(args, int*));
+            buffer_pos = MatchOct(buffer, buffer_pos, va_arg(args, int*));
             break;
+        }
+
+        introduced_percent = false;
+      } else {
+        if (format[i] == buffer[buffer_pos]) {
+          buffer_pos++;
+        } else {
+          return buffer_pos;
         }
       }
     }

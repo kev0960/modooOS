@@ -83,6 +83,13 @@ void test_strdup() {
   ASSERT_TRUE(strcmp(s, copied) == 0);
 }
 
+void test_strncasecmp() {
+  char s1[] = "PNAMES";
+  char s2[] = "PNAMES";
+
+  ASSERT_TRUE(strncasecmp(s1, s2, 8) == 0);
+}
+
 void test_utf8_to_unicode() {
   // Examples copied from Wikipedia :)
   int unicode;
@@ -119,6 +126,7 @@ int main() {
   REGISTER_TEST(test_strncmp);
   REGISTER_TEST(test_strlen);
   REGISTER_TEST(test_strchr);
+  REGISTER_TEST(test_strncasecmp);
   REGISTER_TEST(test_strdup);
   REGISTER_TEST(test_utf8_to_unicode);
 

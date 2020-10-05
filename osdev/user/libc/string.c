@@ -1,6 +1,8 @@
 #include "string.h"
 
+#include <ctype.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 void* memcpy(void* dest, const void* src, size_t count) {
@@ -15,9 +17,9 @@ void* memcpy(void* dest, const void* src, size_t count) {
 }
 
 void* memset(void* dest, int ch, size_t count) {
-  char* d = dest;
+  unsigned char* d = dest;
   while (count-- > 0) {
-    *d = ch;
+    *d = (unsigned char)(ch);
     d++;
   }
   return dest;
@@ -155,20 +157,24 @@ char* strstr(const char* str, const char* substr) {
 }
 
 int strcasecmp(const char* lhs, const char* rhs) {
-  while (*lhs && (*lhs == *rhs)) {
+  while (*lhs && (tolower(*lhs) == tolower(*rhs))) {
     lhs++;
     rhs++;
   }
 
-  int lc = *lhs;
-  int rc = *rhs;
+  int lc = tolower(*lhs);
+  int rc = tolower(*rhs);
 
   return lc - rc;
 }
 
 int strncasecmp(const char* lhs, const char* rhs, size_t count) {
   while (count--) {
-    if (*lhs != *rhs) {
+    if (*lhs == 0 || *rhs == 0) {
+      return *(unsigned char*)(lhs) - *(unsigned char*)(rhs);
+    }
+
+    if (tolower(*lhs) != tolower(*rhs)) {
       return *(unsigned char*)(lhs) - *(unsigned char*)(rhs);
     }
     lhs++;

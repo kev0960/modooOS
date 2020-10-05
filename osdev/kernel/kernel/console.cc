@@ -174,6 +174,13 @@ void KernelConsole::FillInputBufferAndParse(int num_received) {
           should_show_shell_prefix_ = true;
         }
       } else {
+        if (keystroke_mode_ & RECORD_UP) {
+          if (received_keyinfo_queue[i].action == KEY_UP) {
+            input_buffer_[input_buffer_size_++] = 1;
+          } else if (received_keyinfo_queue[i].action == KEY_DOWN) {
+            input_buffer_[input_buffer_size_++] = 2;
+          }
+        }
         // Need to include ENTER.
         input_buffer_[input_buffer_size_] = '\r';
         input_buffer_size_++;

@@ -475,7 +475,7 @@ void PageTableManager::AllocatePage(uint64_t* user_pml4e_base_phys_addr_,
                       physical_frame, user_vm_address,
                       CPUContextManager::GetCurrentCPUId(),
                       user_pml4e_base_phys_addr_);
-  // kprintf("physical frame : %lx \n", physical_frame);
+
   // Assign physical frames to the page table.
   page_table_.AllocateTable(
       user_pml4e_base_phys_addr_, reinterpret_cast<uint64_t>(user_vm_address),

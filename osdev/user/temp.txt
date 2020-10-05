@@ -1,3 +1,0 @@
-this is a sample file
-that contains some text
-i hope read() can read this file
